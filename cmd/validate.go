@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"gopkg.in/validator.v2"
 )
@@ -42,8 +43,22 @@ to quickly create a Cobra application.`,
 		}
 
 		nur := NewUserRequest{Username: "something", Age: 20}
-		if errs := validator.Validate(nur); errs != nil {
-			fmt.Println("Error")
+		err := validator.Validate(nur)
+		if err == nil {
+			color.Green("Valid!")
+		} else {
+			errs := err.(validator.ErrorMap)
+
+			color.Red("Invalid")
+
+			var errOuts []string
+			for f, e := range errs {
+				errOuts = append(errOuts, fmt.Sprintf("\t - %s (%v)\n", f, e))
+			}
+
+			for _, str := range errOuts {
+				fmt.Print(str)
+			}
 		}
 	},
 }
