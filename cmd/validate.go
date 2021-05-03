@@ -17,33 +17,53 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"gopkg.in/validator.v2"
+	"gopkg.in/yaml.v3"
 )
+
+type NewUserRequest struct {
+	Conf struct {
+		Username string `validate:"min=3,max=40,regexp=^[a-zA-Z]*$"`
+		Name     string `validate:"nonzero"`
+		Age      int    `validate:"min=21"`
+		Password string `validate:"min=8"`
+	}
+}
+
+func readConf(filename string) (*NewUserRequest, error) {
+	buf, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	c := &NewUserRequest{}
+	err = yaml.Unmarshal(buf, c)
+
+	if err != nil {
+		return nil, fmt.Errorf("in file %q: %v", filename, err)
+	}
+
+	return c, nil
+}
 
 // validateCmd represents the validate command
 var validateCmd = &cobra.Command{
 	Use:   "validate",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Validates your yaml file against the OpenSLO spec",
+	Long:  `TODO`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		type NewUserRequest struct {
-			Username string `validate:"min=3,max=40,regexp=^[a-zA-Z]*$"`
-			Name     string `validate:"nonzero"`
-			Age      int    `validate:"min=21"`
-			Password string `validate:"min=8"`
+		c, err := readConf("conf.yaml")
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		nur := NewUserRequest{Username: "something", Age: 20}
-		err := validator.Validate(nur)
+		err = validator.Validate(c)
 		if err == nil {
 			color.Green("Valid!")
 		} else {
