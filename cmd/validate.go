@@ -28,10 +28,10 @@ import (
 
 type NewUserRequest struct {
 	Conf struct {
-		Username string `validate:"min=3,max=40,regexp=^[a-zA-Z]*$"`
+		Username string `validate:"nonzero,min=3,max=40,regexp=^[a-zA-Z]*$"`
 		Name     string `validate:"nonzero"`
 		Age      int    `validate:"min=21"`
-		Password string `validate:"min=8"`
+		Password string `validate:"nonzero,min=8"`
 	}
 }
 
@@ -57,29 +57,31 @@ var validateCmd = &cobra.Command{
 	Short: "Validates your yaml file against the OpenSLO spec",
 	Long:  `TODO`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		c, err := readConf("conf.yaml")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = validator.Validate(c)
-		if err == nil {
-			color.Green("Valid!")
-		} else {
-			errs := err.(validator.ErrorMap)
-
-			color.Red("Invalid")
-
-			var errOuts []string
-			for f, e := range errs {
-				errOuts = append(errOuts, fmt.Sprintf("\t - %s (%v)\n", f, e))
+		for _, ival := range args {
+			c, err := readConf(ival)
+			if err != nil {
+				log.Fatal(err)
 			}
 
-			for _, str := range errOuts {
-				fmt.Print(str)
+			err = validator.Validate(c)
+			if err == nil {
+				color.Green("Valid!")
+			} else {
+				errs := err.(validator.ErrorMap)
+
+				color.Red("Invalid")
+
+				var errOuts []string
+				for f, e := range errs {
+					errOuts = append(errOuts, fmt.Sprintf("\t - %s (%v)\n", f, e))
+				}
+
+				for _, str := range errOuts {
+					fmt.Print(str)
+				}
 			}
 		}
+
 	},
 }
 
