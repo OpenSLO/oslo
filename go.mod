@@ -1,4 +1,4 @@
-module oslo
+module github.com/openslo/oslo
 
 go 1.16
 
