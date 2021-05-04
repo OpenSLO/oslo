@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 OpenSLO Team
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"gopkg.in/validator.v2"
 	"gopkg.in/yaml.v3"
@@ -35,6 +34,7 @@ type NewUserRequest struct {
 	}
 }
 
+// reads in filename for a yaml file, and unmarshalls it
 func readConf(filename string) (*NewUserRequest, error) {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -51,50 +51,47 @@ func readConf(filename string) (*NewUserRequest, error) {
 	return c, nil
 }
 
+func validate(c *NewUserRequest) {
+	err := validator.Validate(c)
+	if err == nil {
+		fmt.Println("Valid!")
+	} else {
+		errs := err.(validator.ErrorMap)
+
+		fmt.Println("Invalid")
+
+		var errOuts []string
+		for f, e := range errs {
+			errOuts = append(errOuts, fmt.Sprintf("  - %s (%v)\n", f, e))
+		}
+
+		for _, str := range errOuts {
+			fmt.Print(str)
+		}
+	}
+}
+
+func validateFiles(files []string) {
+	for _, ival := range files {
+		c, err := readConf(ival)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		validate(c)
+	}
+}
+
 // validateCmd represents the validate command
 var validateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "Validates your yaml file against the OpenSLO spec",
 	Long:  `TODO`,
 	Run: func(cmd *cobra.Command, args []string) {
-		for _, ival := range args {
-			c, err := readConf(ival)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			err = validator.Validate(c)
-			if err == nil {
-				color.Green("Valid!")
-			} else {
-				errs := err.(validator.ErrorMap)
-
-				color.Red("Invalid")
-
-				var errOuts []string
-				for f, e := range errs {
-					errOuts = append(errOuts, fmt.Sprintf("\t - %s (%v)\n", f, e))
-				}
-
-				for _, str := range errOuts {
-					fmt.Print(str)
-				}
-			}
-		}
-
+		validateFiles(args)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(validateCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// validateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// validateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
