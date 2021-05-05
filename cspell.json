@@ -1,0 +1,27 @@
+{
+  "language": "en_US",
+  "dictionaries": [
+    "bash",
+    "companies",
+    "css",
+    "go",
+    "html",
+    "misc",
+    "softwareTerms"
+  ],
+  "ignorePaths": [
+    ".vscode/",
+    "**/*.lock",
+    "**/*.mod",
+    "**/go.sum",
+    "**/node_modules/**",
+    "package.json",
+    "oslo"
+  ],
+  "allowCompoundWords": true,
+  "words": [
+    "forbidigo",
+    "golangci",
+    "mitchellh"
+  ]
+}

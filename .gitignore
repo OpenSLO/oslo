@@ -1,3 +1,7 @@
+# IDE specific
+.vscode
+.idea
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -11,5 +15,10 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Project specific
+node_modules
+oslo
+
+# OS specific
+## macOS
+.DS_Store
