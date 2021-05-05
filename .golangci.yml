@@ -1,0 +1,127 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+issues:
+  # Enable all checks (which was as default disabled e.g. comments).
+  exclude-use-default: false
+
+  exclude-rules:
+    # Documenting comments are not required except on packages.
+    - linters:
+        - golint
+      text: exported (function|method) .*? should have comment or be unexported
+    - linters:
+        - golint
+      text: exported const .*? should have comment (\(or a comment on this block\) )?or be unexported
+    - linters:
+        - golint
+      text: exported type .*? should have comment or be unexported
+    # Stylecheck checks if at least one file has package comment but it's not required on all of them.
+    - linters:
+        - golint
+      text: should have a package comment, unless it's in another file for this package
+
+  # Value 0 means show all.
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters-settings:
+  goimports:
+    # Put imports beginning with prefix after 3rd-party packages;s
+    # it's a comma-separated list of prefixes.
+    local-prefixes: github.com/nobl9/n9
+  golint:
+    min-confidence: 0
+  govet:
+    # Report about shadowed variables.
+    check-shadowing: true
+  lll:
+    line-length: 120
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - opinionated
+      - style
+  exhaustive:
+    # In switch statement treat label default: as being exhaustive.
+    default-signifies-exhaustive: true
+  misspell:
+    locale: US
+  forbidigo:
+    forbid:
+      - ^ioutil\..*$ # Package ioutil is deprecated.
+linters:
+  # Please, do not use `enable-all`: it's deprecated and will be removed soon.
+  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint.
+  disable-all: true
+  enable:
+    # All linters from list https://golangci-lint.run/usage/linters/ are specifed here and explicit enable/disable.
+    - asciicheck
+    - bodyclose
+    - cyclop
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - durationcheck
+    - errcheck
+    - errorlint
+    - exhaustive
+    # - exhaustivestruct  # Should be used only in special cases, here is useless.
+    - exportloopref
+    - forbidigo
+    # - funlen # About optimal function length programmer and reviewer should decide.
+    - gci
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - goerr113
+    - gofmt
+    - gofumpt
+    - goheader
+    - goimports
+    - golint
+    # - gomnd # Too aggressive, what "magic numbers" is inappropriate in code programmer and reviewer should decide.
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ifshort
+    - importas
+    - ineffassign
+    - lll
+    - makezero
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    # - nlreturn # In some cases try to force redundant empty lines, which contradicts the style guide.
+    - noctx
+    - nolintlint
+    - paralleltest
+    - prealloc
+    - predeclared
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - testpackage
+    - thelper
+    - tparallel
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+    - wrapcheck
+    - varcheck
+    # - wsl # In some cases try to force redundant empty lines, which contradicts the style guide.
