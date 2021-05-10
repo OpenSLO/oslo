@@ -7,23 +7,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var data = `
+func TestReadConf(t *testing.T) {
+	t.Parallel()
+	// build our expected data
+	var nur NewUserRequest
+	data := []byte(`
 conf:
   username: slobear
   name: Oslo Joe
   age: 21
   password: superstrong
-`
+`)
+	err := yaml.Unmarshal(data, &nur)
 
-func TestReadConf(t *testing.T) {
-	// build our expected data
-	nur := &NewUserRequest{}
-	err := yaml.Unmarshal([]byte(data), nur)
-
-	// make sure we don't get any errors
 	assert.Nil(t, err)
 
-	// read the file
 	c, _ := readConf("../test/valid.yaml")
 
 	assert.NotNil(t, c)
@@ -48,5 +46,4 @@ func ExampleValidate() {
 	//   - Conf.Username (zero value, less than min)
 	//   - Conf.Name (zero value)
 	//   - Conf.Password (zero value, less than min)
-
 }
