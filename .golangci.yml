@@ -122,6 +122,6 @@ linters:
     - unused
     - wastedassign
     - whitespace
-    - wrapcheck
+    # - wrapcheck # Requires every error returned from third-party library to be wrapped.
     - varcheck
     # - wsl # In some cases try to force redundant empty lines, which contradicts the style guide.
