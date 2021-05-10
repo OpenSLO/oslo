@@ -10,7 +10,7 @@ import (
 func TestReadConf(t *testing.T) {
 	t.Parallel()
 	// build our expected data
-	var nur NewUserRequest
+	var nur newUserRequest
 	data := []byte(`
 conf:
   username: slobear

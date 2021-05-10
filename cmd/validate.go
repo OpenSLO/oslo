@@ -26,7 +26,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type NewUserRequest struct {
+type newUserRequest struct {
 	Conf struct {
 		Username string `validate:"nonzero,min=3,max=40,regexp=^[a-zA-Z]*$"`
 		Name     string `validate:"nonzero"`
@@ -36,21 +36,21 @@ type NewUserRequest struct {
 }
 
 // readConf reads in filename for a yaml file, and unmarshals it.
-func readConf(filename string) (NewUserRequest, error) {
+func readConf(filename string) (newUserRequest, error) {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
-		return NewUserRequest{}, err
+		return newUserRequest{}, err
 	}
 
-	var content NewUserRequest
+	var content newUserRequest
 	if err := yaml.Unmarshal(fileContent, &content); err != nil {
-		return NewUserRequest{}, fmt.Errorf("in file %q: %v", filename, err)
+		return newUserRequest{}, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
 	return content, nil
 }
 
-func validate(c NewUserRequest) {
+func validate(c newUserRequest) {
 	if err := validator.Validate(c); err != nil {
 		var errs validator.ErrorMap
 		errors.As(err, &errs)
