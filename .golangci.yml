@@ -20,7 +20,13 @@ issues:
     # Stylecheck checks if at least one file has package comment but it's not required on all of them.
     - linters:
         - golint
-      text: should have a package comment, unless it's in another file for this package
+      text: package comment should be of the form "Package .*? ..."
+    - linters:
+        - revive
+      text: package-comments
+    - linters:
+        - stylecheck
+      text: ST1000
 
   # Value 0 means show all.
   max-issues-per-linter: 0
@@ -51,6 +57,10 @@ linters-settings:
   forbidigo:
     forbid:
       - ^ioutil\..*$ # Package ioutil is deprecated.
+  revive:
+    rules:
+      - name: package-comments
+        severity: ok
 linters:
   # Please, do not use `enable-all`: it's deprecated and will be removed soon.
   # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint.
@@ -113,7 +123,7 @@ linters:
     - staticcheck
     - structcheck
     - stylecheck
-    - testpackage
+    # - testpackage
     - thelper
     - tparallel
     - typecheck
