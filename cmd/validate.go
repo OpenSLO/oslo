@@ -16,9 +16,10 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/validator.v2"
@@ -34,41 +35,34 @@ type NewUserRequest struct {
 	}
 }
 
-// reads in filename for a yaml file, and unmarshalls it
-func readConf(filename string) (*NewUserRequest, error) {
-	buf, err := ioutil.ReadFile(filename)
+// readConf reads in filename for a yaml file, and unmarshals it.
+func readConf(filename string) (NewUserRequest, error) {
+	fileContent, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return NewUserRequest{}, err
 	}
 
-	c := &NewUserRequest{}
-	err = yaml.Unmarshal(buf, c)
-
-	if err != nil {
-		return nil, fmt.Errorf("in file %q: %v", filename, err)
+	var content NewUserRequest
+	if err := yaml.Unmarshal(fileContent, &content); err != nil {
+		return NewUserRequest{}, fmt.Errorf("in file %q: %v", filename, err)
 	}
 
-	return c, nil
+	return content, nil
 }
 
-func validate(c *NewUserRequest) {
-	err := validator.Validate(c)
-	if err == nil {
-		fmt.Println("Valid!")
-	} else {
-		errs := err.(validator.ErrorMap)
+func validate(c NewUserRequest) {
+	if err := validator.Validate(c); err != nil {
+		var errs validator.ErrorMap
+		errors.As(err, &errs)
 
 		fmt.Println("Invalid")
 
-		var errOuts []string
 		for f, e := range errs {
-			errOuts = append(errOuts, fmt.Sprintf("  - %s (%v)\n", f, e))
+			fmt.Printf("  - %s (%v)\n", f, e)
 		}
-
-		for _, str := range errOuts {
-			fmt.Print(str)
-		}
+		return
 	}
+	fmt.Println("Valid!")
 }
 
 func validateFiles(files []string) {
@@ -77,21 +71,17 @@ func validateFiles(files []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		validate(c)
 	}
 }
 
-// validateCmd represents the validate command
-var validateCmd = &cobra.Command{
-	Use:   "validate",
-	Short: "Validates your yaml file against the OpenSLO spec",
-	Long:  `TODO`,
-	Run: func(cmd *cobra.Command, args []string) {
-		validateFiles(args)
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(validateCmd)
+func newValidateCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "validate",
+		Short: "Validates your yaml file against the OpenSLO spec",
+		Long:  `TODO`,
+		Run: func(cmd *cobra.Command, args []string) {
+			validateFiles(args)
+		},
+	}
 }
