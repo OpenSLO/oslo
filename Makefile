@@ -16,3 +16,7 @@ run/checks/spell-and-markdown:
 .PHONY: run/checks/golangci-lint
 run/checks/golangci-lint:
 	golangci-lint run
+
+.PHONY: run/tests
+run/tests:
+	go test -race -cover ./...
