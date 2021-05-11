@@ -26,31 +26,42 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type newUserRequest struct {
-	Conf struct {
-		Username string `validate:"nonzero,min=3,max=40,regexp=^[a-zA-Z]*$"`
-		Name     string `validate:"nonzero"`
-		Age      int    `validate:"min=21"`
-		Password string `validate:"nonzero,min=8"`
-	}
-}
-
 // readConf reads in filename for a yaml file, and unmarshals it.
-func readConf(filename string) (newUserRequest, error) {
+func readConf(filename string) (interface{}, error) {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		return newUserRequest{}, err
 	}
 
+	// theres probably a better way of handling this but what
+	// we are going to do is unmarshal using a generic schema in
+	// order to infer the kind, and use that to load the correct
+	// schema and use that to unmarshal
+	m := make(map[interface{}]interface{})
+
+	if err := yaml.Unmarshal(fileContent, &m); err != nil {
+		return nil, fmt.Errorf("in file %q: %w", filename, err)
+	}
+	fmt.Printf("--- m:\n%v\n\n", m["kind"])
+
+	switch m["kind"] {
+	case "Service":
+		fmt.Println("uno")
+	case "SLO":
+		fmt.Println("dos")
+	default:
+		fmt.Println("tres")
+	}
 	var content newUserRequest
 	if err := yaml.Unmarshal(fileContent, &content); err != nil {
 		return newUserRequest{}, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
 	return content, nil
+
 }
 
-func validate(c newUserRequest) {
+func validate(c interface{}) {
 	if err := validator.Validate(c); err != nil {
 		var errs validator.ErrorMap
 		errors.As(err, &errs)

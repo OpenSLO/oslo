@@ -1,0 +1,82 @@
+- apiVersion: n9/v1alpha
+  kind: SLO
+  metadata:
+    displayName: '    Front-page-latency-alert-polcy'
+    name: front-page-latency-alert-polcy
+    project: weiner-shirt-zel-front-page
+  spec:
+    alertPolicies:
+    - front-page-latency
+    budgetingMethod: Occurrences
+    description: Latency Alert
+    indicator:
+      metricSource:
+        kind: Agent
+        name: weiner-shirt-zel-latency
+        project: weiner-shirt-zel-latency
+      rawMetric:
+        prometheus:
+          promql: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
+    objectives:
+    - displayName: Weiner Shirt-zel Front Page
+      op: gt
+      tag: weiner-shirt-zel-front-page.front-page-latency-alert-polcy.2000d000000
+      target: 0.99
+      value: 2000
+    service: weiner-shirt-zel-front-page
+    timeWindows:
+    - count: 5
+      isRolling: true
+      period:
+        begin: "2021-05-11T20:00:16Z"
+        end: "2021-05-11T20:05:16Z"
+      unit: Minute
+- apiVersion: n9/v1alpha
+  kind: SLO
+  metadata:
+    displayName: Ratio
+    name: ratio
+    project: weiner-shirt-zel-front-page
+  spec:
+    alertPolicies:
+    - front-page-latency
+    budgetingMethod: Occurrences
+    description: ratio des
+    indicator:
+      metricSource:
+        kind: Agent
+        name: weiner-shirt-zel-latency
+        project: weiner-shirt-zel-latency
+    objectives:
+    - countMetrics:
+        good:
+          prometheus:
+            promql: foo
+        incremental: true
+        total:
+          prometheus:
+            promql: bar
+      displayName: bad
+      tag: weiner-shirt-zel-front-page.ratio.1d000000
+      target: 0.98
+      value: 1
+    - countMetrics:
+        good:
+          prometheus:
+            promql: foo
+        incremental: true
+        total:
+          prometheus:
+            promql: bar
+      displayName: whoa
+      tag: weiner-shirt-zel-front-page.ratio.2d000000
+      target: 0.5
+      value: 2
+    service: weiner-shirt-zel-front-page
+    timeWindows:
+    - count: 28
+      isRolling: true
+      period:
+        begin: "2021-04-13T20:05:16Z"
+        end: "2021-05-11T20:05:16Z"
+      unit: Day

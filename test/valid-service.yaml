@@ -1,0 +1,10 @@
+- apiVersion: n9/v1alpha
+  kind: Service
+  metadata:
+    displayName: Weiner Shirt-zel Front Page
+    name: weiner-shirt-zel-front-page
+    project: weiner-shirt-zel-front-page
+  spec:
+    description: front page service
+  status:
+    sloCount: 2
