@@ -78,10 +78,8 @@ linters:
     - errcheck
     - errorlint
     - exhaustive
-    # - exhaustivestruct  # Should be used only in special cases, here is useless.
     - exportloopref
     - forbidigo
-    # - funlen # About optimal function length programmer and reviewer should decide.
     - gci
     - gochecknoglobals
     - gochecknoinits
@@ -97,7 +95,6 @@ linters:
     - goheader
     - goimports
     - golint
-    # - gomnd # Too aggressive, what "magic numbers" is inappropriate in code programmer and reviewer should decide.
     - goprintffuncname
     - gosec
     - gosimple
@@ -111,7 +108,6 @@ linters:
     - nakedret
     - nestif
     - nilerr
-    # - nlreturn # In some cases try to force redundant empty lines, which contradicts the style guide.
     - noctx
     - nolintlint
     - paralleltest
@@ -123,7 +119,6 @@ linters:
     - staticcheck
     - structcheck
     - stylecheck
-    # - testpackage
     - thelper
     - tparallel
     - typecheck
@@ -132,6 +127,4 @@ linters:
     - unused
     - wastedassign
     - whitespace
-    # - wrapcheck # Requires every error returned from third-party library to be wrapped.
     - varcheck
-    # - wsl # In some cases try to force redundant empty lines, which contradicts the style guide.
