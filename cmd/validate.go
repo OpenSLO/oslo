@@ -18,7 +18,6 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -50,7 +49,7 @@ func readConf(filename string) (newUserRequest, error) {
 	return content, nil
 }
 
-func validate(c newUserRequest) {
+func validate(c newUserRequest) error {
 	if err := validator.Validate(c); err != nil {
 		var errs validator.ErrorMap
 		errors.As(err, &errs)
@@ -60,19 +59,23 @@ func validate(c newUserRequest) {
 		for f, e := range errs {
 			fmt.Printf("  - %s (%v)\n", f, e)
 		}
-		return
+		return errors.New("Error in validation")
 	}
 	fmt.Println("Valid!")
+	return nil
 }
 
-func validateFiles(files []string) {
+func validateFiles(files []string) (int, error) {
 	for _, ival := range files {
 		c, err := readConf(ival)
 		if err != nil {
-			log.Fatal(err)
+			return -1, errors.New("Error in validation")
 		}
-		validate(c)
+		if err := validate(c); err != nil {
+			return -1, errors.New("Error in validation")
+		}
 	}
+	return 0, nil
 }
 
 func newValidateCmd() *cobra.Command {
@@ -80,8 +83,11 @@ func newValidateCmd() *cobra.Command {
 		Use:   "validate",
 		Short: "Validates your yaml file against the OpenSLO spec",
 		Long:  `TODO`,
-		Run: func(cmd *cobra.Command, args []string) {
-			validateFiles(args)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if _, err := validateFiles(args); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 }
