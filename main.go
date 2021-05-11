@@ -16,9 +16,17 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/openslo/oslo/cmd"
 )
 
 func main() {
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		if err != cmd.SilentErr {
+			fmt.Fprintln(os.Stderr, err)
+		}
+	os.Exit(1)
+	}
 }

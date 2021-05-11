@@ -16,22 +16,38 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 )
 
+var SilentErr = errors.New("SilentErr")
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	cobra.CheckErr(newRootCmd().Execute())
+func Execute() error {
+	var err error
+	if err := NewRootCmd().Execute(); err != nil {
+		cobra.CheckErr(err)
+	}
+	return err
 }
 
-func newRootCmd() *cobra.Command {
-	rootCmd := &cobra.Command{
+func NewRootCmd() *cobra.Command {
+	RootCmd := &cobra.Command{
 		Use:   "oslo",
 		Short: "Oslo is a CLI tool for the OpenSLO spec",
+		SilenceErrors: true,
+		SilenceUsage: true,
 	}
 
-	rootCmd.AddCommand(newValidateCmd())
+	RootCmd.SetFlagErrorFunc(func(cmd *cobra.Command, err error) error {
+		cmd.Println(err)
+		cmd.Println(cmd.UsageString())
+		return SilentErr
+	})
 
-	return rootCmd
+	RootCmd.AddCommand(newValidateCmd())
+
+	return RootCmd
 }
