@@ -1,10 +1,8 @@
-- apiVersion: n9/v1alpha
-  kind: Service
-  metadata:
-    displayName: Weiner Shirt-zel Front Page
-    name: weiner-shirt-zel-front-page
-    project: weiner-shirt-zel-front-page
-  spec:
-    description: front page service
-  status:
-    sloCount: 2
+apiVersion: openslo/v1alpha
+kind: Service
+metadata:
+  name: my-rad-service
+  displayName: My Rad Service
+spec:
+  description: This is a great description of an even better service.
+

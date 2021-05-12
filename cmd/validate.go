@@ -42,23 +42,27 @@ func readConf(filename string) (interface{}, error) {
 	if err := yaml.Unmarshal(fileContent, &m); err != nil {
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
-	fmt.Printf("--- m:\n%v\n\n", m["kind"])
 
 	switch m["kind"] {
 	case "Service":
-		fmt.Println("uno")
+		var content serviceSpec
+		if err := yaml.Unmarshal(fileContent, &content); err != nil {
+			return serviceSpec{}, fmt.Errorf("in file %q: %w", filename, err)
+		}
+		return content, nil
 	case "SLO":
-		fmt.Println("dos")
+		var content sloSpec
+		if err := yaml.Unmarshal(fileContent, &content); err != nil {
+			return sloSpec{}, fmt.Errorf("in file %q: %w", filename, err)
+		}
+		return content, nil
 	default:
-		fmt.Println("tres")
+		var content newUserRequest
+		if err := yaml.Unmarshal(fileContent, &content); err != nil {
+			return newUserRequest{}, fmt.Errorf("in file %q: %w", filename, err)
+		}
+		return content, nil
 	}
-	var content newUserRequest
-	if err := yaml.Unmarshal(fileContent, &content); err != nil {
-		return newUserRequest{}, fmt.Errorf("in file %q: %w", filename, err)
-	}
-
-	return content, nil
-
 }
 
 func validate(c interface{}) {

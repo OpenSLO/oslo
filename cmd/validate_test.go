@@ -28,7 +28,7 @@ conf:
 	assert.Equal(t, nur, c)
 }
 
-func ExampleValidate() {
+func Example_validateFiles() {
 	a := []string{"../test/valid.yaml"}
 	validateFiles(a)
 
@@ -46,4 +46,12 @@ func ExampleValidate() {
 	//   - Conf.Username (zero value, less than min)
 	//   - Conf.Name (zero value)
 	//   - Conf.Password (zero value, less than min)
+}
+
+func ExampleValidate() {
+	s := serviceSpec{APIVersion: "openslo/v1alpha"}
+	validate(s)
+
+	// Output:
+	// Valid
 }

@@ -25,8 +25,15 @@ type newUserRequest struct {
 }
 
 type serviceSpec struct {
-	APIVersion string `validate:"nonzero"`
-	Kind       string `validate:"regexp=Service"`
+	APIVersion string `validate:"nonzero,regexp=^openslo\\/[a-zA-Z0-9]*$" yaml:"apiVersion"`
+	Kind       string `validate:"nonzero,regexp=Service"`
+	Metadata   struct {
+		Name        string `validate:"nonzero,max=63"`
+		DisplayName string `validate:"regexp=^[a-zA-Z]*$"`
+	}
+	Spec struct {
+		Description string `validate:"max=1050"`
+	}
 }
 
 type sloSpec struct{}
