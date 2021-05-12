@@ -16,7 +16,7 @@ limitations under the License.
 package main
 
 import (
-	"github.com/openslo/oslo/cmd"
+	"github.com/OpenSLO/oslo/cmd"
 )
 
 func main() {
