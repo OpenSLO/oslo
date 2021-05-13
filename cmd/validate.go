@@ -16,38 +16,38 @@ limitations under the License.
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/go-playground/validator"
 	"github.com/spf13/cobra"
-	"gopkg.in/validator.v2"
 	"gopkg.in/yaml.v3"
 )
+
+// use a single instance of Validate, it caches struct info
+var validate *validator.Validate
 
 // readConf reads in filename for a yaml file, and unmarshals it.
 func readConf(filename string) (interface{}, error) {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
-		return newUserRequest{}, err
+		return nil, err
 	}
 
-	// theres probably a better way of handling this but what
-	// we are going to do is unmarshal using a generic schema in
-	// order to infer the kind, and use that to load the correct
-	// schema and use that to unmarshal
-	m := make(map[interface{}]interface{})
+	var m ObjectGeneric
 
 	if err := yaml.Unmarshal(fileContent, &m); err != nil {
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
-	switch m["kind"] {
+	fmt.Println(m.Kind)
+
+	switch m.Kind {
 	case "Service":
-		var content serviceSpec
+		var content Service
 		if err := yaml.Unmarshal(fileContent, &content); err != nil {
-			return serviceSpec{}, fmt.Errorf("in file %q: %w", filename, err)
+			return nil, fmt.Errorf("in file %q: %w", filename, err)
 		}
 		return content, nil
 	case "SLO":
@@ -57,26 +57,37 @@ func readConf(filename string) (interface{}, error) {
 		}
 		return content, nil
 	default:
-		var content newUserRequest
-		if err := yaml.Unmarshal(fileContent, &content); err != nil {
-			return newUserRequest{}, fmt.Errorf("in file %q: %w", filename, err)
-		}
-		return content, nil
+		return nil, fmt.Errorf("Unsupported kind: %s", m.Kind)
 	}
 }
 
-func validate(c interface{}) {
-	if err := validator.Validate(c); err != nil {
-		var errs validator.ErrorMap
-		errors.As(err, &errs)
+func validateStruct(c interface{}) {
+	validate = validator.New()
 
-		fmt.Println("Invalid")
+	err := validate.Struct(c)
+	fmt.Println(c)
 
-		for f, e := range errs {
-			fmt.Printf("  - %s (%v)\n", f, e)
+	if err != nil {
+
+		for _, err := range err.(validator.ValidationErrors) {
+
+			fmt.Println(err.Namespace())
+			fmt.Println(err.Field())
+			fmt.Println(err.StructNamespace())
+			fmt.Println(err.StructField())
+			fmt.Println(err.Tag())
+			fmt.Println(err.ActualTag())
+			fmt.Println(err.Kind())
+			fmt.Println(err.Type())
+			fmt.Println(err.Value())
+			fmt.Println(err.Param())
+			fmt.Println(err)
 		}
+
+		// from here you can create your own error messages in whatever language you wish
 		return
 	}
+
 	fmt.Println("Valid!")
 }
 
@@ -86,7 +97,7 @@ func validateFiles(files []string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		validate(c)
+		validateStruct(c)
 	}
 }
 
