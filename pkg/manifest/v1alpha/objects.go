@@ -74,16 +74,16 @@ type ObjectiveBase struct {
 
 // TimeWindow represents content of time window
 type TimeWindow struct {
-	Unit      string    `json:"unit" validate:"required,oneof=Day Hour Minute Year Quarter Month Week Day" example:"Week"`
-	Count     int       `json:"count" validate:"required,gt=0" example:"1"`
-	IsRolling bool      `json:"isRolling" example:"true"`
-	Calendar  *Calendar `json:"calendar,omitempty"`
+	Unit      string    `yaml:"unit" validate:"required,oneof=Second Quarter Month Week Day" example:"Week"`
+	Count     int       `yaml:"count" validate:"required,gt=0" example:"1"`
+	IsRolling bool      `yaml:"isRolling" example:"true"`
+	Calendar  *Calendar `yaml:"calendar,omitempty"`
 }
 
 // Calendar struct represents calendar time window
 type Calendar struct {
-	StartTime string `json:"startTime" validate:"required,dateWithTime,minDateTime" example:"2020-01-21 12:30:00"`
-	TimeZone  string `json:"timeZone" validate:"required,timeZone" example:"America/New_York"`
+	StartTime string `yaml:"startTime" validate:"required,dateWithTime,minDateTime" example:"2020-01-21 12:30:00"`
+	TimeZone  string `yaml:"timeZone" validate:"required,timeZone" example:"America/New_York"`
 }
 
 // Parse is responsible for parsing all structs in this apiVersion
