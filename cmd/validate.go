@@ -22,10 +22,11 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/openslo/oslo/pkg/manifest"
-	"github.com/openslo/oslo/pkg/manifest/v1alpha"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+
+	"github.com/OpenSLO/oslo/pkg/manifest"
+	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
 )
 
 // use a single instance of Validate, it caches struct info

@@ -3,7 +3,7 @@ package v1alpha
 import (
 	"fmt"
 
-	"github.com/openslo/oslo/pkg/manifest"
+	"github.com/OpenSLO/oslo/pkg/manifest"
 
 	"gopkg.in/yaml.v3"
 )
