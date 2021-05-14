@@ -16,11 +16,14 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"os"
+	"strings"
 
-	"github.com/go-playground/validator"
+	"github.com/go-playground/validator/v10"
+	"github.com/openslo/oslo/pkg/manifest"
+	"github.com/openslo/oslo/pkg/manifest/v1alpha"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -29,76 +32,81 @@ import (
 var validate *validator.Validate
 
 // readConf reads in filename for a yaml file, and unmarshals it.
-func readConf(filename string) (interface{}, error) {
+func readConf(filename string) ([]byte, error) {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
+	return fileContent, nil
+}
 
-	var m ObjectGeneric
+// parse takes the provided byte array, parses it, and returns a parsed struct
+func parse(fileContent []byte, filename string) ([]interface{}, error) {
+	var m manifest.ObjectGeneric
 
 	if err := yaml.Unmarshal(fileContent, &m); err != nil {
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
-	fmt.Println(m.Kind)
-
-	switch m.Kind {
-	case "Service":
-		var content Service
-		if err := yaml.Unmarshal(fileContent, &content); err != nil {
-			return nil, fmt.Errorf("in file %q: %w", filename, err)
+	var allErrors []string
+	var parsedStructs []interface{}
+	switch m.APIVersion {
+	case v1alpha.APIVersion:
+		content, e := v1alpha.Parse(fileContent, m, filename)
+		if e != nil {
+			allErrors = append(allErrors, e.Error())
 		}
-		return content, nil
-	case "SLO":
-		var content sloSpec
-		if err := yaml.Unmarshal(fileContent, &content); err != nil {
-			return sloSpec{}, fmt.Errorf("in file %q: %w", filename, err)
-		}
-		return content, nil
+		parsedStructs = append(parsedStructs, content)
 	default:
-		return nil, fmt.Errorf("Unsupported kind: %s", m.Kind)
+		allErrors = append(allErrors, fmt.Sprintf("Unsuppored API Version in file %s", filename))
 	}
+	if len(allErrors) > 0 {
+		return nil, errors.New(strings.Join(allErrors, "\n"))
+	}
+
+	return parsedStructs, nil
 }
 
-func validateStruct(c interface{}) {
+// validateStruct takes the given struct and validates it
+func validateStruct(c []interface{}) error {
 	validate = validator.New()
 
-	err := validate.Struct(c)
-	fmt.Println(c)
-
-	if err != nil {
-
-		for _, err := range err.(validator.ValidationErrors) {
-
-			fmt.Println(err.Namespace())
-			fmt.Println(err.Field())
-			fmt.Println(err.StructNamespace())
-			fmt.Println(err.StructField())
-			fmt.Println(err.Tag())
-			fmt.Println(err.ActualTag())
-			fmt.Println(err.Kind())
-			fmt.Println(err.Type())
-			fmt.Println(err.Value())
-			fmt.Println(err.Param())
-			fmt.Println(err)
+	var allErrors []string
+	for _, ival := range c {
+		if err := validate.Struct(ival); err != nil {
+			for _, err := range err.(validator.ValidationErrors) {
+				allErrors = append(allErrors, err.Error())
+			}
 		}
-
-		// from here you can create your own error messages in whatever language you wish
-		return
 	}
-
-	fmt.Println("Valid!")
+	if len(allErrors) > 0 {
+		return errors.New(strings.Join(allErrors, "\n"))
+	}
+	return nil
 }
 
-func validateFiles(files []string) {
+// validateFiles validates the given array of filenames
+func validateFiles(files []string) error {
+	var allErrors []string
 	for _, ival := range files {
-		c, err := readConf(ival)
-		if err != nil {
-			log.Fatal(err)
+		c, e := readConf(ival)
+		if e != nil {
+			allErrors = append(allErrors, e.Error())
+			break
 		}
-		validateStruct(c)
+		content, err := parse(c, ival)
+		if err != nil {
+			allErrors = append(allErrors, err.Error())
+			break
+		}
+		if validationErrors := validateStruct(content); validationErrors != nil {
+			allErrors = append(allErrors, validationErrors.Error())
+		}
 	}
+	if len(allErrors) > 0 {
+		return errors.New(strings.Join(allErrors, "\n"))
+	}
+	return nil
 }
 
 func newValidateCmd() *cobra.Command {
@@ -107,7 +115,11 @@ func newValidateCmd() *cobra.Command {
 		Short: "Validates your yaml file against the OpenSLO spec",
 		Long:  `TODO`,
 		Run: func(cmd *cobra.Command, args []string) {
-			validateFiles(args)
+			if e := validateFiles(args); e != nil {
+				fmt.Println(e.Error())
+				os.Exit(1)
+			}
+			fmt.Println("Valid!")
 		},
 	}
 }

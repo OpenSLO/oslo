@@ -1,4 +1,4 @@
-apiVersion: openslo/v1alpha
+apiVersion: foo
 kind: Service
 metadata:
   name: my-rad-service

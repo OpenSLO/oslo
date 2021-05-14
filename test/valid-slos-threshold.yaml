@@ -1,0 +1,23 @@
+apiVersion: openslo/v1alpha
+kind: SLO
+metadata:
+  displayName: My amazing SLO
+  name: my-amazing-slo
+spec:
+  budgetingMethod: Occurrences
+  description: Latency Alert
+  indicator:
+    thresholdMetric:
+      source: prometheus
+      queryType: promql
+      query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
+  objectives:
+  - displayName: Weiner Shirt-zel Front Page
+    op: gt
+    target: 0.99
+    value: 2000
+  service: my-awesome-service
+  timeWindows:
+  - count: 5
+    isRolling: true
+    unit: Minute
