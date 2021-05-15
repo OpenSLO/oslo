@@ -59,7 +59,7 @@ func parse(fileContent []byte, filename string) ([]interface{}, error) {
 		}
 		parsedStructs = append(parsedStructs, content)
 	default:
-		allErrors = append(allErrors, fmt.Sprintf("Unsuppored API Version in file %s", filename))
+		allErrors = append(allErrors, fmt.Sprintf("Unsupported API Version in file %s", filename))
 	}
 	if len(allErrors) > 0 {
 		return nil, errors.New(strings.Join(allErrors, "\n"))
