@@ -14,7 +14,7 @@ func Test_readConf(t *testing.T) {
 	assert.NotNil(t, c)
 	assert.Nil(t, e)
 
-	c, e = readConf("../test/non-existent.yaml")
+	_, e = readConf("../test/non-existent.yaml")
 
 	assert.NotNil(t, e)
 }
@@ -22,7 +22,7 @@ func Test_readConf(t *testing.T) {
 func Test_validateFiles(t *testing.T) {
 	t.Parallel()
 
-	var validFiles = []struct {
+	validFiles := []struct {
 		filename string
 	}{
 		{"../test/valid-service.yaml"},
@@ -31,7 +31,9 @@ func Test_validateFiles(t *testing.T) {
 	}
 
 	for _, tt := range validFiles {
+		tt := tt
 		t.Run(tt.filename, func(t *testing.T) {
+			t.Parallel()
 			a := []string{tt.filename}
 			assert.Nil(t, validateFiles(a))
 		})

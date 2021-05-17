@@ -30,8 +30,7 @@ import (
 	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
 )
 
-// use a single instance of Validate, it caches struct info
-var validate *validator.Validate
+var validate *validator.Validate //nolint:gochecknoglobals
 
 // readConf reads in filename for a yaml file, and unmarshals it.
 func readConf(filename string) ([]byte, error) {
@@ -42,7 +41,7 @@ func readConf(filename string) ([]byte, error) {
 	return fileContent, nil
 }
 
-// parse takes the provided byte array, parses it, and returns a parsed struct
+// parse takes the provided byte array, parses it, and returns a parsed struct.
 func parse(fileContent []byte, filename string) ([]interface{}, error) {
 	var m manifest.ObjectGeneric
 
@@ -69,7 +68,7 @@ func parse(fileContent []byte, filename string) ([]interface{}, error) {
 	return parsedStructs, nil
 }
 
-// validateStruct takes the given struct and validates it
+// validateStruct takes the given struct and validates it.
 func validateStruct(c []interface{}) error {
 	validate = validator.New()
 
@@ -79,7 +78,7 @@ func validateStruct(c []interface{}) error {
 	var allErrors []string
 	for _, ival := range c {
 		if err := validate.Struct(ival); err != nil {
-			for _, err := range err.(validator.ValidationErrors) {
+			for _, err := range err.(validator.ValidationErrors) { //nolint: errorlint
 				allErrors = append(allErrors, err.Error())
 			}
 		}
@@ -90,7 +89,7 @@ func validateStruct(c []interface{}) error {
 	return nil
 }
 
-// validateFiles validates the given array of filenames
+// validateFiles validates the given array of filenames.
 func validateFiles(files []string) error {
 	var allErrors []string
 	for _, ival := range files {
