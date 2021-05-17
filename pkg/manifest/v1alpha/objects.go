@@ -38,12 +38,12 @@ type SLO struct {
 
 // SLOSpec represents content of Spec typical for SLO Object
 type SLOSpec struct {
-	// TimeWindows     []TimeWindow `yaml:"timeWindows" validate:"required,len=1,dive"`
-	BudgetingMethod string      `yaml:"budgetingMethod" validate:"required,oneof=Occurrences Timeslices" example:"Occurrences"`
-	Description     string      `yaml:"description" validate:"max=1050" example:"Total count of server requests"`
-	Indicator       *Indicator  `yaml:"indicator"`
-	Service         string      `yaml:"service" validate:"required" example:"webapp-service"`
-	Objectives      []Objective `json:"objectives" validate:"required,dive"`
+	TimeWindows     []TimeWindow `yaml:"timeWindows" validate:"required,len=1,dive"`
+	BudgetingMethod string       `yaml:"budgetingMethod" validate:"required,oneof=Occurrences Timeslices" example:"Occurrences"`
+	Description     string       `yaml:"description" validate:"max=1050" example:"Total count of server requests"`
+	Indicator       *Indicator   `yaml:"indicator"`
+	Service         string       `yaml:"service" validate:"required" example:"webapp-service"`
+	Objectives      []Objective  `json:"objectives" validate:"required,dive"`
 }
 
 // Indicator represents integration with metric source
@@ -82,7 +82,7 @@ type TimeWindow struct {
 
 // Calendar struct represents calendar time window
 type Calendar struct {
-	StartTime string `yaml:"startTime" validate:"required,dateWithTime,minDateTime" example:"2020-01-21 12:30:00"`
+	StartTime string `yaml:"startTime" validate:"required,dateWithTime" example:"2020-01-21 12:30:00"`
 	TimeZone  string `yaml:"timeZone" validate:"required,timeZone" example:"America/New_York"`
 }
 

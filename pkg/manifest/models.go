@@ -30,8 +30,8 @@ type MetadataHolder struct {
 
 // ObjectHeader represents Header which is common for all available Objects
 type ObjectHeader struct {
-	APIVersion     string `yaml:"apiVersion" validate:"required" example:"n9/v1alpha"`
-	Kind           string `yaml:"kind" validate:"required" example:"kind"`
+	APIVersion     string `yaml:"apiVersion" validate:"required" example:"openslo/v1alpha"`
+	Kind           string `yaml:"kind" validate:"required,oneof=Service SLO" example:"kind"`
 	MetadataHolder `yaml:",inline"`
 }
 

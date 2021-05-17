@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
@@ -72,6 +73,9 @@ func parse(fileContent []byte, filename string) ([]interface{}, error) {
 func validateStruct(c []interface{}) error {
 	validate = validator.New()
 
+	_ = validate.RegisterValidation("dateWithTime", isDateWithTimeValid)
+	_ = validate.RegisterValidation("timeZone", isTimeZoneValid)
+
 	var allErrors []string
 	for _, ival := range c {
 		if err := validate.Struct(ival); err != nil {
@@ -123,4 +127,24 @@ func newValidateCmd() *cobra.Command {
 			fmt.Println("Valid!")
 		},
 	}
+}
+
+func isDateWithTimeValid(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		_, err := time.Parse("2006-01-02 15:04:05", fl.Field().String())
+		if err != nil {
+			return false
+		}
+	}
+	return true
+}
+
+func isTimeZoneValid(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		_, err := time.LoadLocation(fl.Field().String())
+		if err != nil {
+			return false
+		}
+	}
+	return true
 }
