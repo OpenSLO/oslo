@@ -30,8 +30,6 @@ import (
 	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
 )
 
-var validate *validator.Validate //nolint:gochecknoglobals
-
 // readConf reads in filename for a yaml file, and unmarshals it.
 func readConf(filename string) ([]byte, error) {
 	fileContent, err := os.ReadFile(filename)
@@ -70,7 +68,7 @@ func parse(fileContent []byte, filename string) ([]interface{}, error) {
 
 // validateStruct takes the given struct and validates it.
 func validateStruct(c []interface{}) error {
-	validate = validator.New()
+	validate := validator.New()
 
 	_ = validate.RegisterValidation("dateWithTime", isDateWithTimeValid)
 	_ = validate.RegisterValidation("timeZone", isTimeZoneValid)
