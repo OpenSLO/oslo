@@ -21,7 +21,9 @@
   "allowCompoundWords": true,
   "words": [
     "forbidigo",
+    "gochecknoglobals",
     "golangci",
-    "mitchellh"
+    "mitchellh",
+    "nolint"
   ]
 }
