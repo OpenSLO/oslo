@@ -9,7 +9,7 @@ CLI tool for the OpenSLO spec
 ## Installation
 
 1. Checkout this repository
-1. Install olso with `go get github.com/OpenSLO/oslo`
+1. Install oslo with `go get github.com/OpenSLO/oslo`
 
 ## Usage
 
