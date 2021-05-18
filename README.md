@@ -1,6 +1,6 @@
 # oslo
 
-CLI tool for the OpenSLO spec
+CLI tool for the [OpenSLO spec](https://github.com/OpenSLO/OpenSLO). For more information also check the website: [openslo.com](https://openslo.com/).
 
 ## Prerequisites
 
