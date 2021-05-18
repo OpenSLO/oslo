@@ -18,61 +18,97 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
+	"strings"
+	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/cobra"
-	"gopkg.in/validator.v2"
 	"gopkg.in/yaml.v3"
+
+	"github.com/OpenSLO/oslo/pkg/manifest"
+	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
 )
 
-type newUserRequest struct {
-	Conf struct {
-		Username string `validate:"nonzero,min=3,max=40,regexp=^[a-zA-Z]*$"`
-		Name     string `validate:"nonzero"`
-		Age      int    `validate:"min=21"`
-		Password string `validate:"nonzero,min=8"`
-	}
-}
-
 // readConf reads in filename for a yaml file, and unmarshals it.
-func readConf(filename string) (newUserRequest, error) {
+func readConf(filename string) ([]byte, error) {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
-		return newUserRequest{}, err
+		return nil, err
 	}
-
-	var content newUserRequest
-	if err := yaml.Unmarshal(fileContent, &content); err != nil {
-		return newUserRequest{}, fmt.Errorf("in file %q: %w", filename, err)
-	}
-
-	return content, nil
+	return fileContent, nil
 }
 
-func validate(c newUserRequest) {
-	if err := validator.Validate(c); err != nil {
-		var errs validator.ErrorMap
-		errors.As(err, &errs)
+// parse takes the provided byte array, parses it, and returns a parsed struct.
+func parse(fileContent []byte, filename string) ([]interface{}, error) {
+	var m manifest.ObjectGeneric
 
-		fmt.Println("Invalid")
+	if err := yaml.Unmarshal(fileContent, &m); err != nil {
+		return nil, fmt.Errorf("in file %q: %w", filename, err)
+	}
 
-		for f, e := range errs {
-			fmt.Printf("  - %s (%v)\n", f, e)
+	var allErrors []string
+	var parsedStructs []interface{}
+	switch m.APIVersion {
+	case v1alpha.APIVersion:
+		content, e := v1alpha.Parse(fileContent, m, filename)
+		if e != nil {
+			allErrors = append(allErrors, e.Error())
 		}
-		return
+		parsedStructs = append(parsedStructs, content)
+	default:
+		allErrors = append(allErrors, fmt.Sprintf("Unsupported API Version in file %s", filename))
 	}
-	fmt.Println("Valid!")
+	if len(allErrors) > 0 {
+		return nil, errors.New(strings.Join(allErrors, "\n"))
+	}
+
+	return parsedStructs, nil
 }
 
-func validateFiles(files []string) {
+// validateStruct takes the given struct and validates it.
+func validateStruct(c []interface{}) error {
+	validate := validator.New()
+
+	_ = validate.RegisterValidation("dateWithTime", isDateWithTimeValid)
+	_ = validate.RegisterValidation("timeZone", isTimeZoneValid)
+
+	var allErrors []string
+	for _, ival := range c {
+		if err := validate.Struct(ival); err != nil {
+			for _, err := range err.(validator.ValidationErrors) { //nolint: errorlint
+				allErrors = append(allErrors, err.Error())
+			}
+		}
+	}
+	if len(allErrors) > 0 {
+		return errors.New(strings.Join(allErrors, "\n"))
+	}
+	return nil
+}
+
+// validateFiles validates the given array of filenames.
+func validateFiles(files []string) error {
+	var allErrors []string
 	for _, ival := range files {
-		c, err := readConf(ival)
-		if err != nil {
-			log.Fatal(err)
+		c, e := readConf(ival)
+		if e != nil {
+			allErrors = append(allErrors, e.Error())
+			break
 		}
-		validate(c)
+		content, err := parse(c, ival)
+		if err != nil {
+			allErrors = append(allErrors, err.Error())
+			break
+		}
+		if validationErrors := validateStruct(content); validationErrors != nil {
+			allErrors = append(allErrors, validationErrors.Error())
+		}
 	}
+	if len(allErrors) > 0 {
+		return errors.New(strings.Join(allErrors, "\n"))
+	}
+	return nil
 }
 
 func newValidateCmd() *cobra.Command {
@@ -81,7 +117,31 @@ func newValidateCmd() *cobra.Command {
 		Short: "Validates your yaml file against the OpenSLO spec",
 		Long:  `TODO`,
 		Run: func(cmd *cobra.Command, args []string) {
-			validateFiles(args)
+			if e := validateFiles(args); e != nil {
+				fmt.Println(e.Error())
+				os.Exit(1)
+			}
+			fmt.Println("Valid!")
 		},
 	}
+}
+
+func isDateWithTimeValid(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		_, err := time.Parse("2006-01-02 15:04:05", fl.Field().String())
+		if err != nil {
+			return false
+		}
+	}
+	return true
+}
+
+func isTimeZoneValid(fl validator.FieldLevel) bool {
+	if fl.Field().String() != "" {
+		_, err := time.LoadLocation(fl.Field().String())
+		if err != nil {
+			return false
+		}
+	}
+	return true
 }

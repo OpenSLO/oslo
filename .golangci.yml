@@ -27,6 +27,9 @@ issues:
     - linters:
         - stylecheck
       text: ST1000
+    - linters:
+        - gocritic
+      text: whyNoLint
 
   # Value 0 means show all.
   max-issues-per-linter: 0
@@ -36,7 +39,7 @@ linters-settings:
   goimports:
     # Put imports beginning with prefix after 3rd-party packages;s
     # it's a comma-separated list of prefixes.
-    local-prefixes: github.com/nobl9/n9
+    local-prefixes: github.com/OpenSLO/oslo
   golint:
     min-confidence: 0
   govet:
@@ -89,12 +92,10 @@ linters:
     - gocyclo
     - godot
     - godox
-    - goerr113
     - gofmt
     - gofumpt
     - goheader
     - goimports
-    - golint
     - goprintffuncname
     - gosec
     - gosimple

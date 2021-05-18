@@ -4,46 +4,41 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
 )
 
-func TestReadConf(t *testing.T) {
+func Test_readConf(t *testing.T) {
 	t.Parallel()
-	// build our expected data
-	var nur newUserRequest
-	data := []byte(`
-conf:
-  username: slobear
-  name: Oslo Joe
-  age: 21
-  password: superstrong
-`)
-	err := yaml.Unmarshal(data, &nur)
 
-	assert.Nil(t, err)
-
-	c, _ := readConf("../test/valid.yaml")
+	c, e := readConf("../test/valid-service.yaml")
 
 	assert.NotNil(t, c)
-	assert.Equal(t, nur, c)
+	assert.Nil(t, e)
+
+	_, e = readConf("../test/non-existent.yaml")
+
+	assert.NotNil(t, e)
 }
 
-func ExampleValidate() {
-	a := []string{"../test/valid.yaml"}
-	validateFiles(a)
+func Test_validateFiles(t *testing.T) {
+	t.Parallel()
 
-	b := []string{"../test/invalid.yaml"}
-	validateFiles(b)
+	validFiles := []struct {
+		filename string
+	}{
+		{"../test/valid-service.yaml"},
+		{"../test/valid-slos-ratio.yaml"},
+		{"../test/valid-slos-threshold.yaml"},
+	}
 
-	c := []string{"../test/missing.yaml"}
-	validateFiles(c)
+	for _, tt := range validFiles {
+		tt := tt
+		t.Run(tt.filename, func(t *testing.T) {
+			t.Parallel()
+			a := []string{tt.filename}
+			assert.Nil(t, validateFiles(a))
+		})
+	}
 
-	// Unordered output:
-	// Valid!
-	// Invalid
-	//   - Conf.Age (less than min)
-	// Invalid
-	//   - Conf.Username (zero value, less than min)
-	//   - Conf.Name (zero value)
-	//   - Conf.Password (zero value, less than min)
+	d := []string{"../test/invalid-service.yaml"}
+	assert.NotNil(t, validateFiles(d))
 }
