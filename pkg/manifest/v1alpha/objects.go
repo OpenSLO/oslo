@@ -88,21 +88,15 @@ type Calendar struct {
 
 // Parse is responsible for parsing all structs in this apiVersion.
 func Parse(fileContent []byte, m manifest.ObjectGeneric, filename string) (interface{}, error) {
-	var allErrors []string
-
 	switch m.Kind {
 	case KindService:
 		var content Service
-		if err := yaml.Unmarshal(fileContent, &content); err != nil {
-			allErrors = append(allErrors, err.Error())
-		}
-		return content, nil
+		err := yaml.Unmarshal(fileContent, &content)
+		return content, err
 	case KindSLO:
 		var content SLO
-		if err := yaml.Unmarshal(fileContent, &content); err != nil {
-			allErrors = append(allErrors, err.Error())
-		}
-		return content, nil
+		err := yaml.Unmarshal(fileContent, &content)
+		return content, err
 	default:
 		return nil, fmt.Errorf("unsupported kind: %s", m.Kind)
 	}
