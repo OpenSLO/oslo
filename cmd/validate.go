@@ -116,12 +116,13 @@ func newValidateCmd() *cobra.Command {
 		Use:   "validate",
 		Short: "Validates your yaml file against the OpenSLO spec",
 		Long:  `TODO`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if e := validateFiles(args); e != nil {
-				fmt.Println(e.Error())
-				os.Exit(1)
+				return e
 			}
+
 			fmt.Println("Valid!")
+			return nil
 		},
 	}
 }
