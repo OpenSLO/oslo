@@ -32,6 +32,7 @@ func newRootCmd() *cobra.Command {
 	}
 
 	rootCmd.AddCommand(newValidateCmd())
+	rootCmd.AddCommand(newFmtCmd())
 
 	return rootCmd
 }
