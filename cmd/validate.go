@@ -18,6 +18,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -32,6 +33,9 @@ import (
 
 // readConf reads in filename for a yaml file, and unmarshals it.
 func readConf(filename string) ([]byte, error) {
+	if filename == "-" {
+		return ioutil.ReadAll(os.Stdin)
+	}
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -116,6 +120,7 @@ func newValidateCmd() *cobra.Command {
 		Use:   "validate",
 		Short: "Validates your yaml file against the OpenSLO spec",
 		Long:  `TODO`,
+		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			if e := validateFiles(args); e != nil {
 				fmt.Println(e.Error())
