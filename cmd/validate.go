@@ -18,7 +18,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -34,7 +34,7 @@ import (
 // readConf reads in filename for a yaml file, and unmarshals it.
 func readConf(filename string) ([]byte, error) {
 	if filename == "-" {
-		return ioutil.ReadAll(os.Stdin)
+		return io.ReadAll(os.Stdin)
 	}
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
