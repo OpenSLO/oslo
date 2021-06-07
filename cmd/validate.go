@@ -18,6 +18,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -32,6 +33,9 @@ import (
 
 // readConf reads in filename for a yaml file, and unmarshals it.
 func readConf(filename string) ([]byte, error) {
+	if filename == "-" {
+		return io.ReadAll(os.Stdin)
+	}
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -40,7 +44,7 @@ func readConf(filename string) ([]byte, error) {
 }
 
 // parse takes the provided byte array, parses it, and returns a parsed struct.
-func parse(fileContent []byte, filename string) ([]interface{}, error) {
+func parse(fileContent []byte, filename string) ([]v1alpha.OpenSLOKind, error) {
 	var m manifest.ObjectGeneric
 
 	if err := yaml.Unmarshal(fileContent, &m); err != nil {
@@ -48,7 +52,7 @@ func parse(fileContent []byte, filename string) ([]interface{}, error) {
 	}
 
 	var allErrors []string
-	var parsedStructs []interface{}
+	var parsedStructs []v1alpha.OpenSLOKind
 	switch m.APIVersion {
 	case v1alpha.APIVersion:
 		content, e := v1alpha.Parse(fileContent, m, filename)
@@ -67,7 +71,7 @@ func parse(fileContent []byte, filename string) ([]interface{}, error) {
 }
 
 // validateStruct takes the given struct and validates it.
-func validateStruct(c []interface{}) error {
+func validateStruct(c []v1alpha.OpenSLOKind) error {
 	validate := validator.New()
 
 	_ = validate.RegisterValidation("dateWithTime", isDateWithTimeValid)
@@ -116,6 +120,7 @@ func newValidateCmd() *cobra.Command {
 		Use:   "validate",
 		Short: "Validates your yaml file against the OpenSLO spec",
 		Long:  `TODO`,
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if e := validateFiles(args); e != nil {
 				return e

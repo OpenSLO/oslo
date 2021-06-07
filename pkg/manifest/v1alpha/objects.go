@@ -19,10 +19,20 @@ const (
 	KindService = "Service"
 )
 
+// OpenSLOKind represents a type of object described by OpenSLO.
+type OpenSLOKind interface {
+	Kind() string
+}
+
 // Service struct which mapped one to one with kind: service yaml definition.
 type Service struct {
 	manifest.ObjectHeader `yaml:",inline"`
 	Spec                  ServiceSpec `yaml:"spec"`
+}
+
+// Kind returns the name of this type.
+func (Service) Kind() string {
+	return "Service"
 }
 
 // ServiceSpec represents content of Spec typical for Service Object.
@@ -34,6 +44,11 @@ type ServiceSpec struct {
 type SLO struct {
 	manifest.ObjectHeader `yaml:",inline"`
 	Spec                  SLOSpec `yaml:"spec"`
+}
+
+// Kind returns the name of this type.
+func (SLO) Kind() string {
+	return "SLO"
 }
 
 // SLOSpec represents content of Spec typical for SLO Object.
@@ -87,7 +102,7 @@ type Calendar struct {
 }
 
 // Parse is responsible for parsing all structs in this apiVersion.
-func Parse(fileContent []byte, m manifest.ObjectGeneric, filename string) (interface{}, error) {
+func Parse(fileContent []byte, m manifest.ObjectGeneric, filename string) (OpenSLOKind, error) {
 	switch m.Kind {
 	case KindService:
 		var content Service
