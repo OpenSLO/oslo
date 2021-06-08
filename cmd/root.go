@@ -27,8 +27,10 @@ func Execute() {
 
 func newRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "oslo",
-		Short: "Oslo is a CLI tool for the OpenSLO spec",
+		Use:           "oslo",
+		Short:         "Oslo is a CLI tool for the OpenSLO spec",
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 
 	rootCmd.AddCommand(newValidateCmd())
