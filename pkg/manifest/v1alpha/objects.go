@@ -75,10 +75,17 @@ type MetricSourceSpec struct {
 
 // Objective represents single threshold for SLO, for internal usage.
 type Objective struct {
-	ObjectiveBase
-	BudgetTarget    *float64 `yaml:"target" validate:"required,numeric,gte=0,lt=1" example:"0.9"`
-	TimeSliceTarget *float64 `yaml:"timeSliceTarget,omitempty" example:"0.9"`
-	Operator        *string  `yaml:"op,omitempty" example:"lte"`
+	ObjectiveBase   `yaml:",inline"`
+	RatioMetrics    *RatioMetrics `yaml:"ratioMetrics"`
+	BudgetTarget    *float64      `yaml:"target" validate:"required,numeric,gte=0,lt=1" example:"0.9"`
+	TimeSliceTarget *float64      `yaml:"timeSliceTarget,omitempty" example:"0.9"`
+	Operator        *string       `yaml:"op,omitempty" example:"lte"`
+}
+
+type RatioMetrics struct {
+	Good        MetricSourceSpec `yaml:"good" validate:"required"`
+	Total       MetricSourceSpec `yaml:"total" validate:"required"`
+	Incremental bool             `yaml:"incremental" example:"true"`
 }
 
 // ObjectiveBase base structure representing a threshold.
