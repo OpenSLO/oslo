@@ -1,6 +1,7 @@
 # oslo
 
-CLI tool for the [OpenSLO spec](https://github.com/OpenSLO/OpenSLO). For more information also check the website: [openslo.com](https://openslo.com/).
+CLI tool for the [OpenSLO spec](https://github.com/OpenSLO/OpenSLO). For more
+information also check the website: [openslo.com](https://openslo.com/).
 
 ## Prerequisites
 
@@ -8,8 +9,15 @@ CLI tool for the [OpenSLO spec](https://github.com/OpenSLO/OpenSLO). For more in
 
 ## Installation
 
+### From source
+
 1. Checkout this repository
 1. Install oslo with `go get github.com/OpenSLO/oslo`
+
+### Homebrew
+
+1. `brew tap openslo/openslo`
+1. `brew install oslo`
 
 ## Usage
 
