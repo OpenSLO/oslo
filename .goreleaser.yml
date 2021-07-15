@@ -27,3 +27,5 @@ brews:
     commit_author:
       name: goreleaserbot
       email: goreleaser@carlosbecker.com
+    description: "Command line tool for working with OpenSLO"
+    license: "Apache-2.0"
