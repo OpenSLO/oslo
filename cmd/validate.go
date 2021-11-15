@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -36,7 +37,7 @@ func readConf(filename string) ([]byte, error) {
 	if filename == "-" {
 		return io.ReadAll(os.Stdin)
 	}
-	fileContent, err := os.ReadFile(filename)
+	fileContent, err := os.ReadFile(filepath.Clean(filename))
 	if err != nil {
 		return nil, err
 	}
