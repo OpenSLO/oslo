@@ -3,6 +3,7 @@ FROM golang
 RUN useradd -m oslo
 
 RUN mkdir /build
+RUN mkdir /manifests
 
 RUN chown -Rvf oslo: /build
 
