@@ -19,6 +19,18 @@ information also check the website: [openslo.com](https://openslo.com/).
 1. `brew tap openslo/openslo`
 1. `brew install oslo`
 
+### From Docker
+
+1. `docker run -v "$(pwd):/manifests" ghcr.io/openslo/oslo:latest <command> /manifests/<file>.yaml`
+
+For example, if you had an OpenSLO spec file in the current directory called `myservice.yaml`,
+and you wanted to validate it, the full command would be:
+
+```bash
+# docker run -v "$(pwd):/manifests" ghcr.io/openslo/oslo:latest validate /manifests/myservice.yaml
+Valid!
+```
+
 ## Usage
 
 Right now, the only function is `validate`, which you can call with `oslo validate`
