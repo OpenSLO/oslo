@@ -83,9 +83,9 @@ type Objective struct {
 }
 
 type RatioMetrics struct {
-	Good        MetricSourceSpec `yaml:"good" validate:"required"`
-	Total       MetricSourceSpec `yaml:"total" validate:"required"`
-	Counter     bool             `yaml:"counter" example:"true"`
+	Good    MetricSourceSpec `yaml:"good" validate:"required"`
+	Total   MetricSourceSpec `yaml:"total" validate:"required"`
+	Counter bool             `yaml:"counter" example:"true"`
 }
 
 // ObjectiveBase base structure representing a threshold.
