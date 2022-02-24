@@ -12,7 +12,7 @@ spec:
         source: prometheus
         queryType: promql
         query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
-      incremental: true
+      counter: true
       total:
         source: prometheus
         queryType: promql
