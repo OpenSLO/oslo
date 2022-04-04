@@ -1,0 +1,17 @@
+apiVersion: openslo/v1beta1
+kind: SLI
+metadata:
+  name: ratio-sli
+spec:
+  ratioMetric:
+    counter: false
+    good:
+      metricSource:
+        type: Prometheus
+        spec:
+          query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
+    total:
+      metricSource:
+        type: Prometheus
+        spec:
+          query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}

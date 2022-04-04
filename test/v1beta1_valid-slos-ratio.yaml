@@ -1,0 +1,64 @@
+apiVersion: openslo/v1beta1
+kind: SLO
+metadata:
+  name: ratio
+spec:
+  budgetingMethod: Occurrences
+  description: A great description of a ratio based SLO
+  service: my-test-service
+  indicator:
+    apiVersion: openslo/v1beta1
+    kind: SLI
+    metadata:
+      name: ratio-sli
+    spec:
+      ratioMetric:
+        counter: false
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
+  objectives:
+  - displayName: painful
+    target: 0.98
+  timeWindow:
+  - count: 7
+    isRolling: true
+    unit: Day
+  alertPolicies:
+    - apiVersion: openslo/v1beta1
+      kind: AlertPolicy
+      metadata:
+        name: ratio-alert-breach
+      spec:
+        description: Alert policy for ratio
+        alertWhenNoData: true
+        alertWhenResolved: false
+        alertWhenBreaching: true
+        conditions:
+          - apiVersion: openslo/v1beta1
+            kind: AlertCondition
+            metadata:
+              name: ratio-breach
+            spec:
+              description: SLO burn rate for ratio
+              severity: sev1
+              condition:
+                type: burnrate
+                threshold: 2
+                lookbackWindow: 1h
+                alertAfter: 2m
+        notificationTargets:
+          - apiVersion: openslo/v1beta1
+            kind: AlertNotificationTarget
+            metadata:
+              name: ratio-breach-notification
+            spec:
+              description: Sends P1 alert notification to on-call
+              target: PagerDuty

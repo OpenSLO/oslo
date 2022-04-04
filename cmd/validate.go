@@ -28,8 +28,9 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/OpenSLO/oslo/pkg/manifest"
-	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
+	"github.com/OpenSLO/OpenSLO/pkg/model"
+	"github.com/OpenSLO/OpenSLO/pkg/model/v1alpha"
+	"github.com/OpenSLO/OpenSLO/pkg/model/v1beta1"
 )
 
 // readConf reads in filename for a yaml file, and unmarshals it.
@@ -45,18 +46,24 @@ func readConf(filename string) ([]byte, error) {
 }
 
 // parse takes the provided byte array, parses it, and returns a parsed struct.
-func parse(fileContent []byte, filename string) ([]v1alpha.OpenSLOKind, error) {
-	var m manifest.ObjectGeneric
+func parse(fileContent []byte, filename string) ([]model.OpenSLOKind, error) {
+	var m model.ObjectGeneric
 
 	if err := yaml.Unmarshal(fileContent, &m); err != nil {
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
 	var allErrors []string
-	var parsedStructs []v1alpha.OpenSLOKind
+	var parsedStructs []model.OpenSLOKind
 	switch m.APIVersion {
 	case v1alpha.APIVersion:
 		content, e := v1alpha.Parse(fileContent, m, filename)
+		if e != nil {
+			allErrors = append(allErrors, e.Error())
+		}
+		parsedStructs = append(parsedStructs, content)
+	case v1beta1.APIVersion:
+		content, e := v1beta1.Parse(fileContent, m, filename)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())
 		}
@@ -72,7 +79,7 @@ func parse(fileContent []byte, filename string) ([]v1alpha.OpenSLOKind, error) {
 }
 
 // validateStruct takes the given struct and validates it.
-func validateStruct(c []v1alpha.OpenSLOKind) error {
+func validateStruct(c []model.OpenSLOKind) error {
 	validate := validator.New()
 
 	_ = validate.RegisterValidation("dateWithTime", isDateWithTimeValid)
