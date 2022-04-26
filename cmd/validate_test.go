@@ -9,7 +9,7 @@ import (
 func Test_readConf(t *testing.T) {
 	t.Parallel()
 
-	c, e := readConf("../test/valid-service.yaml")
+	c, e := readConf("../test/v1alpha1_valid-service.yaml")
 
 	assert.NotNil(t, c)
 	assert.Nil(t, e)
@@ -25,9 +25,11 @@ func Test_validateFiles(t *testing.T) {
 	validFiles := []struct {
 		filename string
 	}{
-		{"../test/valid-service.yaml"},
-		{"../test/valid-slos-ratio.yaml"},
-		{"../test/valid-slos-threshold.yaml"},
+		{"../test/v1alpha1_valid-service.yaml"},
+		{"../test/v1alpha1_valid-slos-ratio.yaml"},
+		{"../test/v1alpha1_valid-slos-threshold.yaml"},
+		{"../test/v1beta1_valid-slos-ratio.yaml"},
+		{"../test/v1beta1_valid-sli-ratio.yaml"},
 	}
 
 	for _, tt := range validFiles {
@@ -39,6 +41,6 @@ func Test_validateFiles(t *testing.T) {
 		})
 	}
 
-	d := []string{"../test/invalid-service.yaml"}
+	d := []string{"../test/v1alpha1_invalid-service.yaml"}
 	assert.NotNil(t, validateFiles(d))
 }
