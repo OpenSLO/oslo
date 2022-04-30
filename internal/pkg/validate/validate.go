@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package validate
 
 import (
 	"errors"
@@ -32,8 +32,8 @@ import (
 	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
 )
 
-// readConf reads in filename for a yaml file, and unmarshals it.
-func readConf(filename string) ([]byte, error) {
+// ReadConf reads in filename for a yaml file, and unmarshals it.
+func ReadConf(filename string) ([]byte, error) {
 	if filename == "-" {
 		return io.ReadAll(os.Stdin)
 	}
@@ -44,8 +44,8 @@ func readConf(filename string) ([]byte, error) {
 	return fileContent, nil
 }
 
-// parse takes the provided byte array, parses it, and returns a parsed struct.
-func parse(fileContent []byte, filename string) ([]v1alpha.OpenSLOKind, error) {
+// Parse takes the provided byte array, parses it, and returns a parsed struct.
+func Parse(fileContent []byte, filename string) ([]v1alpha.OpenSLOKind, error) {
 	var m manifest.ObjectGeneric
 
 	if err := yaml.Unmarshal(fileContent, &m); err != nil {
@@ -96,12 +96,12 @@ func validateStruct(c []v1alpha.OpenSLOKind) error {
 func validateFiles(files []string) error {
 	var allErrors []string
 	for _, ival := range files {
-		c, e := readConf(ival)
+		c, e := ReadConf(ival)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())
 			break
 		}
-		content, err := parse(c, ival)
+		content, err := Parse(c, ival)
 		if err != nil {
 			allErrors = append(allErrors, err.Error())
 			break
@@ -116,7 +116,8 @@ func validateFiles(files []string) error {
 	return nil
 }
 
-func newValidateCmd() *cobra.Command {
+// NewValidateCmd returns a new cobra.Command for the validate command.
+func NewValidateCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "validate",
 		Short: "Validates your yaml file against the OpenSLO spec",

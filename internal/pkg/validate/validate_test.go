@@ -1,4 +1,4 @@
-package cmd
+package validate
 
 import (
 	"testing"
@@ -9,12 +9,12 @@ import (
 func Test_readConf(t *testing.T) {
 	t.Parallel()
 
-	c, e := readConf("../test/valid-service.yaml")
+	c, e := ReadConf("../../../test/valid-service.yaml")
 
 	assert.NotNil(t, c)
 	assert.Nil(t, e)
 
-	_, e = readConf("../test/non-existent.yaml")
+	_, e = ReadConf("../../../test/non-existent.yaml")
 
 	assert.NotNil(t, e)
 }
@@ -25,9 +25,9 @@ func Test_validateFiles(t *testing.T) {
 	validFiles := []struct {
 		filename string
 	}{
-		{"../test/valid-service.yaml"},
-		{"../test/valid-slos-ratio.yaml"},
-		{"../test/valid-slos-threshold.yaml"},
+		{"../../../test/valid-service.yaml"},
+		{"../../../test/valid-slos-ratio.yaml"},
+		{"../../../test/valid-slos-threshold.yaml"},
 	}
 
 	for _, tt := range validFiles {
@@ -39,6 +39,6 @@ func Test_validateFiles(t *testing.T) {
 		})
 	}
 
-	d := []string{"../test/invalid-service.yaml"}
+	d := []string{"../../test/invalid-service.yaml"}
 	assert.NotNil(t, validateFiles(d))
 }
