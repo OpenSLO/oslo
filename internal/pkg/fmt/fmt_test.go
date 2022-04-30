@@ -21,6 +21,7 @@ import (
 )
 
 func Test_fmtFile(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		source string
 	}
@@ -63,7 +64,9 @@ spec:
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			out := &bytes.Buffer{}
 			if err := fmtFile(out, tt.args.source); (err != nil) != tt.wantErr {
 				t.Errorf("fmtFile() error = %v, wantErr %v", err, tt.wantErr)
@@ -72,7 +75,6 @@ spec:
 			if gotOut := out.String(); gotOut != tt.wantOut {
 				t.Errorf("fmtFile() = %v, want %v", gotOut, tt.wantOut)
 			}
-
 		})
 	}
 }

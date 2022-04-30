@@ -20,12 +20,13 @@ import (
 	"io"
 	"os"
 
-	"github.com/OpenSLO/oslo/internal/pkg/validate"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+
+	"github.com/OpenSLO/oslo/internal/pkg/validate"
 )
 
-// NewFmtCmd returns a new command for formatting a file
+// NewFmtCmd returns a new command for formatting a file.
 func NewFmtCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "fmt",
