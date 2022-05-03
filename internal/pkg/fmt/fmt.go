@@ -33,8 +33,8 @@ func NewFmtCmd() *cobra.Command {
 		Short: "Formats the provided input into the standard format.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := fmtFile(os.Stdout, args[0]); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+			if err := fmtFile(cmd.OutOrStdout(), args[0]); err != nil {
+				fmt.Fprintln(cmd.ErrOrStderr(), err)
 				os.Exit(1)
 			}
 		},

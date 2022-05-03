@@ -24,36 +24,125 @@ import (
 func Test_readConf(t *testing.T) {
 	t.Parallel()
 
-	c, e := ReadConf("../../../test/valid-service.yaml")
+	c, e := ReadConf("../../../test/v1alpha/valid-service.yaml")
 
 	assert.NotNil(t, c)
 	assert.Nil(t, e)
 
-	_, e = ReadConf("../../../test/non-existent.yaml")
+	_, e = ReadConf("../../../test/v1alpha/non-existent.yaml")
 
 	assert.NotNil(t, e)
 }
 
 func Test_validateFiles(t *testing.T) {
 	t.Parallel()
-
-	validFiles := []struct {
-		filename string
-	}{
-		{"../../../test/valid-service.yaml"},
-		{"../../../test/valid-slos-ratio.yaml"},
-		{"../../../test/valid-slos-threshold.yaml"},
+	type args struct {
+		files []string
 	}
-
-	for _, tt := range validFiles {
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "invalid apiVersion",
+			args: args{
+				files: []string{"../../../test/invalid-apiversion.yaml"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "v1alpha multifile valid",
+			args: args{
+				files: []string{"../../../test/v1alpha/valid-service.yaml", "../../../test/v1alpha/valid-slos-ratio.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1alpha single service file valid",
+			args: args{
+				files: []string{"../../../test/v1alpha/valid-service.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1alpha single ratio SLO file valid",
+			args: args{
+				files: []string{"../../../test/v1alpha/valid-slos-ratio.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1alpha single threshold SLO file valid",
+			args: args{
+				files: []string{"../../../test/v1alpha/valid-slos-threshold.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1alpha single file invalid",
+			args: args{
+				files: []string{"../../../test/v1alpha/invalid-service.yaml"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "v1 single AlertCondition valid",
+			args: args{
+				files: []string{"../../../test/v1/valid-alert-condition.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1 single AlertNotificationTarget valid",
+			args: args{
+				files: []string{"../../../test/v1/valid-alert-notification-target.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1 single AlertPolicy valid",
+			args: args{
+				files: []string{"../../../test/v1/valid-alert-policy.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1 single DataSource valid",
+			args: args{
+				files: []string{"../../../test/v1/valid-data-source.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1 single Service valid",
+			args: args{
+				files: []string{"../../../test/v1/valid-sli.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1 single SLI valid",
+			args: args{
+				files: []string{"../../../test/v1/valid-sli.yaml"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "v1 single SLO valid",
+			args: args{
+				files: []string{"../../../test/v1/valid-slo.yaml"},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
 		tt := tt
-		t.Run(tt.filename, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			a := []string{tt.filename}
-			assert.Nil(t, validateFiles(a))
+			if err := validateFiles(tt.args.files); (err != nil) != tt.wantErr {
+				t.Errorf("validateFiles() error = %v, wantErr %v", err, tt.wantErr)
+			}
 		})
 	}
-
-	d := []string{"../../test/invalid-service.yaml"}
-	assert.NotNil(t, validateFiles(d))
 }

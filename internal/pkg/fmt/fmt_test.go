@@ -18,6 +18,8 @@ package fmt
 import (
 	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_fmtFile(t *testing.T) {
@@ -34,7 +36,7 @@ func Test_fmtFile(t *testing.T) {
 		{
 			name: "Invalid file",
 			args: args{
-				source: "../../../test/invalid-file.yaml",
+				source: "../../../test/v1alpha/invalid-file.yaml",
 			},
 			wantErr: true,
 			wantOut: "",
@@ -42,7 +44,7 @@ func Test_fmtFile(t *testing.T) {
 		{
 			name: "Invalid content",
 			args: args{
-				source: "../../../test/invalid-service.yaml",
+				source: "../../../test/v1alpha/invalid-service.yaml",
 			},
 			wantErr: true,
 			wantOut: "",
@@ -50,7 +52,7 @@ func Test_fmtFile(t *testing.T) {
 		{
 			name: "Passes",
 			args: args{
-				source: "../../../test/valid-service.yaml",
+				source: "../../../test/v1alpha/valid-service.yaml",
 			},
 			wantErr: false,
 			wantOut: `apiVersion: openslo/v1alpha
@@ -72,9 +74,7 @@ spec:
 				t.Errorf("fmtFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotOut := out.String(); gotOut != tt.wantOut {
-				t.Errorf("fmtFile() = %v, want %v", gotOut, tt.wantOut)
-			}
+			assert.Equal(t, tt.wantOut, out.String())
 		})
 	}
 }
