@@ -15,9 +15,7 @@ limitations under the License.
 */
 package main
 
-import (
-	"github.com/OpenSLO/oslo/cmd"
-)
+import cmd "github.com/OpenSLO/oslo/cmd/olso"
 
 func main() {
 	cmd.Execute()
