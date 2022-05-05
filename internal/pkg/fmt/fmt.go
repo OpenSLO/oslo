@@ -1,4 +1,6 @@
 /*
+Package fmt handles formatting of the provided input.
+
 Copyright © 2021 OpenSLO Team
 
 Licensed under the Apache License, Version 2.0 (the "License");
