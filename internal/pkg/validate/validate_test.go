@@ -107,7 +107,6 @@ func Test_validateFiles(t *testing.T) {
 					"../../../test/v1/alert-policy/alert-policy.yaml",
 					"../../../test/v1/alert-policy/alert-policy-inline-cond.yaml",
 					"../../../test/v1/alert-policy/alert-policy-many-notificationref.yaml",
-					"../../../test/v1/alert-policy/alert-policy-many-cond.yaml",
 				},
 			},
 			wantErr: false,
@@ -118,6 +117,7 @@ func Test_validateFiles(t *testing.T) {
 				files: []string{
 					"../../../test/v1/alert-policy/alert-policy-malformed-cond.yaml",
 					"../../../test/v1/alert-policy/alert-policy-malformed-targetref.yaml",
+					"../../../test/v1/alert-policy/alert-policy-many-cond.yaml",
 					"../../../test/v1/alert-policy/alert-policy-no-cond.yaml",
 					"../../../test/v1/alert-policy/alert-policy-no-notification.yaml",
 				},

@@ -53,8 +53,8 @@ const (
 type ConditionType struct {
 	Kind           *AlertConditionType `yaml:"kind" validate:"required,oneof=burnrate" example:"burnrate"`
 	Threshold      int                 `yaml:"threshold" validate:"required" example:"2"`
-	LookbackWindow string              `yaml:"lookbackWindow" validate:"required" example:"1h"`
-	AlertAfter     string              `yaml:"alertAfter" validate:"required" example:"5m"`
+	LookbackWindow string              `yaml:"lookbackWindow" validate:"required,validDuration" example:"1h"`
+	AlertAfter     string              `yaml:"alertAfter" validate:"required,validDuration" example:"5m"`
 }
 
 // AlertNotificationTarget is a target for sending alerts.
@@ -85,7 +85,6 @@ type AlertPolicyCondition struct {
 // AlertPolicyConditionSpec is the specification of an alert policy condition.  It is
 // used to reference an AlertCondition.
 type AlertPolicyConditionSpec struct {
-	Operator     string `yaml:"operator" validate:"required" example:"and"`
 	ConditionRef string `yaml:"conditionRef" validate:"max=1050,required" example:"cpu-usage-breach"`
 }
 
@@ -100,7 +99,7 @@ type AlertPolicySpec struct {
 	AlertWhenNoData     bool                            `yaml:"alertWhenNoData"`
 	AlertWhenBreaching  bool                            `yaml:"alertWhenBreaching"`
 	AlertWhenResolved   bool                            `yaml:"alertWhenResolved"`
-	Conditions          []AlertPolicyCondition          `yaml:"conditions" validate:"required,dive"`
+	Conditions          []AlertPolicyCondition          `yaml:"conditions" validate:"required,len=1,dive"`
 	NotificationTargets []AlertPolicyNotificationTarget `yaml:"notificationTargets" validate:"required,dive"`
 }
 

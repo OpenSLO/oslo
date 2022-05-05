@@ -48,7 +48,7 @@ type Objective struct {
 type SLOSpec struct {
 	Description     string       `yaml:"description,omitempty" validate:"max=1050,omitempty"`
 	Service         string       `yaml:"service" validate:"required" example:"webapp-service"`
-	Indicator       *sliInline   `yaml:"indicator,omitempty" validate:"required_without=IndicatorRef"`
+	Indicator       *SliInline   `yaml:"indicator,omitempty" validate:"required_without=IndicatorRef"`
 	IndicatorRef    *string      `yaml:"indicatorRef,omitempty"`
 	BudgetingMethod string       `yaml:"budgetingMethod" validate:"required,oneof=Occurrences Timeslices" example:"Occurrences"` //nolint:lll
 	TimeWindow      []TimeWindow `yaml:"timeWindow" validate:"required,len=1,dive"`

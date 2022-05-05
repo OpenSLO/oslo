@@ -102,7 +102,7 @@ type MetadataHolder struct {
 // ObjectHeader represents Header which is common for all available Objects.
 type ObjectHeader struct {
 	manifest.ObjectHeader `yaml:",inline"`
-	Kind                  string `yaml:"kind" validate:"required,oneof=Service SLO AlertNotificationTarget" example:"kind"`
+	Kind                  string `yaml:"kind" validate:"required,oneof=Service SLO SLI AlertPolicy AlertNotificationTarget AlertCondition DataSource" example:"kind"`
 	MetadataHolder        `yaml:",inline"`
 }
 

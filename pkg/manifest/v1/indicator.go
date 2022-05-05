@@ -35,8 +35,8 @@ type SLI struct {
 	Spec                  SLISpec `yaml:"spec" validate:"required"`
 }
 
-// sliInline represents the SLI inline.
-type sliInline struct {
+// SliInline represents the SLI inline.
+type SliInline struct {
 	Metadata Metadata `yaml:"metadata" validate:"required"`
 	Spec     SLISpec  `yaml:"spec" validate:"required"`
 }
