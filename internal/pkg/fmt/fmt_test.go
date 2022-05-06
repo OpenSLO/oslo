@@ -70,7 +70,7 @@ spec:
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			out := &bytes.Buffer{}
-			if err := fmtFile(out, tt.args.source); (err != nil) != tt.wantErr {
+			if err := File(out, tt.args.source); (err != nil) != tt.wantErr {
 				t.Errorf("fmtFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

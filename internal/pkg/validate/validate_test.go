@@ -189,8 +189,8 @@ func Test_validateFiles(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if err := validateFiles(tt.args.files); (err != nil) != tt.wantErr {
-				t.Errorf("validateFiles() error = %v, wantErr %v", err, tt.wantErr)
+			if err := Files(tt.args.files); (err != nil) != tt.wantErr {
+				t.Errorf("Files() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -18,85 +18,21 @@ package validate
 import (
 	"errors"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
+	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
-	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
 )
 
 var (
 	labelRegexp               = regexp.MustCompile(`^[\p{L}]([\_\-0-9\p{L}]*[0-9\p{L}])?$`)
 	hasUpperCaseLettersRegexp = regexp.MustCompile(`[A-Z]+`)
 )
-
-// ReadConf reads in filename for a yaml file, and unmarshals it.
-func ReadConf(filename string) ([]byte, error) {
-	if filename == "-" {
-		return io.ReadAll(os.Stdin)
-	}
-	fileContent, err := os.ReadFile(filepath.Clean(filename))
-	if err != nil {
-		return nil, err
-	}
-	return fileContent, nil
-}
-
-// Parse takes the provided byte array, parses it, and returns a parsed struct.
-func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) {
-	var m manifest.ObjectGeneric
-
-	// unmarshal here to get the APIVersion so we can process the file correctly
-	if err := yaml.Unmarshal(fileContent, &m); err != nil {
-		return nil, fmt.Errorf("in file %q: %w", filename, err)
-	}
-
-	var allErrors []string
-	var parsedStructs []manifest.OpenSLOKind
-	switch m.APIVersion {
-	// This is where we add new versions of the OpenSLO spec.
-	case v1alpha.APIVersion:
-		// unmarshal again to get the v1alpha struct
-		var o v1alpha.ObjectGeneric
-		if err := yaml.Unmarshal(fileContent, &o); err != nil {
-			return nil, fmt.Errorf("in file %q: %w", filename, err)
-		}
-
-		content, e := v1alpha.Parse(fileContent, o, filename)
-		if e != nil {
-			allErrors = append(allErrors, e.Error())
-		}
-		parsedStructs = append(parsedStructs, content)
-	case v1.APIVersion:
-		// unmarshal again to get the v1 struct
-		var o v1.ObjectGeneric
-		if err := yaml.Unmarshal(fileContent, &o); err != nil {
-			return nil, fmt.Errorf("in file %q: %w", filename, err)
-		}
-
-		content, e := v1.Parse(fileContent, o, filename)
-		if e != nil {
-			allErrors = append(allErrors, e.Error())
-		}
-		parsedStructs = append(parsedStructs, content)
-	default:
-		allErrors = append(allErrors, fmt.Sprintf("Unsupported API Version in file %s", filename))
-	}
-	if len(allErrors) > 0 {
-		return nil, errors.New(strings.Join(allErrors, "\n"))
-	}
-
-	return parsedStructs, nil
-}
 
 // validateStruct takes the given struct and validates it.
 func validateStruct(c []manifest.OpenSLOKind) error {
@@ -121,16 +57,20 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 	return nil
 }
 
-// validateFiles validates the given array of filenames.
-func validateFiles(files []string) error {
+// Files validates the given array of filenames.
+func Files(files []string) error {
 	var allErrors []string
 	for _, ival := range files {
-		c, e := ReadConf(ival)
+		c, e := yamlutils.ReadConf(ival)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())
 			break
 		}
-		content, err := Parse(c, ival)
+
+		// prints ival to stdout
+		fmt.Println(ival)
+
+		content, err := yamlutils.Parse(c, ival)
 		if err != nil {
 			allErrors = append(allErrors, err.Error())
 			break
@@ -143,24 +83,6 @@ func validateFiles(files []string) error {
 		return errors.New(strings.Join(allErrors, "\n"))
 	}
 	return nil
-}
-
-// NewValidateCmd returns a new cobra.Command for the validate command.
-func NewValidateCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "validate",
-		Short: "Validates your yaml file against the OpenSLO spec.",
-		Long:  `Validates your yaml file against the OpenSLO spec.`,
-		Args:  cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if e := validateFiles(args); e != nil {
-				return e
-			}
-
-			fmt.Println("Valid!")
-			return nil
-		},
-	}
 }
 
 func isValidDurationString(fl validator.FieldLevel) bool {

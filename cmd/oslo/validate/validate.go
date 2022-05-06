@@ -13,31 +13,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package validate
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
-	"github.com/OpenSLO/oslo/internal/pkg/fmt"
 	"github.com/OpenSLO/oslo/internal/pkg/validate"
 )
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	cobra.CheckErr(newRootCmd().Execute())
-}
+// NewValidateCmd returns a new cobra.Command for the validate command.
+func NewValidateCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "validate",
+		Short: "Validates your yaml file against the OpenSLO spec.",
+		Long:  `Validates your yaml file against the OpenSLO spec.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if e := validate.Files(args); e != nil {
+				return e
+			}
 
-func newRootCmd() *cobra.Command {
-	rootCmd := &cobra.Command{
-		Use:           "oslo",
-		Short:         "Oslo is a CLI tool for the OpenSLO spec",
-		SilenceErrors: true,
-		SilenceUsage:  true,
+			fmt.Println("Valid!")
+			return nil
+		},
 	}
-
-	rootCmd.AddCommand(validate.NewValidateCmd())
-	rootCmd.AddCommand(fmt.NewFmtCmd())
-
-	return rootCmd
 }
