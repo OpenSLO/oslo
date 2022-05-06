@@ -14,7 +14,7 @@
 
 .PHONY: build
 build:
-	go build
+	go build -o bin/oslo
 
 .PHONY: install/checks/spell-and-markdown
 install/checks/spell-and-markdown:
