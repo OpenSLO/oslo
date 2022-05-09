@@ -1,3 +1,18 @@
+/*
+Copyright © 2022 OpenSLO Team
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 package v1alpha
 
 import (
@@ -19,15 +34,17 @@ const (
 	KindService = "Service"
 )
 
-// OpenSLOKind represents a type of object described by OpenSLO.
-type OpenSLOKind interface {
-	Kind() string
+// ObjectHeader is a header for all objects.
+type ObjectHeader struct {
+	manifest.ObjectHeader `yaml:",inline"`
+	Kind                  string `yaml:"kind" validate:"required,oneof=Service SLO AlertNotificationTarget" example:"kind"`
+	MetadataHolder        `yaml:",inline"`
 }
 
 // Service struct which mapped one to one with kind: service yaml definition.
 type Service struct {
-	manifest.ObjectHeader `yaml:",inline"`
-	Spec                  ServiceSpec `yaml:"spec"`
+	ObjectHeader `yaml:",inline"`
+	Spec         ServiceSpec `yaml:"spec"`
 }
 
 // Kind returns the name of this type.
@@ -42,8 +59,8 @@ type ServiceSpec struct {
 
 // SLO struct which mapped one to one with kind: slo yaml definition, external usage.
 type SLO struct {
-	manifest.ObjectHeader `yaml:",inline"`
-	Spec                  SLOSpec `yaml:"spec"`
+	ObjectHeader `yaml:",inline"`
+	Spec         SLOSpec `yaml:"spec"`
 }
 
 // Kind returns the name of this type.
@@ -82,6 +99,7 @@ type Objective struct {
 	Operator        *string       `yaml:"op,omitempty" example:"lte"`
 }
 
+// RatioMetrics base struct for ratio metrics.
 type RatioMetrics struct {
 	Good    MetricSourceSpec `yaml:"good" validate:"required"`
 	Total   MetricSourceSpec `yaml:"total" validate:"required"`
@@ -108,8 +126,26 @@ type Calendar struct {
 	TimeZone  string `yaml:"timeZone" validate:"required,timeZone" example:"America/New_York"`
 }
 
+// Metadata represents part of object which is is common for all available Objects, for internal usage.
+type Metadata struct {
+	Name        string `yaml:"name" validate:"required" example:"name"`
+	DisplayName string `yaml:"displayName,omitempty" validate:"omitempty,min=0,max=63" example:"Prometheus Source"`
+}
+
+// MetadataHolder is an intermediate structure that can provides metadata related
+// field to other structures.
+type MetadataHolder struct {
+	Metadata Metadata `yaml:"metadata"`
+}
+
+// ObjectGeneric represents struct to which every Objects is parsable
+// Specific types of Object have different structures as Spec.
+type ObjectGeneric struct {
+	ObjectHeader `yaml:",inline"`
+}
+
 // Parse is responsible for parsing all structs in this apiVersion.
-func Parse(fileContent []byte, m manifest.ObjectGeneric, filename string) (OpenSLOKind, error) {
+func Parse(fileContent []byte, m ObjectGeneric, filename string) (manifest.OpenSLOKind, error) {
 	switch m.Kind {
 	case KindService:
 		var content Service

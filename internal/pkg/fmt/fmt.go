@@ -1,5 +1,7 @@
 /*
-Copyright © 2021 OpenSLO Team
+Package fmt handles formatting of the provided input.
+
+Copyright © 2022 OpenSLO Team
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,8 +35,8 @@ func NewFmtCmd() *cobra.Command {
 		Short: "Formats the provided input into the standard format.",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := fmtFile(os.Stdout, args[0]); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+			if err := fmtFile(cmd.OutOrStdout(), args[0]); err != nil {
+				fmt.Fprintln(cmd.ErrOrStderr(), err)
 				os.Exit(1)
 			}
 		},

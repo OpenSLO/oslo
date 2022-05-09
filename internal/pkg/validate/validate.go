@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 OpenSLO Team
+Copyright © 2022 OpenSLO Team
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -29,7 +30,13 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/OpenSLO/oslo/pkg/manifest"
+	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
+)
+
+var (
+	labelRegexp               = regexp.MustCompile(`^[\p{L}]([\_\-0-9\p{L}]*[0-9\p{L}])?$`)
+	hasUpperCaseLettersRegexp = regexp.MustCompile(`[A-Z]+`)
 )
 
 // ReadConf reads in filename for a yaml file, and unmarshals it.
@@ -45,18 +52,38 @@ func ReadConf(filename string) ([]byte, error) {
 }
 
 // Parse takes the provided byte array, parses it, and returns a parsed struct.
-func Parse(fileContent []byte, filename string) ([]v1alpha.OpenSLOKind, error) {
+func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) {
 	var m manifest.ObjectGeneric
 
+	// unmarshal here to get the APIVersion so we can process the file correctly
 	if err := yaml.Unmarshal(fileContent, &m); err != nil {
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
 	var allErrors []string
-	var parsedStructs []v1alpha.OpenSLOKind
+	var parsedStructs []manifest.OpenSLOKind
 	switch m.APIVersion {
+	// This is where we add new versions of the OpenSLO spec.
 	case v1alpha.APIVersion:
-		content, e := v1alpha.Parse(fileContent, m, filename)
+		// unmarshal again to get the v1alpha struct
+		var o v1alpha.ObjectGeneric
+		if err := yaml.Unmarshal(fileContent, &o); err != nil {
+			return nil, fmt.Errorf("in file %q: %w", filename, err)
+		}
+
+		content, e := v1alpha.Parse(fileContent, o, filename)
+		if e != nil {
+			allErrors = append(allErrors, e.Error())
+		}
+		parsedStructs = append(parsedStructs, content)
+	case v1.APIVersion:
+		// unmarshal again to get the v1 struct
+		var o v1.ObjectGeneric
+		if err := yaml.Unmarshal(fileContent, &o); err != nil {
+			return nil, fmt.Errorf("in file %q: %w", filename, err)
+		}
+
+		content, e := v1.Parse(fileContent, o, filename)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())
 		}
@@ -72,11 +99,13 @@ func Parse(fileContent []byte, filename string) ([]v1alpha.OpenSLOKind, error) {
 }
 
 // validateStruct takes the given struct and validates it.
-func validateStruct(c []v1alpha.OpenSLOKind) error {
+func validateStruct(c []manifest.OpenSLOKind) error {
 	validate := validator.New()
 
 	_ = validate.RegisterValidation("dateWithTime", isDateWithTimeValid)
 	_ = validate.RegisterValidation("timeZone", isTimeZoneValid)
+	_ = validate.RegisterValidation("labels", isValidLabel)
+	_ = validate.RegisterValidation("validDuration", isValidDurationString)
 
 	var allErrors []string
 	for _, ival := range c {
@@ -120,8 +149,8 @@ func validateFiles(files []string) error {
 func NewValidateCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "validate",
-		Short: "Validates your yaml file against the OpenSLO spec",
-		Long:  `TODO`,
+		Short: "Validates your yaml file against the OpenSLO spec.",
+		Long:  `Validates your yaml file against the OpenSLO spec.`,
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if e := validateFiles(args); e != nil {
@@ -132,6 +161,16 @@ func NewValidateCmd() *cobra.Command {
 			return nil
 		},
 	}
+}
+
+func isValidDurationString(fl validator.FieldLevel) bool {
+	for _, s := range []string{"s", "m", "h", "d", "w", "M", "Q", "Y"} {
+		duration := fl.Field().String()
+		if strings.HasSuffix(duration, s) {
+			return true
+		}
+	}
+	return false
 }
 
 func isDateWithTimeValid(fl validator.FieldLevel) bool {
@@ -152,4 +191,53 @@ func isTimeZoneValid(fl validator.FieldLevel) bool {
 		}
 	}
 	return true
+}
+
+func isValidLabel(fl validator.FieldLevel) bool {
+	labels := fl.Field().Interface().(v1.Labels)
+	for key, values := range labels {
+		if !validateLabel(key) {
+			return false
+		}
+		if duplicates(values) {
+			return false
+		}
+		for _, val := range values {
+			// Validate only if len(val) > 0, in case where we have only key labels, there is always empty val string
+			// and this is not an error
+			if len(val) > 0 && !validateLabel(val) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func validateLabel(value string) bool {
+	if len(value) > 63 || len(value) < 1 {
+		return false
+	}
+
+	if !labelRegexp.MatchString(value) {
+		return false
+	}
+	return !hasUpperCaseLettersRegexp.MatchString(value)
+}
+
+func duplicates(list []string) bool {
+	duplicateFrequency := make(map[string]int)
+
+	for _, item := range list {
+		_, exist := duplicateFrequency[item]
+
+		if exist {
+			duplicateFrequency[item]++
+		} else {
+			duplicateFrequency[item] = 1
+		}
+		if duplicateFrequency[item] > 1 {
+			return true
+		}
+	}
+	return false
 }
