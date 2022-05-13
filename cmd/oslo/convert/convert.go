@@ -18,8 +18,6 @@ limitations under the License.
 package convert
 
 import (
-	"fmt"
-	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -35,12 +33,12 @@ func NewConvertCmd() *cobra.Command {
 	convertCmd := &cobra.Command{
 		Use:   "convert",
 		Short: "Converts from one format to another.",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			// If a directory is provided, read all files in the directory.
 			if directory != "" {
 				dirFiles, err := os.ReadDir(directory)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				for _, file := range dirFiles {
 					files = append(files, directory+"/"+file.Name())
@@ -52,10 +50,10 @@ func NewConvertCmd() *cobra.Command {
 			files = convert.RemoveDuplicates(files)
 
 			// Convert the files
-			if err := convert.ConvertFiles(cmd.OutOrStdout(), files); err != nil {
-				fmt.Fprintln(cmd.ErrOrStderr(), err)
-				os.Exit(1)
+			if err := convert.Files(cmd.OutOrStdout(), files); err != nil {
+				return err
 			}
+			return nil
 		},
 	}
 
