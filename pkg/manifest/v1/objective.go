@@ -48,7 +48,7 @@ type Objective struct {
 type SLOSpec struct {
 	Description     string       `yaml:"description,omitempty" validate:"max=1050,omitempty"`
 	Service         string       `yaml:"service" validate:"required" example:"webapp-service"`
-	Indicator       *SliInline   `yaml:"indicator,omitempty" validate:"required_without=IndicatorRef"`
+	Indicator       *SLIInline   `yaml:"indicator,omitempty" validate:"required_without=IndicatorRef"`
 	IndicatorRef    *string      `yaml:"indicatorRef,omitempty"`
 	BudgetingMethod string       `yaml:"budgetingMethod" validate:"required,oneof=Occurrences Timeslices" example:"Occurrences"` //nolint:lll
 	TimeWindow      []TimeWindow `yaml:"timeWindow" validate:"required,len=1,dive"`
@@ -62,7 +62,8 @@ type SLOSpec struct {
 // SLO struct which mapped one to one with kind: slo yaml definition, external usage.
 type SLO struct {
 	manifest.ObjectHeader `yaml:",inline"`
-	Spec                  SLOSpec `yaml:"spec" validate:"required"`
+	Metadata              Metadata `yaml:"metadata" validate:"required"`
+	Spec                  SLOSpec  `yaml:"spec" validate:"required"`
 }
 
 // Kind returns the name of this type.

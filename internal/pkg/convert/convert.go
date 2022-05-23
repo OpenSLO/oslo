@@ -20,7 +20,10 @@ package convert
 import (
 	"fmt"
 	"io"
+	"os"
+	"strconv"
 
+	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 
 	nobl9manifest "github.com/OpenSLO/oslo/internal/pkg/manifest/nobl9"
@@ -29,6 +32,33 @@ import (
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 )
+
+// Nobl9 supported metric sources
+var supportedMetricSources = map[string]string{
+	"AmazonPrometheus":      "AmazonPrometheus",
+	"AppDynamics":           "AppDynamics",
+	"BigQuery":              "BigQuery",
+	"CloudWatch":            "CloudWatch",
+	"CloudWatchMetric":      "CloudWatchMetric",
+	"Datadog":               "Datadog",
+	"Dynatrace":             "Dynatrace",
+	"Elasticsearch":         "Elasticsearch",
+	"Grafana":               "Grafana",
+	"Graphite":              "Graphite",
+	"Instana":               "Instana",
+	"InstanaApplication":    "InstanaApplication",
+	"InstanaInfrastructure": "InstanaInfrastructure",
+	"Lightstep":             "Lightstep",
+	"NewRelic":              "NewRelic",
+	"OpenTSDB":              "OpenTSDB",
+	"Pingdom":               "Pingdom",
+	"Prometheus":            "Prometheus",
+	"Redshift":              "Redshift",
+	"Splunk":                "Splunk",
+	"SplunkObservability":   "SplunkObservability",
+	"SumoLogic":             "SumoLogic",
+	"ThousandEyes":          "ThousandEyes",
+}
 
 // RemoveDuplicates to remove duplicate string from a slice.
 func RemoveDuplicates(s []string) []string {
@@ -45,22 +75,49 @@ func RemoveDuplicates(s []string) []string {
 	return result
 }
 
-// Files converts the provided file.
+/*
+Files converts the provided file.
+
+Nobl9 currently supports the following kinds:
+- AlertMethod
+- AlertPolicy
+- Annotation
+- DataExport
+- Objective
+- Project
+- RoleBinding
+- Service
+- SLO
+
+However OpenSLO doesn't support Annotation, DataExport, Project or RoleBinding so we can only convert to AlertMethod, AlertPolicy, Objective, Service and SLO.
+
+*/
 func Files(out io.Writer, filenames []string) error {
 	var rval []interface{}
+	// These are used to track the names of the objects that
+	// we have, in order to warn the user if they need to add
+	// the objects to Nobl9 separately.
+	var serviceNames []string
+	var alertPolicyNames []string
+
 	parsed, err := getParsedObjects(filenames)
 	if err != nil {
 		return fmt.Errorf("issue parsing content: %w", err)
 	}
 
 	// Get the service objects.
-	if err := getServiceObjects(parsed, &rval); err != nil {
+	if err := getServiceObjects(parsed, &rval, &serviceNames); err != nil {
 		return fmt.Errorf("issue getting service objects: %w", err)
 	}
 
 	// Get the alertPolicy objects.
-	if err := getAlertPolicyObjects(parsed, &rval); err != nil {
+	if err := getAlertPolicyObjects(parsed, &rval, &alertPolicyNames); err != nil {
 		return fmt.Errorf("issue getting alertPolicy objects: %w", err)
+	}
+
+	// Get the SLO objects.
+	if err := getSLObjects(parsed, &rval, serviceNames, alertPolicyNames); err != nil {
+		return fmt.Errorf("issue getting SLO objects: %w", err)
 	}
 
 	// Print out all of our objects.
@@ -70,38 +127,280 @@ func Files(out io.Writer, filenames []string) error {
 			return fmt.Errorf("issue printing content: %w", err)
 		}
 	}
-	// foo, err := getObjectByKind("AlertPolicy", parsed)
-	// if err != nil {
-	//   return fmt.Errorf("issue getting alert policy: %w", err)
-	// }
-	// alertPolicy, ok := foo.(*v1.AlertPolicy)
-	// if !ok {
-	//   return fmt.Errorf("issue casting to alert policy")
-	// }
-	//
-	// // Find which objects we have
-	// for _, p := range parsed {
-	//   switch pp := p.(type) {
-	//   case v1.AlertPolicy:
-	//     object := nobl9v1alpha.AlertPolicy{
-	//       ObjectHeader: getObjectHeader("Service", pp.Metadata.Name, pp.Metadata.DisplayName, "default"),
-	//       Spec: nobl9v1alpha.AlertPolicySpec{
-	//         Description: pp.Spec.Description,
-	//       },
-	//     }
-	//     printYaml(out, object)
-	//
-	//   case v1.Service:
-	//     printYaml(out, object)
-	//   }
-	// }
 
-	// For each Nobl9 kind, try and create it from the OpenSLOKind
 	return nil
 }
 
+// Constructs Nobl9 SLO objects from our list of OpenSLOKinds.
+func getSLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceNames []string, alertPolicies []string) error {
+	// Get the SLO object.
+	ap, err := getObjectByKind("SLO", parsed)
+	if err != nil {
+		return fmt.Errorf("issue getting SLO from parsed list: %w", err)
+	}
+
+	// Return if ap is empty.
+	if len(ap) == 0 {
+		return nil
+	}
+
+	// for each SLO object, create a Nobl9 SLO object.
+	for _, slo := range ap {
+		s := slo.(v1.SLO)
+
+		// Check that the service name is in the list of service names, and warn the user if it isn't.
+		if !stringInSlice(s.Spec.Service, serviceNames) {
+			printWarning(
+				fmt.Sprintf(
+					"Service %s is not in the list of services for SLO %s. You will need verify that it is present in Nobl9 before applying.",
+					s.Spec.Service,
+					s.Metadata.DisplayName,
+				),
+			)
+		}
+
+		// Check that the alert policy name is in the list of alert policies, and warn the user if it isn't.
+		for _, ap := range s.Spec.AlertPolicies {
+			if !stringInSlice(ap, alertPolicies) {
+				printWarning(
+					fmt.Sprintf(
+						"Alert policy %s is not in the list of alert policies for SLO %s. You will need verify that it is present in Nobl9 before applying.",
+						ap,
+						s.Metadata.DisplayName,
+					),
+				)
+			}
+		}
+
+		// Warn about changes to the Indicator
+		printWarning(
+			fmt.Sprintf(
+				"OpenSLO doesn't support the Indicator or Agent configuration, so the name of the Agent for %s has been defaulted to 'ChangeMe'. Update with the name and kind of the integration in Nobl9 before applying.",
+				s.Metadata.DisplayName,
+			))
+
+		tw, err := getTimeWindow(s.Spec.TimeWindow)
+		if err != nil {
+			return fmt.Errorf("issue getting time window: %w", err)
+		}
+
+		// Get the Objectives, aka Thresholds
+		indicator, err := getSLISpec(s.Spec, parsed)
+		if err != nil {
+			return fmt.Errorf("issue getting SLI spec: %w", err)
+		}
+		thresholds, err := getThresholds(s.Spec.Objectives, indicator)
+		if err != nil {
+			return fmt.Errorf("issue getting thresholds: %w", err)
+		}
+
+		*rval = append(*rval, nobl9v1alpha.SLO{
+			ObjectHeader: getObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, "default"),
+			Spec: nobl9v1alpha.SLOSpec{
+				Indicator: nobl9v1alpha.Indicator{
+					MetricSource: nobl9v1alpha.MetricSourceSpec{
+						Name: "ChangeMe",
+					},
+				},
+				Description:     s.Spec.Description,
+				BudgetingMethod: s.Spec.BudgetingMethod,
+				Service:         s.Spec.Service,
+				AlertPolicies:   s.Spec.AlertPolicies,
+				TimeWindows:     tw,
+				Thresholds:      thresholds,
+			},
+		})
+	}
+
+	return nil
+}
+
+// Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives
+func getThresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Threshold, error) {
+	var t []nobl9v1alpha.Threshold
+	for _, v := range o {
+		// if the operator isn't nil, then assign it, otherwise keep it nil
+		var operator *string
+		if v.Op != "" {
+			operator = &v.Op
+		}
+
+		// if v.Value is set use that, otherwise default to 1
+		var value float64
+		if v.Value != 0 {
+			value = v.Value
+		} else {
+			value = 1
+		}
+
+		// Get CountMetrics if we have a ratioMetric
+		var cm nobl9v1alpha.CountMetricsSpec
+		if indicator.RatioMetric != nil {
+			c, err := getCountMetrics(*indicator.RatioMetric)
+			if err != nil {
+				return nil, fmt.Errorf("issue getting count metrics: %w", err)
+			}
+			cm = c
+		}
+
+		t = append(t, nobl9v1alpha.Threshold{
+			ThresholdBase: nobl9v1alpha.ThresholdBase{
+				DisplayName: v.DisplayName,
+				Value:       value,
+			},
+			Operator:     operator,
+			BudgetTarget: &v.Target,
+			CountMetrics: &cm,
+		})
+	}
+	return t, nil
+}
+
+func getCountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) {
+	// Error if Bad is not nil, since Nobl9 doesn't support it.
+	if r.Bad != nil {
+		return nobl9v1alpha.CountMetricsSpec{}, fmt.Errorf("metric spec Bad is not supported in Nobl9")
+	}
+
+	good, err := getMetricSource(r.Good.MetricSource)
+	if err != nil {
+		return nobl9v1alpha.CountMetricsSpec{}, fmt.Errorf("issue getting good metric source: %w", err)
+	}
+
+	total, err := getMetricSource(r.Total.MetricSource)
+	if err != nil {
+		return nobl9v1alpha.CountMetricsSpec{}, fmt.Errorf("issue getting total metric source: %w", err)
+	}
+
+	cm := nobl9v1alpha.CountMetricsSpec{
+		Incremental: &r.Counter,
+		GoodMetric:  &good,
+		TotalMetric: &total,
+	}
+	return cm, nil
+}
+
+func getMetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
+	var ms nobl9v1alpha.MetricSpec
+	switch m.Type {
+	case supportedMetricSources["Datadog"]:
+		query := m.MetricSourceSpec["query"]
+		ms = nobl9v1alpha.MetricSpec{
+			Datadog: &nobl9v1alpha.DatadogMetric{
+				Query: &query,
+			},
+		}
+	case supportedMetricSources["Prometheus"], supportedMetricSources["AmazonPrometheus"]:
+		query := m.MetricSourceSpec["promql"]
+		ms = nobl9v1alpha.MetricSpec{
+			Prometheus: &nobl9v1alpha.PrometheusMetric{
+				PromQL: &query,
+			},
+		}
+	case supportedMetricSources["NewRelicMetric"]:
+		query := m.MetricSourceSpec["nrql"]
+		ms = nobl9v1alpha.MetricSpec{
+			NewRelic: &nobl9v1alpha.NewRelicMetric{
+				NRQL: &query,
+			},
+		}
+	default:
+		// get the supportedMetricSources as a string
+		var supportedMetricSourcesString string
+		for k := range supportedMetricSources {
+			supportedMetricSourcesString += k + ", "
+		}
+
+		return ms, fmt.Errorf("Unsupported metric source kind %s. Supported types are %s", m.Type, supportedMetricSourcesString)
+	}
+	return ms, nil
+}
+
+func getSLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) (v1.SLISpec, error) {
+	var s v1.SLISpec
+	// if o.IndicatorRef is not nil, then return the indicator from the parsed list
+	if o.IndicatorRef != nil {
+		indicators, err := getObjectByKind("SLI", parsed)
+		if err != nil {
+			return s, fmt.Errorf("issue getting indicator from parsed list: %w", err)
+		}
+
+		for _, i := range indicators {
+			ind := i.(v1.SLI)
+			if ind.Metadata.Name == *o.IndicatorRef {
+				s = ind.Spec
+				break
+			}
+		}
+	} else {
+		s = o.Indicator.Spec
+	}
+	return s, nil
+}
+
+// Function that returns an nobl9v1alpha.TimeWindow from a OpenSLO TimeWindow.
+func getTimeWindow(tw []v1.TimeWindow) ([]nobl9v1alpha.TimeWindow, error) {
+	// return an error if the length of tw is greater than one, since we only support one TimeWindow
+	if len(tw) > 1 {
+		return nil, fmt.Errorf("OpenSLO only supports one TimeWindow")
+	}
+
+	duration := tw[0].Duration
+
+	unit, err := getDurationUnit(duration[len(duration)-1:])
+	if err != nil {
+		return nil, fmt.Errorf("issue getting duration unit: %w", err)
+	}
+
+	// Convert all but the last character of duration to an int.
+	durationInt, err := strconv.Atoi(duration[:len(duration)-1])
+	if err != nil {
+		return nil, fmt.Errorf("issue converting duration to int: %w", err)
+	}
+
+	return []nobl9v1alpha.TimeWindow{
+		{
+			Unit:      unit,
+			Count:     durationInt,
+			IsRolling: tw[0].IsRolling,
+		},
+	}, nil
+}
+
+// Function that takes a duration shorthand string and returns the unit of time, eg minute, hour, month
+func getDurationUnit(d string) (string, error) {
+	switch d {
+	case "m":
+		return "Minute", nil
+	case "h":
+		return "Hour", nil
+	case "d":
+		return "Day", nil
+	case "w":
+		return "Week", nil
+	case "M":
+		return "Month", nil
+	case "Q":
+		return "Quarter", nil
+	case "Y":
+		return "Year", nil
+	}
+
+	return "", fmt.Errorf("duration unit not supported %s", d)
+}
+
+// Checks that the given string is in the given slice.
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 // Constructs Nobl9 AlertPolicy objects from our list of OpenSLOKinds.
-func getAlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}) error {
+func getAlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names *[]string) error {
 	// Get the alert policy object.
 	ap, err := getObjectByKind("AlertPolicy", parsed)
 	if err != nil {
@@ -137,15 +436,20 @@ func getAlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}) e
 		}
 
 		// Construct the nobl9 AlertPolicy object from the OpenSLO AlertPolicy object.
+		printWarning("Using default serverity of 'Medium' in AlertPolicy, because we don't have an exact mapping")
+		printWarning("Using default CoolDownDuration in AlertPolicy, because OpenSLO doesn't support that")
 		*rval = append(*rval, nobl9v1alpha.AlertPolicy{
 			ObjectHeader: getObjectHeader("AlertPolicy", apObj.Metadata.Name, apObj.Metadata.DisplayName, "default"),
 			Spec: nobl9v1alpha.AlertPolicySpec{
 				Description:      apObj.Spec.Description,
 				Conditions:       conditions,
-				Severity:         "high",
+				Severity:         "Medium",
 				CoolDownDuration: "5m", // default
 			},
 		})
+
+		// Add the name to our list of names.
+		*names = append(*names, apObj.Metadata.Name)
 	}
 	return nil
 }
@@ -154,6 +458,8 @@ func getAlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}) e
 func getAlertCondition(apc v1.AlertPolicyCondition, conditions *[]nobl9v1alpha.AlertCondition, ac []manifest.OpenSLOKind) error {
 	// If we have an inline condition, we can use it.
 	if apc.AlertConditionInline != nil {
+		printWarning("using the default averageBurnRate in AlertCondition, since there isn't a direct match")
+		printWarning("Using default operator in AlertCondition, because OpenSLO doesn't support that feature")
 		*conditions = append(*conditions, nobl9v1alpha.AlertCondition{
 			Measurement:      "averageBurnRate", // TODO: add other measurements in OpenSLO
 			Value:            apc.AlertConditionInline.Spec.Condition.Threshold,
@@ -174,6 +480,8 @@ func getAlertCondition(apc v1.AlertPolicyCondition, conditions *[]nobl9v1alpha.A
 				return fmt.Errorf("issue casting to AlertCondition")
 			}
 			if apc.AlertPolicyConditionSpec.ConditionRef == acObj.Metadata.Name {
+				printWarning("Using default averageBurnRate in AlertCondition, since there isn't direct mapping")
+				printWarning("Using default operator in AlertCondition, because OpenSLO doesn't support that feature")
 				*conditions = append(*conditions, nobl9v1alpha.AlertCondition{
 					Measurement:      "averageBurnRate",
 					Value:            acObj.Spec.Condition.Threshold,
@@ -241,7 +549,7 @@ func getObjectHeader(kind, name, displayName, project string) nobl9v1alpha.Objec
 }
 
 // Constructs Nobl9 Service objects from our list of OpenSLOKinds.
-func getServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}) error {
+func getServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names *[]string) error {
 	// Get the service object.
 	obj, err := getObjectByKind("Service", parsed)
 	if err != nil {
@@ -261,6 +569,9 @@ func getServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}) error
 				Description: srvObj.Spec.Description,
 			},
 		})
+
+		// Add the name to the list of names.
+		*names = append(*names, srvObj.Metadata.Name)
 	}
 	return nil
 }
@@ -271,10 +582,36 @@ func printYaml(out io.Writer, object interface{}) error {
 	if err != nil {
 		return fmt.Errorf("issue marshaling content: %w", err)
 	}
+
+	fmt.Fprint(out, "---\n")
 	_, err = out.Write(yml)
 	if err != nil {
 		return fmt.Errorf("issue writing content: %w", err)
 	}
 
+	return nil
+}
+
+// Function to print warning messages to Stderr so that we can see them when
+// when doing redirection in the console.
+func printWarning(message string) error {
+	yellow := color.New(color.FgYellow).Add(color.Bold)
+	white := color.New(color.FgWhite).Add(color.Bold)
+
+	yellow.EnableColor()
+	white.EnableColor()
+
+	if _, err := yellow.Fprint(os.Stderr, "WARNING: "); err != nil {
+		return fmt.Errorf("issue printing warning: %w", err)
+	}
+
+	if _, err := white.Fprintln(os.Stderr, message); err != nil {
+		return fmt.Errorf("issue printing warning: %w", err)
+	}
+
+	yellow.DisableColor()
+	white.DisableColor()
+
+	color.Unset()
 	return nil
 }

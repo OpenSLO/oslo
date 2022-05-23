@@ -86,7 +86,7 @@ func Files(files []string) error {
 }
 
 func isValidDurationString(fl validator.FieldLevel) bool {
-	for _, s := range []string{"s", "m", "h", "d", "w", "M", "Q", "Y"} {
+	for _, s := range []string{"m", "h", "d", "w", "M", "Q", "Y"} {
 		duration := fl.Field().String()
 		if strings.HasSuffix(duration, s) {
 			return true

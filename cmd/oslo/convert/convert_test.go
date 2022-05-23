@@ -18,7 +18,8 @@ func TestNewConvertCmd(t *testing.T) {
 		{
 			name: "Single file - Service",
 			args: []string{"-f", "../../../test/v1/service/service.yaml"},
-			wantOut: `apiVersion: n9/v1alpha
+			wantOut: `---
+apiVersion: n9/v1alpha
 kind: Service
 metadata:
     name: my-rad-service
@@ -41,7 +42,8 @@ spec:
 				"-f", "../../../test/v1/alert-policy/alert-policy.yaml",
 				"-f", "../../../test/v1/alert-condition/alert-condition.yaml",
 			},
-			wantOut: `apiVersion: n9/v1alpha
+			wantOut: `---
+apiVersion: n9/v1alpha
 kind: AlertPolicy
 metadata:
     name: AlertPolicy
@@ -49,7 +51,7 @@ metadata:
     project: default
 spec:
     description: Alert policy for cpu usage breaches, notifies on-call devops via email
-    severity: high
+    severity: Medium
     coolDown: 5m
     conditions:
         - measurement: averageBurnRate
@@ -65,7 +67,8 @@ spec:
 			args: []string{
 				"-f", "../../../test/v1/alert-policy/alert-policy-inline-cond.yaml",
 			},
-			wantOut: `apiVersion: n9/v1alpha
+			wantOut: `---
+apiVersion: n9/v1alpha
 kind: AlertPolicy
 metadata:
     name: AlertPolicy
@@ -73,7 +76,7 @@ metadata:
     project: default
 spec:
     description: Alert policy for cpu usage breaches, notifies on-call devops via email
-    severity: high
+    severity: Medium
     coolDown: 5m
     conditions:
         - measurement: averageBurnRate
@@ -90,7 +93,8 @@ spec:
 				"-f", "../../../test/v1/alert-policy/alert-policy-many-cond.yaml",
 				"-f", "../../../test/v1/alert-condition/alert-condition.yaml",
 			},
-			wantOut: `apiVersion: n9/v1alpha
+			wantOut: `---
+apiVersion: n9/v1alpha
 kind: AlertPolicy
 metadata:
     name: AlertPolicy
@@ -98,7 +102,7 @@ metadata:
     project: default
 spec:
     description: Alert policy for cpu usage breaches, notifies on-call devops via email
-    severity: high
+    severity: Medium
     coolDown: 5m
     conditions:
         - measurement: averageBurnRate
@@ -156,7 +160,8 @@ spec:
 				"-f", "../../../test/v1/service/service.yaml",
 				"-f", "../../../test/v1/service/service.yaml",
 			},
-			wantOut: `apiVersion: n9/v1alpha
+			wantOut: `---
+apiVersion: n9/v1alpha
 kind: Service
 metadata:
     name: my-rad-service
@@ -164,6 +169,47 @@ metadata:
     project: default
 spec:
     description: This is a great description of an even better service.
+`,
+			wantErr: false,
+		},
+		{
+			name: "Single SLO",
+			args: []string{
+				"-f", "../../../test/v1/slo/slo-no-indicatorref-rolling-alerts.yaml",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: SLO
+metadata:
+    name: TestSLO
+    displayName: Test SLO
+    project: default
+spec:
+    description: This is a great description
+    indicator:
+        metricSource:
+            name: ChangeMe
+            kind: ""
+    budgetingMethod: Occurrences
+    objectives:
+        - displayName: Foo Total Errors
+          value: 1
+          target: 0.98
+          countMetrics:
+            incremental: true
+            good:
+                datadog:
+                    query: sum:trace.http.request.hits.by_http_status{http.status_code:200}.as_count()
+            total:
+                datadog:
+                    query: sum:trace.http.request.hits.by_http_status{*}.as_count()
+    service: TheServiceName
+    timeWindows:
+        - unit: Month
+          count: 1
+          isRolling: true
+    alertPolicies:
+        - FooAlertPolicy
 `,
 			wantErr: false,
 		},
