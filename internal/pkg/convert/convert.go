@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
@@ -35,29 +36,27 @@ import (
 
 // Nobl9 supported metric sources
 var supportedMetricSources = map[string]string{
-	"AmazonPrometheus":      "AmazonPrometheus",
-	"AppDynamics":           "AppDynamics",
-	"BigQuery":              "BigQuery",
-	"CloudWatch":            "CloudWatch",
-	"CloudWatchMetric":      "CloudWatchMetric",
-	"Datadog":               "Datadog",
-	"Dynatrace":             "Dynatrace",
-	"Elasticsearch":         "Elasticsearch",
-	"Grafana":               "Grafana",
-	"Graphite":              "Graphite",
-	"Instana":               "Instana",
-	"InstanaApplication":    "InstanaApplication",
-	"InstanaInfrastructure": "InstanaInfrastructure",
-	"Lightstep":             "Lightstep",
-	"NewRelic":              "NewRelic",
-	"OpenTSDB":              "OpenTSDB",
-	"Pingdom":               "Pingdom",
-	"Prometheus":            "Prometheus",
-	"Redshift":              "Redshift",
-	"Splunk":                "Splunk",
-	"SplunkObservability":   "SplunkObservability",
-	"SumoLogic":             "SumoLogic",
-	"ThousandEyes":          "ThousandEyes",
+	"AmazonPrometheus":    "AmazonPrometheus",
+	"AppDynamics":         "AppDynamics",
+	"BigQuery":            "BigQuery",
+	"CloudWatch":          "CloudWatch",
+	"CloudWatchMetric":    "CloudWatchMetric",
+	"Datadog":             "Datadog",
+	"Dynatrace":           "Dynatrace",
+	"Elasticsearch":       "Elasticsearch",
+	"GrafanaLoki":         "GrafanaLoki",
+	"Graphite":            "Graphite",
+	"Instana":             "Instana",
+	"Lightstep":           "Lightstep",
+	"NewRelic":            "NewRelic",
+	"OpenTSDB":            "OpenTSDB",
+	"Pingdom":             "Pingdom",
+	"Prometheus":          "Prometheus",
+	"Redshift":            "Redshift",
+	"Splunk":              "Splunk",
+	"SplunkObservability": "SplunkObservability",
+	"SumoLogic":           "SumoLogic",
+	"ThousandEyes":        "ThousandEyes",
 }
 
 // RemoveDuplicates to remove duplicate string from a slice.
@@ -297,11 +296,240 @@ func getMetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 				PromQL: &query,
 			},
 		}
-	case supportedMetricSources["NewRelicMetric"]:
+	case supportedMetricSources["NewRelic"]:
 		query := m.MetricSourceSpec["nrql"]
 		ms = nobl9v1alpha.MetricSpec{
 			NewRelic: &nobl9v1alpha.NewRelicMetric{
 				NRQL: &query,
+			},
+		}
+	case supportedMetricSources["ThousandEyes"]:
+		id := m.MetricSourceSpec["TestID"]
+		testType := m.MetricSourceSpec["TestType"]
+
+		// convert id (which is a string) to int64
+		idInt, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			return nobl9v1alpha.MetricSpec{}, fmt.Errorf("issue converting test id to int64: %w", err)
+		}
+
+		ms = nobl9v1alpha.MetricSpec{
+			ThousandEyes: &nobl9v1alpha.ThousandEyesMetric{
+				TestID:   &idInt,
+				TestType: &testType,
+			},
+		}
+	case supportedMetricSources["AppDynamics"]:
+		appName := m.MetricSourceSpec["applicationName"]
+		metricPath := m.MetricSourceSpec["metricPath"]
+		ms = nobl9v1alpha.MetricSpec{
+			AppDynamics: &nobl9v1alpha.AppDynamicsMetric{
+				ApplicationName: &appName,
+				MetricPath:      &metricPath,
+			},
+		}
+	case supportedMetricSources["Splunk"]:
+		query := m.MetricSourceSpec["query"]
+		ms = nobl9v1alpha.MetricSpec{
+			Splunk: &nobl9v1alpha.SplunkMetric{
+				Query: &query,
+			},
+		}
+	case supportedMetricSources["Lightstep"]:
+		streamID := m.MetricSourceSpec["streamId"]
+		typeOfData := m.MetricSourceSpec["typeOfData"]
+		percentile := m.MetricSourceSpec["percentile"]
+
+		// convert percentile (which is a string) to float64
+		percentileFloat, err := strconv.ParseFloat(percentile, 64)
+		if err != nil {
+			return nobl9v1alpha.MetricSpec{}, fmt.Errorf("issue converting percentile to float64: %w", err)
+		}
+
+		ms = nobl9v1alpha.MetricSpec{
+			Lightstep: &nobl9v1alpha.LightstepMetric{
+				StreamID:   &streamID,
+				TypeOfData: &typeOfData,
+				Percentile: &percentileFloat,
+			},
+		}
+	case supportedMetricSources["SplunkObservability"]:
+		program := m.MetricSourceSpec["program"]
+		ms = nobl9v1alpha.MetricSpec{
+			SplunkObservability: &nobl9v1alpha.SplunkObservabilityMetric{
+				Program: &program,
+			},
+		}
+	case supportedMetricSources["Dynatrace"]:
+		metricSelector := m.MetricSourceSpec["metricSelector"]
+		ms = nobl9v1alpha.MetricSpec{
+			Dynatrace: &nobl9v1alpha.DynatraceMetric{
+				MetricSelector: &metricSelector,
+			},
+		}
+	case supportedMetricSources["Elasticsearch"]:
+		index := m.MetricSourceSpec["index"]
+		query := m.MetricSourceSpec["query"]
+
+		ms = nobl9v1alpha.MetricSpec{
+			Elasticsearch: &nobl9v1alpha.ElasticsearchMetric{
+				Index: &index,
+				Query: &query,
+			},
+		}
+	case supportedMetricSources["CloudWatch"]:
+		namespace := m.MetricSourceSpec["namespace"]
+		metricName := m.MetricSourceSpec["metricName"]
+		region := m.MetricSourceSpec["region"]
+		stat := m.MetricSourceSpec["stat"]
+		dimensions := m.MetricSourceSpec["dimensions"]
+		sql := m.MetricSourceSpec["sql"]
+		json := m.MetricSourceSpec["json"]
+
+		// split the incoming dimensions string into a CloudWatchMetricDimension
+		var dims []nobl9v1alpha.CloudWatchMetricDimension
+		for _, d := range strings.Split(dimensions, ",") {
+			kv := strings.Split(d, ":")
+			if len(kv) != 2 {
+				return nobl9v1alpha.MetricSpec{}, fmt.Errorf("invalid dimension: %s", d)
+			}
+
+			key := strings.TrimSpace(kv[0])
+			val := strings.TrimSpace(kv[1])
+
+			dims = append(dims, nobl9v1alpha.CloudWatchMetricDimension{
+				Name:  &key,
+				Value: &val,
+			})
+		}
+
+		// convert dimensions (which is a string) to []nobl9v1alpha.CloudWatchMetricDimension
+
+		ms = nobl9v1alpha.MetricSpec{
+			CloudWatch: &nobl9v1alpha.CloudWatchMetric{
+				Namespace:  &namespace,
+				MetricName: &metricName,
+				Dimensions: dims,
+				Region:     &region,
+				Stat:       &stat,
+				SQL:        &sql,
+				JSON:       &json,
+			},
+		}
+	case supportedMetricSources["Redshift"]:
+		query := m.MetricSourceSpec["query"]
+		region := m.MetricSourceSpec["region"]
+		clusterID := m.MetricSourceSpec["clusterId"]
+		databaseName := m.MetricSourceSpec["databaseName"]
+
+		ms = nobl9v1alpha.MetricSpec{
+			Redshift: &nobl9v1alpha.RedshiftMetric{
+				Query:        &query,
+				Region:       &region,
+				ClusterID:    &clusterID,
+				DatabaseName: &databaseName,
+			},
+		}
+	case supportedMetricSources["SumoLogic"]:
+		dataType := m.MetricSourceSpec["type"]
+		query := m.MetricSourceSpec["query"]
+		quantization := m.MetricSourceSpec["quantization"]
+		rollup := m.MetricSourceSpec["rollup"]
+
+		ms = nobl9v1alpha.MetricSpec{
+			SumoLogic: &nobl9v1alpha.SumoLogicMetric{
+				Type:         &dataType,
+				Query:        &query,
+				Quantization: &quantization,
+				Rollup:       &rollup,
+			},
+		}
+	case supportedMetricSources["Instana"]:
+		// TODO document that we expect the Instana to be in a flattened json format
+		metricType := m.MetricSourceSpec["metricType"]
+		metricSource, err := unflatten(m.MetricSourceSpec)
+		if err != nil {
+			return nobl9v1alpha.MetricSpec{}, fmt.Errorf("issue converting Instana to map: %w", err)
+		}
+		infrastructure := metricSource["infrastructure"].(map[string]interface{})
+		metricRetrievalMethod := infrastructure["metricRetrievalMethod"].(string)
+		query := infrastructure["query"].(string)
+		snapshotID := infrastructure["snapshotId"].(string)
+
+		application := metricSource["application"].(map[string]interface{})
+		groupBy := application["groupBy"].(map[string]interface{})
+		tag := groupBy["tag"].(string)
+		tagEntity := groupBy["tagEntity"].(string)
+		tagSecondLevelKey := groupBy["tagSecondLevelKey"].(string)
+
+		ms = nobl9v1alpha.MetricSpec{
+			Instana: &nobl9v1alpha.InstanaMetric{
+				MetricType: metricType,
+				Infrastructure: &nobl9v1alpha.InstanaInfrastructureMetricType{
+					MetricRetrievalMethod: metricRetrievalMethod,
+					Query:                 &query,
+					SnapshotID:            &snapshotID,
+					MetricID:              infrastructure["metricId"].(string),
+					PluginID:              infrastructure["pluginId"].(string),
+				},
+				Application: &nobl9v1alpha.InstanaApplicationMetricType{
+					MetricID:    application["metricId"].(string),
+					Aggregation: application["aggregation"].(string),
+					APIQuery:    application["apiQuery"].(string),
+					GroupBy: nobl9v1alpha.InstanaApplicationMetricGroupBy{
+						Tag:               tag,
+						TagEntity:         tagEntity,
+						TagSecondLevelKey: &tagSecondLevelKey,
+					},
+				},
+			},
+		}
+	case supportedMetricSources["Pingdom"]:
+		checkID := m.MetricSourceSpec["checkId"]
+		checkType := m.MetricSourceSpec["checkType"]
+		status := m.MetricSourceSpec["status"]
+
+		ms = nobl9v1alpha.MetricSpec{
+			Pingdom: &nobl9v1alpha.PingdomMetric{
+				CheckID:   &checkID,
+				CheckType: &checkType,
+				Status:    &status,
+			},
+		}
+	case supportedMetricSources["Graphite"]:
+		metricPath := m.MetricSourceSpec["metricPath"]
+
+		ms = nobl9v1alpha.MetricSpec{
+			Graphite: &nobl9v1alpha.GraphiteMetric{
+				MetricPath: &metricPath,
+			},
+		}
+	case supportedMetricSources["BigQuery"]:
+		query := m.MetricSourceSpec["query"]
+		projectID := m.MetricSourceSpec["projectId"]
+		location := m.MetricSourceSpec["location"]
+
+		ms = nobl9v1alpha.MetricSpec{
+			BigQuery: &nobl9v1alpha.BigQueryMetric{
+				Query:     query,
+				ProjectID: projectID,
+				Location:  location,
+			},
+		}
+	case supportedMetricSources["OpenTSDB"]:
+		query := m.MetricSourceSpec["query"]
+
+		ms = nobl9v1alpha.MetricSpec{
+			OpenTSDB: &nobl9v1alpha.OpenTSDBMetric{
+				Query: &query,
+			},
+		}
+	case supportedMetricSources["GrafanaLoki"]:
+		logql := m.MetricSourceSpec["logql"]
+
+		ms = nobl9v1alpha.MetricSpec{
+			GrafanaLoki: &nobl9v1alpha.GrafanaLokiMetric{
+				Logql: &logql,
 			},
 		}
 	default:
@@ -614,4 +842,37 @@ func printWarning(message string) error {
 
 	color.Unset()
 	return nil
+}
+
+// Function that unflattens json into nested maps.
+func unflatten(json map[string]string) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+	for key, value := range json {
+		keyParts := strings.Split(key, ".")
+		m := result
+		for i, k := range keyParts[:len(keyParts)-1] {
+			v, exists := m[k]
+			if !exists {
+				newMap := map[string]interface{}{}
+				m[k] = newMap
+				m = newMap
+				continue
+			}
+
+			innerMap, ok := v.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("key=%v is not an object", strings.Join(keyParts[0:i+1], "."))
+			}
+			m = innerMap
+		}
+
+		leafKey := keyParts[len(keyParts)-1]
+		if _, exists := m[leafKey]; exists {
+			return nil, fmt.Errorf("key=%v already exists", key)
+		}
+		m[keyParts[len(keyParts)-1]] = value
+
+	}
+
+	return result, nil
 }

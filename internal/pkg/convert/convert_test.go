@@ -129,7 +129,7 @@ func Test_getMetricSource(t *testing.T) {
 					"nrql": "SELECT sum(duration) FROM Transaction WHERE name = 'WebTransaction'",
 				},
 			},
-			want: `newrelic:
+			want: `newRelic:
     nrql: SELECT sum(duration) FROM Transaction WHERE name = 'WebTransaction'
 `,
 		},
@@ -138,12 +138,12 @@ func Test_getMetricSource(t *testing.T) {
 			args: v1.MetricSource{
 				Type: "ThousandEyes",
 				MetricSourceSpec: map[string]string{
-					"TestID":   "myid",
+					"TestID":   "1234",
 					"TestType": "mytype",
 				},
 			},
-			want: `thousandeyes:
-    testID: myid
+			want: `thousandEyes:
+    testID: 1234
     testType: mytype
 `,
 		},
@@ -156,7 +156,7 @@ func Test_getMetricSource(t *testing.T) {
 					"metricPath":      "mypath",
 				},
 			},
-			want: `appdynamics:
+			want: `appDynamics:
     applicationName: myapp
     metricPath: mypath
 `,
@@ -180,13 +180,13 @@ func Test_getMetricSource(t *testing.T) {
 				MetricSourceSpec: map[string]string{
 					"streamId":   "mystreamid",
 					"typeOfData": "mytypeofdata",
-					"percentile": "mypercentile",
+					"percentile": "0.96",
 				},
 			},
 			want: `lightstep:
     streamId: mystreamid
     typeOfData: mytypeofdata
-    percentile: mypercentile
+    percentile: 0.96
 `,
 		},
 		{
@@ -197,7 +197,7 @@ func Test_getMetricSource(t *testing.T) {
 					"program": "myprogram",
 				},
 			},
-			want: `splunkobservability:
+			want: `splunkObservability:
     program: myprogram
 `,
 		},
@@ -241,14 +241,16 @@ func Test_getMetricSource(t *testing.T) {
 					"json":       "myjson",
 				},
 			},
-			want: `cloudwatch:
+			want: `cloudWatch:
+    region: myregion
     namespace: mynamespace
     metricName: mymetricname
-    region: myregion
     stat: mystat
     dimensions:
-        mydimension: myvalue
-        myotherdimension: myothervalue
+        - name: mydimensions
+          value: myvalue
+        - name: mydimensions2
+          value: myvalue2
     sql: myquery
     json: myjson
 `,
@@ -265,10 +267,10 @@ func Test_getMetricSource(t *testing.T) {
 				},
 			},
 			want: `redshift:
-    query: myquery
     region: myregion
     clusterId: myclusterid
     databaseName: mydatabasename
+    query: myquery
 `,
 		},
 		{
@@ -282,7 +284,7 @@ func Test_getMetricSource(t *testing.T) {
 					"rollup":       "myrollup",
 				},
 			},
-			want: `sumologic:
+			want: `sumoLogic:
     type: mytype
     query: myquery
     quantization: myquantization
@@ -294,57 +296,38 @@ func Test_getMetricSource(t *testing.T) {
 			args: v1.MetricSource{
 				Type: "Instana",
 				MetricSourceSpec: map[string]string{
-					"metricType":     "mymetrictype",
-					"infrastructure": "myinfrastructure",
-					"application":    "myapplication",
+					"metricType":                            "mymetrictype",
+					"infrastructure.metricRetrievalMethod":  "myInfrastructureMetricRetrivalMethod",
+					"infrastructure.query":                  "myInfrastructureQuery",
+					"infrastructure.snapshotId":             "myInfrastructureSnapshotId",
+					"infrastructure.metricId":               "myInfrastructureMetricId",
+					"infrastructure.pluginId":               "myInfrastructurePluginId",
+					"application.metricId":                  "myapplicationMetricId",
+					"application.aggregation":               "myapplicationAggregation",
+					"application.groupBy.tag":               "myapplicationGroupByTag",
+					"application.groupBy.tagEntity":         "myapplicationGroupByTagEntity",
+					"application.groupBy.tagSecondLevelKey": "myapplicationTagSecondLevelKey",
+					"application.apiQuery":                  "myapplicationApiQuery",
+					"application.includeInternal":           "true",
+					"application.includeSynthetic":          "false",
 				},
 			},
 			want: `instana:
     metricType: mymetrictype
-    infrastructure: myinfrastructure
-    application: myapplication
-`,
-		},
-		{
-			name: "InstanaInfrastructure",
-			args: v1.MetricSource{
-				Type: "InstanaInfrastructure",
-				MetricSourceSpec: map[string]string{
-					"metricRetrievalMethod": "mymetricretrievalmethod",
-					"query":                 "myquery",
-					"snapshotId":            "mysnapshotid",
-					"metricId":              "mymetricid",
-					"pluginId":              "mypluginid",
-				},
-			},
-			want: `instanainfrastructure:
-    metricRetrievalMethod: mymetricretrievalmethod
-    query: myquery
-    snapshotId: mysnapshotid
-    metricId: mymetricid
-    pluginId: mypluginid
-`,
-		},
-		{
-			name: "InstanaApplication",
-			args: v1.MetricSource{
-				Type: "InstanaApplication",
-				MetricSourceSpec: map[string]string{
-					"metricId":         "mymetricid",
-					"aggregation":      "myaggregation",
-					"groupBy":          "mygroupby",
-					"apiQuery":         "myapiquery",
-					"includeInternal":  "myincludeinternal",
-					"includeSynthetic": "myincludesynthetic",
-				},
-			},
-			want: `instanaapplication:
-    metricId: mymetricid
-    aggregation: myaggregation
-    groupBy: mygroupby
-    apiQuery: myapiquery
-    includeInternal: myincludeinternal
-    includeSynthetic: myincludesynthetic
+    infrastructure:
+        metricRetrievalMethod: myInfrastructureMetricRetrivalMethod
+        query: myInfrastructureQuery
+        snapshotId: myInfrastructureSnapshotId
+        metricId: myInfrastructureMetricId
+        pluginId: myInfrastructurePluginId
+    application:
+        metricId: myapplicationMetricId
+        aggregation: myapplicationAggregation
+        groupBy:
+            tag: myapplicationGroupByTag
+            tagEntity: myapplicationGroupByTagEntity
+            tagSecondLevelKey: myapplicationTagSecondLevelKey
+        apiQuery: myapplicationApiQuery
 `,
 		},
 		{
@@ -385,9 +368,9 @@ func Test_getMetricSource(t *testing.T) {
 					"location":  "mylocation",
 				},
 			},
-			want: `bigquery:
-    projectId: myprojectid
+			want: `bigQuery:
     query: myquery
+    projectId: myprojectid
     location: mylocation
 `,
 		},
