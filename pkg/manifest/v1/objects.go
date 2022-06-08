@@ -113,23 +113,11 @@ type ObjectGeneric struct {
 	ObjectHeader `yaml:",inline"`
 }
 
-// Indicator represents integration with metric source.
-type Indicator struct {
-	ThresholdMetric MetricSourceSpec `yaml:"thresholdMetric" validate:"required"`
-}
-
 // MetricSourceSpec represents the metric source.
 type MetricSourceSpec struct {
 	Source    string `yaml:"source" validate:"required,alpha"`
 	QueryType string `yaml:"queryType" validate:"required,alpha"`
 	Query     string `yaml:"query" validate:"required"`
-}
-
-// RatioMetrics base struct for ratio metrics.
-type RatioMetrics struct {
-	Good    MetricSourceSpec `yaml:"good" validate:"required"`
-	Total   MetricSourceSpec `yaml:"total" validate:"required"`
-	Counter bool             `yaml:"counter" example:"true"`
 }
 
 // ObjectiveBase base structure representing a threshold.
