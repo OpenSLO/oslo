@@ -404,7 +404,6 @@ func getMetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 		}
 
 		// convert dimensions (which is a string) to []nobl9v1alpha.CloudWatchMetricDimension
-
 		ms = nobl9v1alpha.MetricSpec{
 			CloudWatch: &nobl9v1alpha.CloudWatchMetric{
 				Namespace:  &namespace,

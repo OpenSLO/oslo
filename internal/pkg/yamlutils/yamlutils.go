@@ -47,11 +47,28 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 			return nil, fmt.Errorf("in file %q: %w", filename, err)
 		}
 
-		content, e := v1alpha.Parse(fileContent, o, filename)
-		if e != nil {
-			allErrors = append(allErrors, e.Error())
+		// loop through and get all of the documents in the file
+		decoder := yaml.NewDecoder(strings.NewReader(string(fileContent)))
+		for {
+			var i interface{}
+			err := decoder.Decode(&i)
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			if err != nil {
+				return nil, fmt.Errorf("in file %q: %w", filename, err)
+			}
+			c, err := yaml.Marshal(&i)
+			if err != nil {
+				return nil, fmt.Errorf("in file %q: %w", filename, err)
+			}
+
+			content, e := v1alpha.Parse(c, o, filename)
+			if e != nil {
+				allErrors = append(allErrors, e.Error())
+			}
+			parsedStructs = append(parsedStructs, content)
 		}
-		parsedStructs = append(parsedStructs, content)
 	case v1.APIVersion:
 		// unmarshal again to get the v1 struct
 		var o v1.ObjectGeneric
@@ -59,11 +76,28 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 			return nil, fmt.Errorf("in file %q: %w", filename, err)
 		}
 
-		content, e := v1.Parse(fileContent, o, filename)
-		if e != nil {
-			allErrors = append(allErrors, e.Error())
+		// loop through and get all of the documents in the file
+		decoder := yaml.NewDecoder(strings.NewReader(string(fileContent)))
+		for {
+			var i interface{}
+			err := decoder.Decode(&i)
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			if err != nil {
+				return nil, fmt.Errorf("in file %q: %w", filename, err)
+			}
+			c, err := yaml.Marshal(&i)
+			if err != nil {
+				return nil, fmt.Errorf("in file %q: %w", filename, err)
+			}
+
+			content, e := v1.Parse(c, o, filename)
+			if e != nil {
+				allErrors = append(allErrors, e.Error())
+			}
+			parsedStructs = append(parsedStructs, content)
 		}
-		parsedStructs = append(parsedStructs, content)
 	default:
 		allErrors = append(allErrors, fmt.Sprintf("Unsupported API Version in file %s", filename))
 	}

@@ -17,7 +17,6 @@ package validate
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -66,9 +65,6 @@ func Files(files []string) error {
 			allErrors = append(allErrors, e.Error())
 			break
 		}
-
-		// prints ival to stdout
-		fmt.Println(ival)
 
 		content, err := yamlutils.Parse(c, ival)
 		if err != nil {
