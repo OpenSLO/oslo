@@ -31,6 +31,7 @@ func NewConvertCmd() *cobra.Command {
 	var files []string
 	var directory string
 	var format string
+	var project string
 
 	convertCmd := &cobra.Command{
 		Use:   "convert",
@@ -71,7 +72,7 @@ The output is written to standard output.  If you want to write to a file, you c
 			// Convert the files to the specified format.
 			switch format {
 			case "nobl9":
-				if err := convert.Files(cmd.OutOrStdout(), files); err != nil {
+				if err := convert.Nobl9(cmd.OutOrStdout(), files, project); err != nil {
 					return err
 				}
 			default:
@@ -85,8 +86,8 @@ The output is written to standard output.  If you want to write to a file, you c
 	convertCmd.Flags().StringArrayVarP(&files, "file", "f", []string{}, "The file(s) to format.")
 	convertCmd.Flags().StringVarP(&directory, "directory", "d", "", "The directory to format.")
 	convertCmd.Flags().StringVarP(&format, "output", "o", "", "The output format to convert to.")
+	convertCmd.Flags().StringVarP(&project, "project", "p", "default", "Used for nobl9 output. What project to assign the resources to.")
 
-	convertCmd.MarkFlagRequired("format")
 	convertCmd.MarkFlagRequired("format")
 
 	return convertCmd

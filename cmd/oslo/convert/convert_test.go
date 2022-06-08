@@ -34,6 +34,25 @@ spec:
 			wantErr: false,
 		},
 		{
+			name: "Single file - Service - non-default project",
+			args: []string{
+				"-o", "nobl9",
+				"-p", "my-project",
+				"-f", "../../../test/v1/service/service.yaml",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: Service
+metadata:
+    name: my-rad-service
+    displayName: My Rad Service
+    project: my-project
+spec:
+    description: This is a great description of an even better service.
+`,
+			wantErr: false,
+		},
+		{
 			name: "Single file - Alert Policy",
 			args: []string{
 				"-o", "nobl9",

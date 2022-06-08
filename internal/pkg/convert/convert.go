@@ -34,6 +34,116 @@ import (
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 )
 
+// RemoveDuplicates to remove duplicate string from a slice.
+func RemoveDuplicates(s []string) []string {
+	result := make([]string, 0, len(s))
+	m := make(map[string]bool)
+	for _, v := range s {
+		if _, ok := m[v]; !ok {
+			m[v] = true
+		}
+	}
+	for k := range m {
+		result = append(result, k)
+	}
+	return result
+}
+
+func getParsedObjects(filenames []string) ([]manifest.OpenSLOKind, error) {
+	var parsed []manifest.OpenSLOKind
+	for _, filename := range filenames {
+		// Get the file contents.
+		content, err := yamlutils.ReadConf(filename)
+		if err != nil {
+			return nil, fmt.Errorf("issue reading content: %w", err)
+		}
+
+		// Parse the byte arrays to OpenSLOKind objects.
+		p, err := yamlutils.Parse(content, filename)
+		if err != nil {
+			return nil, fmt.Errorf("issue parsing content: %w", err)
+		}
+
+		parsed = append(parsed, p...)
+	}
+	return parsed, nil
+}
+
+// function that that returns an object by Kind from a list of OpenSLOKinds.
+func getObjectByKind(kind string, objects []manifest.OpenSLOKind) ([]manifest.OpenSLOKind, error) {
+	var found []manifest.OpenSLOKind
+	for _, o := range objects {
+		if o.Kind() == kind {
+			found = append(found, o)
+		}
+	}
+	// TODO: I dont think that we care about the length here.
+	// if len(found) == 0 {
+	//   return nil, fmt.Errorf("no %s found", kind)
+	// }
+	return found, nil
+}
+
+//------------------------------------------------------------------------------
+//
+//  Nobl9 Convertion
+//
+
+/*
+Nobl9 converts the provided file to Nobl9 yaml.
+
+Nobl9 currently supports the following kinds:
+- AlertMethod
+- AlertPolicy
+- Annotation
+- DataExport
+- Objective
+- Project
+- RoleBinding
+- Service
+- SLO
+
+However OpenSLO doesn't support Annotation, DataExport, Project or RoleBinding so we can only convert to AlertMethod, AlertPolicy, Objective, Service and SLO.
+*/
+func Nobl9(out io.Writer, filenames []string, project string) error {
+	var rval []interface{}
+	// These are used to track the names of the objects that
+	// we have, in order to warn the user if they need to add
+	// the objects to Nobl9 separately.
+	var serviceNames []string
+	var alertPolicyNames []string
+
+	parsed, err := getParsedObjects(filenames)
+	if err != nil {
+		return fmt.Errorf("issue parsing content: %w", err)
+	}
+
+	// Get the service objects.
+	if err := getN9ServiceObjects(parsed, &rval, &serviceNames, project); err != nil {
+		return fmt.Errorf("issue getting service objects: %w", err)
+	}
+
+	// Get the alertPolicy objects.
+	if err := getN9AlertPolicyObjects(parsed, &rval, &alertPolicyNames, project); err != nil {
+		return fmt.Errorf("issue getting alertPolicy objects: %w", err)
+	}
+
+	// Get the SLO objects.
+	if err := getN9SLObjects(parsed, &rval, serviceNames, alertPolicyNames, project); err != nil {
+		return fmt.Errorf("issue getting SLO objects: %w", err)
+	}
+
+	// Print out all of our objects.
+	for _, s := range rval {
+		err := printYaml(out, s)
+		if err != nil {
+			return fmt.Errorf("issue printing content: %w", err)
+		}
+	}
+
+	return nil
+}
+
 // Nobl9 supported metric sources
 var supportedMetricSources = map[string]string{
 	"AmazonPrometheus":    "AmazonPrometheus",
@@ -59,79 +169,8 @@ var supportedMetricSources = map[string]string{
 	"ThousandEyes":        "ThousandEyes",
 }
 
-// RemoveDuplicates to remove duplicate string from a slice.
-func RemoveDuplicates(s []string) []string {
-	result := make([]string, 0, len(s))
-	m := make(map[string]bool)
-	for _, v := range s {
-		if _, ok := m[v]; !ok {
-			m[v] = true
-		}
-	}
-	for k := range m {
-		result = append(result, k)
-	}
-	return result
-}
-
-/*
-Files converts the provided file.
-
-Nobl9 currently supports the following kinds:
-- AlertMethod
-- AlertPolicy
-- Annotation
-- DataExport
-- Objective
-- Project
-- RoleBinding
-- Service
-- SLO
-
-However OpenSLO doesn't support Annotation, DataExport, Project or RoleBinding so we can only convert to AlertMethod, AlertPolicy, Objective, Service and SLO.
-
-*/
-func Files(out io.Writer, filenames []string) error {
-	var rval []interface{}
-	// These are used to track the names of the objects that
-	// we have, in order to warn the user if they need to add
-	// the objects to Nobl9 separately.
-	var serviceNames []string
-	var alertPolicyNames []string
-
-	parsed, err := getParsedObjects(filenames)
-	if err != nil {
-		return fmt.Errorf("issue parsing content: %w", err)
-	}
-
-	// Get the service objects.
-	if err := getServiceObjects(parsed, &rval, &serviceNames); err != nil {
-		return fmt.Errorf("issue getting service objects: %w", err)
-	}
-
-	// Get the alertPolicy objects.
-	if err := getAlertPolicyObjects(parsed, &rval, &alertPolicyNames); err != nil {
-		return fmt.Errorf("issue getting alertPolicy objects: %w", err)
-	}
-
-	// Get the SLO objects.
-	if err := getSLObjects(parsed, &rval, serviceNames, alertPolicyNames); err != nil {
-		return fmt.Errorf("issue getting SLO objects: %w", err)
-	}
-
-	// Print out all of our objects.
-	for _, s := range rval {
-		err := printYaml(out, s)
-		if err != nil {
-			return fmt.Errorf("issue printing content: %w", err)
-		}
-	}
-
-	return nil
-}
-
 // Constructs Nobl9 SLO objects from our list of OpenSLOKinds.
-func getSLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceNames []string, alertPolicies []string) error {
+func getN9SLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceNames []string, alertPolicies []string, project string) error {
 	// Get the SLO object.
 	ap, err := getObjectByKind("SLO", parsed)
 	if err != nil {
@@ -178,23 +217,23 @@ func getSLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceNam
 				s.Metadata.DisplayName,
 			))
 
-		tw, err := getTimeWindow(s.Spec.TimeWindow)
+		tw, err := getN9TimeWindow(s.Spec.TimeWindow)
 		if err != nil {
 			return fmt.Errorf("issue getting time window: %w", err)
 		}
 
 		// Get the Objectives, aka Thresholds
-		indicator, err := getSLISpec(s.Spec, parsed)
+		indicator, err := getN9SLISpec(s.Spec, parsed)
 		if err != nil {
 			return fmt.Errorf("issue getting SLI spec: %w", err)
 		}
-		thresholds, err := getThresholds(s.Spec.Objectives, indicator)
+		thresholds, err := getN9Thresholds(s.Spec.Objectives, indicator)
 		if err != nil {
 			return fmt.Errorf("issue getting thresholds: %w", err)
 		}
 
 		*rval = append(*rval, nobl9v1alpha.SLO{
-			ObjectHeader: getObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, "default"),
+			ObjectHeader: getN9ObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, project),
 			Spec: nobl9v1alpha.SLOSpec{
 				Indicator: nobl9v1alpha.Indicator{
 					MetricSource: nobl9v1alpha.MetricSourceSpec{
@@ -215,7 +254,7 @@ func getSLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceNam
 }
 
 // Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives
-func getThresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Threshold, error) {
+func getN9Thresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Threshold, error) {
 	var t []nobl9v1alpha.Threshold
 	for _, v := range o {
 		// if the operator isn't nil, then assign it, otherwise keep it nil
@@ -235,7 +274,7 @@ func getThresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Thres
 		// Get CountMetrics if we have a ratioMetric
 		var cm nobl9v1alpha.CountMetricsSpec
 		if indicator.RatioMetric != nil {
-			c, err := getCountMetrics(*indicator.RatioMetric)
+			c, err := getN9CountMetrics(*indicator.RatioMetric)
 			if err != nil {
 				return nil, fmt.Errorf("issue getting count metrics: %w", err)
 			}
@@ -255,18 +294,18 @@ func getThresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Thres
 	return t, nil
 }
 
-func getCountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) {
+func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) {
 	// Error if Bad is not nil, since Nobl9 doesn't support it.
 	if r.Bad != nil {
 		return nobl9v1alpha.CountMetricsSpec{}, fmt.Errorf("metric spec Bad is not supported in Nobl9")
 	}
 
-	good, err := getMetricSource(r.Good.MetricSource)
+	good, err := getN9MetricSource(r.Good.MetricSource)
 	if err != nil {
 		return nobl9v1alpha.CountMetricsSpec{}, fmt.Errorf("issue getting good metric source: %w", err)
 	}
 
-	total, err := getMetricSource(r.Total.MetricSource)
+	total, err := getN9MetricSource(r.Total.MetricSource)
 	if err != nil {
 		return nobl9v1alpha.CountMetricsSpec{}, fmt.Errorf("issue getting total metric source: %w", err)
 	}
@@ -279,7 +318,7 @@ func getCountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) {
 	return cm, nil
 }
 
-func getMetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
+func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 	var ms nobl9v1alpha.MetricSpec
 	switch m.Type {
 	case supportedMetricSources["Datadog"]:
@@ -543,7 +582,7 @@ func getMetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 	return ms, nil
 }
 
-func getSLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) (v1.SLISpec, error) {
+func getN9SLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) (v1.SLISpec, error) {
 	var s v1.SLISpec
 	// if o.IndicatorRef is not nil, then return the indicator from the parsed list
 	if o.IndicatorRef != nil {
@@ -566,7 +605,7 @@ func getSLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) (v1.SLISpec, error)
 }
 
 // Function that returns an nobl9v1alpha.TimeWindow from a OpenSLO TimeWindow.
-func getTimeWindow(tw []v1.TimeWindow) ([]nobl9v1alpha.TimeWindow, error) {
+func getN9TimeWindow(tw []v1.TimeWindow) ([]nobl9v1alpha.TimeWindow, error) {
 	// return an error if the length of tw is greater than one, since we only support one TimeWindow
 	if len(tw) > 1 {
 		return nil, fmt.Errorf("OpenSLO only supports one TimeWindow")
@@ -594,40 +633,8 @@ func getTimeWindow(tw []v1.TimeWindow) ([]nobl9v1alpha.TimeWindow, error) {
 	}, nil
 }
 
-// Function that takes a duration shorthand string and returns the unit of time, eg minute, hour, month
-func getDurationUnit(d string) (string, error) {
-	switch d {
-	case "m":
-		return "Minute", nil
-	case "h":
-		return "Hour", nil
-	case "d":
-		return "Day", nil
-	case "w":
-		return "Week", nil
-	case "M":
-		return "Month", nil
-	case "Q":
-		return "Quarter", nil
-	case "Y":
-		return "Year", nil
-	}
-
-	return "", fmt.Errorf("duration unit not supported %s", d)
-}
-
-// Checks that the given string is in the given slice.
-func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
 // Constructs Nobl9 AlertPolicy objects from our list of OpenSLOKinds.
-func getAlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names *[]string) error {
+func getN9AlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names *[]string, project string) error {
 	// Get the alert policy object.
 	ap, err := getObjectByKind("AlertPolicy", parsed)
 	if err != nil {
@@ -656,7 +663,7 @@ func getAlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, n
 		// Gather the alert conditions.
 		var conditions []nobl9v1alpha.AlertCondition
 		for _, a := range apObj.Spec.Conditions {
-			err := getAlertCondition(a, &conditions, ac)
+			err := getN9AlertCondition(a, &conditions, ac)
 			if err != nil {
 				return fmt.Errorf("issue getting alert condition: %w", err)
 			}
@@ -666,7 +673,7 @@ func getAlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, n
 		printWarning("Using default serverity of 'Medium' in AlertPolicy, because we don't have an exact mapping")
 		printWarning("Using default CoolDownDuration in AlertPolicy, because OpenSLO doesn't support that")
 		*rval = append(*rval, nobl9v1alpha.AlertPolicy{
-			ObjectHeader: getObjectHeader("AlertPolicy", apObj.Metadata.Name, apObj.Metadata.DisplayName, "default"),
+			ObjectHeader: getN9ObjectHeader("AlertPolicy", apObj.Metadata.Name, apObj.Metadata.DisplayName, project),
 			Spec: nobl9v1alpha.AlertPolicySpec{
 				Description:      apObj.Spec.Description,
 				Conditions:       conditions,
@@ -682,7 +689,7 @@ func getAlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, n
 }
 
 // returns an nobl9v1alpha.AlertCondition from an OpenSLO.AlertPolicyCondition
-func getAlertCondition(apc v1.AlertPolicyCondition, conditions *[]nobl9v1alpha.AlertCondition, ac []manifest.OpenSLOKind) error {
+func getN9AlertCondition(apc v1.AlertPolicyCondition, conditions *[]nobl9v1alpha.AlertCondition, ac []manifest.OpenSLOKind) error {
 	// If we have an inline condition, we can use it.
 	if apc.AlertConditionInline != nil {
 		printWarning("using the default averageBurnRate in AlertCondition, since there isn't a direct match")
@@ -723,43 +730,8 @@ func getAlertCondition(apc v1.AlertPolicyCondition, conditions *[]nobl9v1alpha.A
 	return nil
 }
 
-func getParsedObjects(filenames []string) ([]manifest.OpenSLOKind, error) {
-	var parsed []manifest.OpenSLOKind
-	for _, filename := range filenames {
-		// Get the file contents.
-		content, err := yamlutils.ReadConf(filename)
-		if err != nil {
-			return nil, fmt.Errorf("issue reading content: %w", err)
-		}
-
-		// Parse the byte arrays to OpenSLOKind objects.
-		p, err := yamlutils.Parse(content, filename)
-		if err != nil {
-			return nil, fmt.Errorf("issue parsing content: %w", err)
-		}
-
-		parsed = append(parsed, p...)
-	}
-	return parsed, nil
-}
-
-// function that that returns an object by Kind from a list of OpenSLOKinds.
-func getObjectByKind(kind string, objects []manifest.OpenSLOKind) ([]manifest.OpenSLOKind, error) {
-	var found []manifest.OpenSLOKind
-	for _, o := range objects {
-		if o.Kind() == kind {
-			found = append(found, o)
-		}
-	}
-	// TODO: I dont think that we care about the length here.
-	// if len(found) == 0 {
-	//   return nil, fmt.Errorf("no %s found", kind)
-	// }
-	return found, nil
-}
-
 // function that takes a manifest.OpenSLOKind and returns a nobl9v1alpha.ObjectHeader.
-func getObjectHeader(kind, name, displayName, project string) nobl9v1alpha.ObjectHeader {
+func getN9ObjectHeader(kind, name, displayName, project string) nobl9v1alpha.ObjectHeader {
 	return nobl9v1alpha.ObjectHeader{
 		ObjectHeader: nobl9manifest.ObjectHeader{
 			APIVersion: nobl9v1alpha.APIVersion,
@@ -776,7 +748,7 @@ func getObjectHeader(kind, name, displayName, project string) nobl9v1alpha.Objec
 }
 
 // Constructs Nobl9 Service objects from our list of OpenSLOKinds.
-func getServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names *[]string) error {
+func getN9ServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names *[]string, project string) error {
 	// Get the service object.
 	obj, err := getObjectByKind("Service", parsed)
 	if err != nil {
@@ -791,7 +763,7 @@ func getServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names
 		}
 		// Construct the nobl9 service object from the OpenSLO service object.
 		*rval = append(*rval, nobl9v1alpha.Service{
-			ObjectHeader: getObjectHeader("Service", srvObj.Metadata.Name, srvObj.Metadata.DisplayName, "default"),
+			ObjectHeader: getN9ObjectHeader("Service", srvObj.Metadata.Name, srvObj.Metadata.DisplayName, project),
 			Spec: nobl9v1alpha.ServiceSpec{
 				Description: srvObj.Spec.Description,
 			},
@@ -803,6 +775,10 @@ func getServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names
 	return nil
 }
 
+//------------------------------------------------------------------------------
+//
+// Helper functions
+//
 func printYaml(out io.Writer, object interface{}) error {
 	// Convert parsed to yaml and print to out.
 	yml, err := yaml.Marshal(object)
@@ -874,4 +850,36 @@ func unflatten(json map[string]string) (map[string]interface{}, error) {
 	}
 
 	return result, nil
+}
+
+// Function that takes a duration shorthand string and returns the unit of time, eg minute, hour, month
+func getDurationUnit(d string) (string, error) {
+	switch d {
+	case "m":
+		return "Minute", nil
+	case "h":
+		return "Hour", nil
+	case "d":
+		return "Day", nil
+	case "w":
+		return "Week", nil
+	case "M":
+		return "Month", nil
+	case "Q":
+		return "Quarter", nil
+	case "Y":
+		return "Year", nil
+	}
+
+	return "", fmt.Errorf("duration unit not supported %s", d)
+}
+
+// Checks that the given string is in the given slice.
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
