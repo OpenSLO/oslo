@@ -17,7 +17,10 @@ func TestNewConvertCmd(t *testing.T) {
 	}{
 		{
 			name: "Single file - Service",
-			args: []string{"-f", "../../../test/v1/service/service.yaml"},
+			args: []string{
+				"-o", "nobl9",
+				"-f", "../../../test/v1/service/service.yaml",
+			},
 			wantOut: `---
 apiVersion: n9/v1alpha
 kind: Service
@@ -31,14 +34,18 @@ spec:
 			wantErr: false,
 		},
 		{
-			name:    "Single file - Alert Policy",
-			args:    []string{"-f", "../../../test/v1/alert-policy/alert-policy.yaml"},
+			name: "Single file - Alert Policy",
+			args: []string{
+				"-o", "nobl9",
+				"-f", "../../../test/v1/alert-policy/alert-policy.yaml",
+			},
 			wantOut: ``,
 			wantErr: true,
 		},
 		{
 			name: "Alert Policy - Separate Condition",
 			args: []string{
+				"-o", "nobl9",
 				"-f", "../../../test/v1/alert-policy/alert-policy.yaml",
 				"-f", "../../../test/v1/alert-condition/alert-condition.yaml",
 			},
@@ -65,6 +72,7 @@ spec:
 		{
 			name: "Alert Policy - Inline Condition",
 			args: []string{
+				"-o", "nobl9",
 				"-f", "../../../test/v1/alert-policy/alert-policy-inline-cond.yaml",
 			},
 			wantOut: `---
@@ -90,6 +98,7 @@ spec:
 		{
 			name: "Alert Policy - Multiple Condition",
 			args: []string{
+				"-o", "nobl9",
 				"-f", "../../../test/v1/alert-policy/alert-policy-many-cond.yaml",
 				"-f", "../../../test/v1/alert-condition/alert-condition.yaml",
 			},
@@ -148,6 +157,7 @@ spec:
 		{
 			name: "Alert Policy - No Matching Condition",
 			args: []string{
+				"-o", "nobl9",
 				"-f", "../../../test/v1/alert-policy/alert-policy.yaml",
 				"-f", "../../../test/v1/alert-condition/alert-condition-invalid-name.yaml",
 			},
@@ -157,6 +167,7 @@ spec:
 		{
 			name: "Duplicate file",
 			args: []string{
+				"-o", "nobl9",
 				"-f", "../../../test/v1/service/service.yaml",
 				"-f", "../../../test/v1/service/service.yaml",
 			},
@@ -175,6 +186,7 @@ spec:
 		{
 			name: "Single SLO",
 			args: []string{
+				"-o", "nobl9",
 				"-f", "../../../test/v1/slo/slo-no-indicatorref-rolling-alerts.yaml",
 			},
 			wantOut: `---
@@ -213,23 +225,6 @@ spec:
 `,
 			wantErr: false,
 		},
-		// {
-		//   name: "Multiple files",
-		//   args: []string{
-		//     "-f", "../../../test/v1/data-source/data-source.yaml",
-		//     "-f", "../../../test/v1/service/service.yaml",
-		//   },
-		//   wantOut: "foo",
-		//   wantErr: false,
-		// },
-		// {
-		//   name: "Directory",
-		//   args: []string{
-		//     "-d", "../../../test/v1/service",
-		//   },
-		//   wantOut: "foo",
-		//   wantErr: false,
-		// },
 	}
 	for _, tt := range tests {
 		tt := tt // Parallel testing

@@ -18,6 +18,7 @@ limitations under the License.
 package convert
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -29,10 +30,28 @@ import (
 func NewConvertCmd() *cobra.Command {
 	var files []string
 	var directory string
+	var format string
 
 	convertCmd := &cobra.Command{
 		Use:   "convert",
-		Short: "Converts from one format to another.",
+		Short: "Converts from OpenSLO to another format.",
+		Long: `Converts from OpenSLO to another format.
+
+Supported output formats are:
+- nobl9
+
+Multiple files can be converted by specifying them as arguments:
+
+	oslo convert -f file1.yaml -f file2.yaml -o nobl9
+
+You can also convert a directory of files:
+
+  oslo convert -d path/to/directory -o nobl9
+
+The output is written to standard output.  If you want to write to a file, you can redirect the output:
+
+  oslo convert -f file.yaml -o nobl9 > output.yaml
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// If a directory is provided, read all files in the directory.
 			if directory != "" {
@@ -49,16 +68,26 @@ func NewConvertCmd() *cobra.Command {
 			// processing each file once.
 			files = convert.RemoveDuplicates(files)
 
-			// Convert the files
-			if err := convert.Files(cmd.OutOrStdout(), files); err != nil {
-				return err
+			// Convert the files to the specified format.
+			switch format {
+			case "nobl9":
+				if err := convert.Files(cmd.OutOrStdout(), files); err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("unsupported format: %s", format)
 			}
+
 			return nil
 		},
 	}
 
 	convertCmd.Flags().StringArrayVarP(&files, "file", "f", []string{}, "The file(s) to format.")
 	convertCmd.Flags().StringVarP(&directory, "directory", "d", "", "The directory to format.")
+	convertCmd.Flags().StringVarP(&format, "output", "o", "", "The output format to convert to.")
+
+	convertCmd.MarkFlagRequired("format")
+	convertCmd.MarkFlagRequired("format")
 
 	return convertCmd
 }
