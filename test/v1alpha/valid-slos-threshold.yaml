@@ -12,15 +12,15 @@ spec:
       queryType: promql
       query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
   objectives:
-  - displayName: Weiner Shirt-zel Front Page
-    op: gt
-    target: 0.99
-    value: 2000
+    - displayName: Weiner Shirt-zel Front Page
+      op: gt
+      target: 0.99
+      value: 2000
   service: my-awesome-service
   timeWindows:
-  - calendar:
-      startTime: "2021-05-01 00:00:00"
-      timeZone: UTC
-    count: 1
-    isRolling: false
-    unit: Month
+    - calendar:
+        startTime: 2021-05-01 00:00:00
+        timeZone: UTC
+      count: 1
+      isRolling: false
+      unit: Month

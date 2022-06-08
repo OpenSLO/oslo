@@ -93,7 +93,7 @@ func isValidDurationString(fl validator.FieldLevel) bool {
 
 func isDateWithTimeValid(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
-		_, err := time.Parse("2006-01-02 15:04:05", fl.Field().String())
+		_, err := time.Parse("2006-01-02T15:04:05Z", fl.Field().String())
 		if err != nil {
 			return false
 		}
