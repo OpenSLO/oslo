@@ -675,7 +675,13 @@ func getN9AlertPolicyObjects(
 		_ = printWarning("Using default serverity of 'Medium' in AlertPolicy, because we don't have an exact mapping")
 		_ = printWarning("Using default CoolDownDuration in AlertPolicy, because OpenSLO doesn't support that")
 		*rval = append(*rval, nobl9v1alpha.AlertPolicy{
-			ObjectHeader: getN9ObjectHeader("AlertPolicy", apObj.Metadata.Name, apObj.Metadata.DisplayName, project, apObj.Metadata.Labels),
+			ObjectHeader: getN9ObjectHeader(
+				"AlertPolicy",
+				apObj.Metadata.Name,
+				apObj.Metadata.DisplayName,
+				project,
+				apObj.Metadata.Labels,
+			),
 			Spec: nobl9v1alpha.AlertPolicySpec{
 				Description:      apObj.Spec.Description,
 				Conditions:       conditions,
@@ -755,7 +761,7 @@ func getN9ObjectHeader(kind, name, displayName, project string, labels v1.Labels
 	}
 }
 
-// function that takes a v1.Labels object and maps it to a nobl9v1alpha.Labels
+// function that takes a v1.Labels object and maps it to a nobl9v1alpha.Labels.
 func getN9Labels(labels v1.Labels) map[string][]string {
 	if labels == nil {
 		return nil
@@ -780,7 +786,13 @@ func getN9ServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, nam
 		}
 		// Construct the nobl9 service object from the OpenSLO service object.
 		*rval = append(*rval, nobl9v1alpha.Service{
-			ObjectHeader: getN9ObjectHeader("Service", srvObj.Metadata.Name, srvObj.Metadata.DisplayName, project, srvObj.Metadata.Labels),
+			ObjectHeader: getN9ObjectHeader(
+				"Service",
+				srvObj.Metadata.Name,
+				srvObj.Metadata.DisplayName,
+				project,
+				srvObj.Metadata.Labels,
+			),
 			Spec: nobl9v1alpha.ServiceSpec{
 				Description: srvObj.Spec.Description,
 			},

@@ -17,7 +17,6 @@ package validate
 
 import (
 	"errors"
-	"regexp"
 	"strings"
 	"time"
 
@@ -25,11 +24,6 @@ import (
 
 	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
 	"github.com/OpenSLO/oslo/pkg/manifest"
-)
-
-var (
-	labelRegexp               = regexp.MustCompile(`^[\p{L}]([\_\-0-9\p{L}]*[0-9\p{L}])?$`)
-	hasUpperCaseLettersRegexp = regexp.MustCompile(`[A-Z]+`)
 )
 
 // validateStruct takes the given struct and validates it.
@@ -107,33 +101,4 @@ func isTimeZoneValid(fl validator.FieldLevel) bool {
 		}
 	}
 	return true
-}
-
-func validateLabel(value string) bool {
-	if len(value) > 63 || len(value) < 1 {
-		return false
-	}
-
-	if !labelRegexp.MatchString(value) {
-		return false
-	}
-	return !hasUpperCaseLettersRegexp.MatchString(value)
-}
-
-func duplicates(list []string) bool {
-	duplicateFrequency := make(map[string]int)
-
-	for _, item := range list {
-		_, exist := duplicateFrequency[item]
-
-		if exist {
-			duplicateFrequency[item]++
-		} else {
-			duplicateFrequency[item] = 1
-		}
-		if duplicateFrequency[item] > 1 {
-			return true
-		}
-	}
-	return false
 }
