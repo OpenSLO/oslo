@@ -25,7 +25,6 @@ import (
 
 	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
 	"github.com/OpenSLO/oslo/pkg/manifest"
-	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 )
 
 var (
@@ -39,7 +38,6 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 
 	_ = validate.RegisterValidation("dateWithTime", isDateWithTimeValid)
 	_ = validate.RegisterValidation("timeZone", isTimeZoneValid)
-	_ = validate.RegisterValidation("labels", isValidLabel)
 	_ = validate.RegisterValidation("validDuration", isValidDurationString)
 
 	var allErrors []string
@@ -106,26 +104,6 @@ func isTimeZoneValid(fl validator.FieldLevel) bool {
 		_, err := time.LoadLocation(fl.Field().String())
 		if err != nil {
 			return false
-		}
-	}
-	return true
-}
-
-func isValidLabel(fl validator.FieldLevel) bool {
-	labels := fl.Field().Interface().(v1.Labels)
-	for key, values := range labels {
-		if !validateLabel(key) {
-			return false
-		}
-		if duplicates(values) {
-			return false
-		}
-		for _, val := range values {
-			// Validate only if len(val) > 0, in case where we have only key labels, there is always empty val string
-			// and this is not an error
-			if len(val) > 0 && !validateLabel(val) {
-				return false
-			}
 		}
 	}
 	return true

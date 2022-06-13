@@ -1,4 +1,6 @@
 /*
+Package yamlutils provides functions to parse OpenSLO manifests.
+
 Copyright © 2022 OpenSLO Team
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +45,9 @@ func ReadConf(filename string) ([]byte, error) {
 }
 
 // Parse takes the provided byte array, parses it, and returns an array of parsed struts.
+// Ignoring the complexity linting errors for now, until we can figure
+// out how to handle the complexity better.
+// nolint: gocognit, cyclop
 func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) {
 	var m manifest.ObjectGeneric
 

@@ -18,12 +18,14 @@ package yamlutils
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestParse(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		fileContent []byte
 		filename    string
@@ -96,7 +98,9 @@ spec:
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := Parse(tt.args.fileContent, tt.args.filename)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)

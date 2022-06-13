@@ -70,23 +70,19 @@ func getParsedObjects(filenames []string) ([]manifest.OpenSLOKind, error) {
 }
 
 // function that that returns an object by Kind from a list of OpenSLOKinds.
-func getObjectByKind(kind string, objects []manifest.OpenSLOKind) ([]manifest.OpenSLOKind, error) {
+func getObjectByKind(kind string, objects []manifest.OpenSLOKind) []manifest.OpenSLOKind {
 	var found []manifest.OpenSLOKind
 	for _, o := range objects {
 		if o.Kind() == kind {
 			found = append(found, o)
 		}
 	}
-	// TODO: I dont think that we care about the length here.
-	// if len(found) == 0 {
-	//   return nil, fmt.Errorf("no %s found", kind)
-	// }
-	return found, nil
+	return found
 }
 
 //------------------------------------------------------------------------------
 //
-//  Nobl9 Convertion
+//  Nobl9 Conversion
 //
 
 /*
@@ -103,7 +99,8 @@ Nobl9 currently supports the following kinds:
 - Service
 - SLO
 
-However OpenSLO doesn't support Annotation, DataExport, Project or RoleBinding so we can only convert to AlertMethod, AlertPolicy, Objective, Service and SLO.
+However OpenSLO doesn't support Annotation, DataExport, Project or RoleBinding so we can only convert to
+AlertMethod, AlertPolicy, Objective, Service and SLO.
 */
 func Nobl9(out io.Writer, filenames []string, project string) error {
 	var rval []interface{}
@@ -144,38 +141,16 @@ func Nobl9(out io.Writer, filenames []string, project string) error {
 	return nil
 }
 
-// Nobl9 supported metric sources
-var supportedMetricSources = map[string]string{
-	"AmazonPrometheus":    "AmazonPrometheus",
-	"AppDynamics":         "AppDynamics",
-	"BigQuery":            "BigQuery",
-	"CloudWatch":          "CloudWatch",
-	"CloudWatchMetric":    "CloudWatchMetric",
-	"Datadog":             "Datadog",
-	"Dynatrace":           "Dynatrace",
-	"Elasticsearch":       "Elasticsearch",
-	"GrafanaLoki":         "GrafanaLoki",
-	"Graphite":            "Graphite",
-	"Instana":             "Instana",
-	"Lightstep":           "Lightstep",
-	"NewRelic":            "NewRelic",
-	"OpenTSDB":            "OpenTSDB",
-	"Pingdom":             "Pingdom",
-	"Prometheus":          "Prometheus",
-	"Redshift":            "Redshift",
-	"Splunk":              "Splunk",
-	"SplunkObservability": "SplunkObservability",
-	"SumoLogic":           "SumoLogic",
-	"ThousandEyes":        "ThousandEyes",
-}
-
 // Constructs Nobl9 SLO objects from our list of OpenSLOKinds.
-func getN9SLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceNames []string, alertPolicies []string, project string) error {
+func getN9SLObjects(
+	parsed []manifest.OpenSLOKind,
+	rval *[]interface{},
+	serviceNames,
+	alertPolicies []string,
+	project string,
+) error {
 	// Get the SLO object.
-	ap, err := getObjectByKind("SLO", parsed)
-	if err != nil {
-		return fmt.Errorf("issue getting SLO from parsed list: %w", err)
-	}
+	ap := getObjectByKind("SLO", parsed)
 
 	// Return if ap is empty.
 	if len(ap) == 0 {
@@ -188,9 +163,10 @@ func getN9SLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceN
 
 		// Check that the service name is in the list of service names, and warn the user if it isn't.
 		if !stringInSlice(s.Spec.Service, serviceNames) {
-			printWarning(
+			_ = printWarning(
 				fmt.Sprintf(
-					"Service %s is not in the list of services for SLO %s. You will need verify that it is present in Nobl9 before applying.",
+					"Service %s is not in the list of services for SLO %s. "+
+						"You will need verify that it is present in Nobl9 before applying.",
 					s.Spec.Service,
 					s.Metadata.DisplayName,
 				),
@@ -200,9 +176,10 @@ func getN9SLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceN
 		// Check that the alert policy name is in the list of alert policies, and warn the user if it isn't.
 		for _, ap := range s.Spec.AlertPolicies {
 			if !stringInSlice(ap, alertPolicies) {
-				printWarning(
+				_ = printWarning(
 					fmt.Sprintf(
-						"Alert policy %s is not in the list of alert policies for SLO %s. You will need verify that it is present in Nobl9 before applying.",
+						"Alert policy %s is not in the list of alert policies for SLO %s. "+
+							"You will need verify that it is present in Nobl9 before applying.",
 						ap,
 						s.Metadata.DisplayName,
 					),
@@ -211,9 +188,11 @@ func getN9SLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceN
 		}
 
 		// Warn about changes to the Indicator
-		printWarning(
+		_ = printWarning(
 			fmt.Sprintf(
-				"OpenSLO doesn't support the Indicator or Agent configuration, so the name of the Agent for %s has been defaulted to 'ChangeMe'. Update with the name and kind of the integration in Nobl9 before applying.",
+				"OpenSLO doesn't support the Indicator or Agent configuration, "+
+					"so the name of the Agent for %s has been defaulted to 'ChangeMe'. "+
+					"Update with the name and kind of the integration in Nobl9 before applying.",
 				s.Metadata.DisplayName,
 			))
 
@@ -223,17 +202,14 @@ func getN9SLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceN
 		}
 
 		// Get the Objectives, aka Thresholds
-		indicator, err := getN9SLISpec(s.Spec, parsed)
-		if err != nil {
-			return fmt.Errorf("issue getting SLI spec: %w", err)
-		}
+		indicator := getN9SLISpec(s.Spec, parsed)
 		thresholds, err := getN9Thresholds(s.Spec.Objectives, indicator)
 		if err != nil {
 			return fmt.Errorf("issue getting thresholds: %w", err)
 		}
 
 		*rval = append(*rval, nobl9v1alpha.SLO{
-			ObjectHeader: getN9ObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, project),
+			ObjectHeader: getN9ObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, project, s.Metadata.Labels),
 			Spec: nobl9v1alpha.SLOSpec{
 				Indicator: nobl9v1alpha.Indicator{
 					MetricSource: nobl9v1alpha.MetricSourceSpec{
@@ -253,10 +229,11 @@ func getN9SLObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, serviceN
 	return nil
 }
 
-// Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives
+// Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives.
 func getN9Thresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Threshold, error) {
-	var t []nobl9v1alpha.Threshold
+	var t []nobl9v1alpha.Threshold // nolint:prealloc
 	for _, v := range o {
+		v := v // local copy
 		// if the operator isn't nil, then assign it, otherwise keep it nil
 		var operator *string
 		if v.Op != "" {
@@ -318,7 +295,33 @@ func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) 
 	return cm, nil
 }
 
+// Disabling the lint for this since theres not a really good way of doing this without a big switch statement.
+// nolint:cyclop
 func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
+	// Nobl9 supported metric sources.
+	supportedMetricSources := map[string]string{
+		"AmazonPrometheus":    "AmazonPrometheus",
+		"AppDynamics":         "AppDynamics",
+		"BigQuery":            "BigQuery",
+		"CloudWatch":          "CloudWatch",
+		"CloudWatchMetric":    "CloudWatchMetric",
+		"Datadog":             "Datadog",
+		"Dynatrace":           "Dynatrace",
+		"Elasticsearch":       "Elasticsearch",
+		"GrafanaLoki":         "GrafanaLoki",
+		"Graphite":            "Graphite",
+		"Instana":             "Instana",
+		"Lightstep":           "Lightstep",
+		"NewRelic":            "NewRelic",
+		"OpenTSDB":            "OpenTSDB",
+		"Pingdom":             "Pingdom",
+		"Prometheus":          "Prometheus",
+		"Redshift":            "Redshift",
+		"Splunk":              "Splunk",
+		"SplunkObservability": "SplunkObservability",
+		"SumoLogic":           "SumoLogic",
+		"ThousandEyes":        "ThousandEyes",
+	}
 	var ms nobl9v1alpha.MetricSpec
 	switch m.Type {
 	case supportedMetricSources["Datadog"]:
@@ -483,7 +486,6 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 			},
 		}
 	case supportedMetricSources["Instana"]:
-		// TODO document that we expect the Instana to be in a flattened json format
 		metricType := m.MetricSourceSpec["metricType"]
 		metricSource, err := unflatten(m.MetricSourceSpec)
 		if err != nil {
@@ -577,19 +579,20 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 			supportedMetricSourcesString += k + ", "
 		}
 
-		return ms, fmt.Errorf("Unsupported metric source kind %s. Supported types are %s", m.Type, supportedMetricSourcesString)
+		return ms, fmt.Errorf(
+			"unsupported metric source kind %s. Supported types are %s",
+			m.Type,
+			supportedMetricSourcesString,
+		)
 	}
 	return ms, nil
 }
 
-func getN9SLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) (v1.SLISpec, error) {
+func getN9SLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) v1.SLISpec {
 	var s v1.SLISpec
 	// if o.IndicatorRef is not nil, then return the indicator from the parsed list
 	if o.IndicatorRef != nil {
-		indicators, err := getObjectByKind("SLI", parsed)
-		if err != nil {
-			return s, fmt.Errorf("issue getting indicator from parsed list: %w", err)
-		}
+		indicators := getObjectByKind("SLI", parsed)
 
 		for _, i := range indicators {
 			ind := i.(v1.SLI)
@@ -601,7 +604,7 @@ func getN9SLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) (v1.SLISpec, erro
 	} else {
 		s = o.Indicator.Spec
 	}
-	return s, nil
+	return s
 }
 
 // Function that returns an nobl9v1alpha.TimeWindow from a OpenSLO TimeWindow.
@@ -634,12 +637,14 @@ func getN9TimeWindow(tw []v1.TimeWindow) ([]nobl9v1alpha.TimeWindow, error) {
 }
 
 // Constructs Nobl9 AlertPolicy objects from our list of OpenSLOKinds.
-func getN9AlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names *[]string, project string) error {
+func getN9AlertPolicyObjects(
+	parsed []manifest.OpenSLOKind,
+	rval *[]interface{},
+	names *[]string,
+	project string,
+) error {
 	// Get the alert policy object.
-	ap, err := getObjectByKind("AlertPolicy", parsed)
-	if err != nil {
-		return fmt.Errorf("issue getting alert policy from parsed list: %w", err)
-	}
+	ap := getObjectByKind("AlertPolicy", parsed)
 
 	// Return if ap is empty.
 	if len(ap) == 0 {
@@ -647,10 +652,7 @@ func getN9AlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{},
 	}
 
 	// AlertCondition is required so get any from our parsed list.
-	ac, err := getObjectByKind("AlertCondition", parsed)
-	if err != nil {
-		return fmt.Errorf("issue getting alert condition from parsed list: %w", err)
-	}
+	ac := getObjectByKind("AlertCondition", parsed)
 
 	// For each AlertPolicy
 	for _, o := range ap {
@@ -670,10 +672,10 @@ func getN9AlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{},
 		}
 
 		// Construct the nobl9 AlertPolicy object from the OpenSLO AlertPolicy object.
-		printWarning("Using default serverity of 'Medium' in AlertPolicy, because we don't have an exact mapping")
-		printWarning("Using default CoolDownDuration in AlertPolicy, because OpenSLO doesn't support that")
+		_ = printWarning("Using default serverity of 'Medium' in AlertPolicy, because we don't have an exact mapping")
+		_ = printWarning("Using default CoolDownDuration in AlertPolicy, because OpenSLO doesn't support that")
 		*rval = append(*rval, nobl9v1alpha.AlertPolicy{
-			ObjectHeader: getN9ObjectHeader("AlertPolicy", apObj.Metadata.Name, apObj.Metadata.DisplayName, project),
+			ObjectHeader: getN9ObjectHeader("AlertPolicy", apObj.Metadata.Name, apObj.Metadata.DisplayName, project, apObj.Metadata.Labels),
 			Spec: nobl9v1alpha.AlertPolicySpec{
 				Description:      apObj.Spec.Description,
 				Conditions:       conditions,
@@ -688,17 +690,22 @@ func getN9AlertPolicyObjects(parsed []manifest.OpenSLOKind, rval *[]interface{},
 	return nil
 }
 
-// returns an nobl9v1alpha.AlertCondition from an OpenSLO.AlertPolicyCondition
-func getN9AlertCondition(apc v1.AlertPolicyCondition, conditions *[]nobl9v1alpha.AlertCondition, ac []manifest.OpenSLOKind) error {
+// returns an nobl9v1alpha.AlertCondition from an OpenSLO.AlertPolicyCondition.
+func getN9AlertCondition(
+	apc v1.AlertPolicyCondition,
+	conditions *[]nobl9v1alpha.AlertCondition,
+	ac []manifest.OpenSLOKind,
+) error {
 	// If we have an inline condition, we can use it.
+	// nolint: nestif
 	if apc.AlertConditionInline != nil {
-		printWarning("using the default averageBurnRate in AlertCondition, since there isn't a direct match")
-		printWarning("Using default operator in AlertCondition, because OpenSLO doesn't support that feature")
+		_ = printWarning("using the default averageBurnRate in AlertCondition, since there isn't a direct match")
+		_ = printWarning("Using default operator in AlertCondition, because OpenSLO doesn't support that feature")
 		*conditions = append(*conditions, nobl9v1alpha.AlertCondition{
-			Measurement:      "averageBurnRate", // TODO: add other measurements in OpenSLO
+			Measurement:      "averageBurnRate",
 			Value:            apc.AlertConditionInline.Spec.Condition.Threshold,
 			LastsForDuration: apc.AlertConditionInline.Spec.Condition.AlertAfter,
-			Operation:        "gt", // TODO add this to OpenSLO
+			Operation:        "gt",
 		})
 	} else {
 		// Error if we don't have any, since we need at least one.
@@ -709,13 +716,13 @@ func getN9AlertCondition(apc v1.AlertPolicyCondition, conditions *[]nobl9v1alpha
 		// If we don't have an inline condition, we need to get the AlertCondition.
 		for _, c := range ac {
 			// Get the AlertCondition that matches the name.
-			acObj, ok := c.(v1.AlertCondition)
-			if !ok {
+			acObj, err := c.(v1.AlertCondition)
+			if !err {
 				return fmt.Errorf("issue casting to AlertCondition")
 			}
 			if apc.AlertPolicyConditionSpec.ConditionRef == acObj.Metadata.Name {
-				printWarning("Using default averageBurnRate in AlertCondition, since there isn't direct mapping")
-				printWarning("Using default operator in AlertCondition, because OpenSLO doesn't support that feature")
+				_ = printWarning("Using default averageBurnRate in AlertCondition, since there isn't direct mapping")
+				_ = printWarning("Using default operator in AlertCondition, because OpenSLO doesn't support that feature")
 				*conditions = append(*conditions, nobl9v1alpha.AlertCondition{
 					Measurement:      "averageBurnRate",
 					Value:            acObj.Spec.Condition.Threshold,
@@ -731,7 +738,7 @@ func getN9AlertCondition(apc v1.AlertPolicyCondition, conditions *[]nobl9v1alpha
 }
 
 // function that takes a manifest.OpenSLOKind and returns a nobl9v1alpha.ObjectHeader.
-func getN9ObjectHeader(kind, name, displayName, project string) nobl9v1alpha.ObjectHeader {
+func getN9ObjectHeader(kind, name, displayName, project string, labels v1.Labels) nobl9v1alpha.ObjectHeader {
 	return nobl9v1alpha.ObjectHeader{
 		ObjectHeader: nobl9manifest.ObjectHeader{
 			APIVersion: nobl9v1alpha.APIVersion,
@@ -742,18 +749,28 @@ func getN9ObjectHeader(kind, name, displayName, project string) nobl9v1alpha.Obj
 				Name:        name,
 				DisplayName: displayName,
 				Project:     project,
+				Labels:      getN9Labels(labels),
 			},
 		},
 	}
 }
 
+// function that takes a v1.Labels object and maps it to a nobl9v1alpha.Labels
+func getN9Labels(labels v1.Labels) map[string][]string {
+	if labels == nil {
+		return nil
+	}
+	rval := make(map[string][]string)
+	for k, v := range labels {
+		rval[k] = []string{v}
+	}
+	return rval
+}
+
 // Constructs Nobl9 Service objects from our list of OpenSLOKinds.
 func getN9ServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, names *[]string, project string) error {
 	// Get the service object.
-	obj, err := getObjectByKind("Service", parsed)
-	if err != nil {
-		return fmt.Errorf("issue getting service from parsed list: %w", err)
-	}
+	obj := getObjectByKind("Service", parsed)
 
 	for _, o := range obj {
 		// Cast to OpenSLO service objects.
@@ -763,7 +780,7 @@ func getN9ServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, nam
 		}
 		// Construct the nobl9 service object from the OpenSLO service object.
 		*rval = append(*rval, nobl9v1alpha.Service{
-			ObjectHeader: getN9ObjectHeader("Service", srvObj.Metadata.Name, srvObj.Metadata.DisplayName, project),
+			ObjectHeader: getN9ObjectHeader("Service", srvObj.Metadata.Name, srvObj.Metadata.DisplayName, project, srvObj.Metadata.Labels),
 			Spec: nobl9v1alpha.ServiceSpec{
 				Description: srvObj.Spec.Description,
 			},
@@ -777,7 +794,7 @@ func getN9ServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, nam
 
 //------------------------------------------------------------------------------
 //
-// Helper functions
+// Helper functions.
 //
 func printYaml(out io.Writer, object interface{}) error {
 	// Convert parsed to yaml and print to out.
@@ -846,13 +863,12 @@ func unflatten(json map[string]string) (map[string]interface{}, error) {
 			return nil, fmt.Errorf("key=%v already exists", key)
 		}
 		m[keyParts[len(keyParts)-1]] = value
-
 	}
 
 	return result, nil
 }
 
-// Function that takes a duration shorthand string and returns the unit of time, eg minute, hour, month
+// Function that takes a duration shorthand string and returns the unit of time, eg minute, hour, month.
 func getDurationUnit(d string) (string, error) {
 	switch d {
 	case "m":

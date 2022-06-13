@@ -86,9 +86,17 @@ The output is written to standard output.  If you want to write to a file, you c
 	convertCmd.Flags().StringArrayVarP(&files, "file", "f", []string{}, "The file(s) to format.")
 	convertCmd.Flags().StringVarP(&directory, "directory", "d", "", "The directory to format.")
 	convertCmd.Flags().StringVarP(&format, "output", "o", "", "The output format to convert to.")
-	convertCmd.Flags().StringVarP(&project, "project", "p", "default", "Used for nobl9 output. What project to assign the resources to.")
+	convertCmd.Flags().StringVarP(
+		&project,
+		"project",
+		"p",
+		"default",
+		"Used for nobl9 output. What project to assign the resources to.",
+	)
 
-	convertCmd.MarkFlagRequired("format")
+	if err := convertCmd.MarkFlagRequired("output"); err != nil {
+		panic(err)
+	}
 
 	return convertCmd
 }

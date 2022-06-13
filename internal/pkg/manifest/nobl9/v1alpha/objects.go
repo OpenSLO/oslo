@@ -38,12 +38,14 @@ const (
 	KindService = "Service"
 )
 
+type Labels map[string][]string
+
 // Metadata represents part of object which is is common for all available Objects, for internal usage.
 type Metadata struct {
 	Name        string `yaml:"name" validate:"required" example:"name"`
 	DisplayName string `yaml:"displayName,omitempty" validate:"omitempty,min=0,max=63" example:"Prometheus Source"`
 	Project     string `yaml:"project,omitempty" validate:"objectName" example:"default"`
-	// TODO Come back to Labels
+	Labels      Labels `yaml:"labels,omitempty" validate:"omitempty,labels"`
 }
 
 // MetadataHolder is an intermediate structure that can provides metadata related
@@ -104,13 +106,13 @@ type AlertMethodAssignment struct {
 	Name    string `yaml:"name" validate:"required,objectName" example:"webhook-alertmethod"`
 }
 
-// SLO struct which mapped one to one with kind: slo yaml definition, external usage
+// SLO struct which mapped one to one with kind: slo yaml definition, external usage.
 type SLO struct {
 	ObjectHeader `yaml:",inline"`
 	Spec         SLOSpec `yaml:"spec"`
 }
 
-// SLOSpec represents content of Spec typical for SLO Object
+// SLOSpec represents content of Spec typical for SLO Object.
 type SLOSpec struct {
 	Description     string       `yaml:"description" validate:"description" example:"Total count of server requests"` //nolint:lll
 	Indicator       Indicator    `yaml:"indicator"`
@@ -123,13 +125,13 @@ type SLOSpec struct {
 	CreatedAt       string       `yaml:"createdAt,omitempty"`
 }
 
-// ThresholdBase base structure representing a threshold
+// ThresholdBase base structure representing a threshold.
 type ThresholdBase struct {
 	DisplayName string  `yaml:"displayName" validate:"objectiveDisplayName" example:"Good"`
 	Value       float64 `yaml:"value" validate:"numeric" example:"100"`
 }
 
-// Threshold represents single threshold for SLO, for internal usage
+// Threshold represents single threshold for SLO, for internal usage.
 type Threshold struct {
 	ThresholdBase `yaml:",inline"`
 	// <!-- Go struct field and type names renaming budgetTarget to target has been postponed after GA as requested
@@ -144,13 +146,13 @@ type Threshold struct {
 	Name            *string           `yaml:"name,omitempty"`
 }
 
-// Indicator represents integration with metric source can be. e.g. Prometheus, Datadog, for internal usage
+// Indicator represents integration with metric source can be. e.g. Prometheus, Datadog, for internal usage.
 type Indicator struct {
 	MetricSource MetricSourceSpec `yaml:"metricSource" validate:"required"`
 	RawMetric    MetricSpec       `yaml:"rawMetric,omitempty"`
 }
 
-// Attachment represents user defined URL attached to SLO
+// Attachment represents user defined URL attached to SLO.
 type Attachment struct {
 	URL         string  `yaml:"url" validate:"required,url"`
 	DisplayName *string `yaml:"displayName,omitempty"`
@@ -161,13 +163,13 @@ type Calendar struct {
 	TimeZone  string `yaml:"timeZone" validate:"required,timeZone" example:"America/New_York"`
 }
 
-// Period represents period of time
+// Period represents period of time.
 type Period struct {
 	Begin string `yaml:"begin"`
 	End   string `yaml:"end"`
 }
 
-// TimeWindow represents content of time window
+// TimeWindow represents content of time window.
 type TimeWindow struct {
 	Unit      string    `yaml:"unit" validate:"required,timeUnit" example:"Week"`
 	Count     int       `yaml:"count" validate:"required,gt=0" example:"1"`
@@ -175,14 +177,14 @@ type TimeWindow struct {
 	Calendar  *Calendar `yaml:"calendar,omitempty"`
 }
 
-// CountMetricsSpec represents set of two time series of good and total counts
+// CountMetricsSpec represents set of two time series of good and total counts.
 type CountMetricsSpec struct {
 	Incremental *bool       `yaml:"incremental" validate:"required"`
 	GoodMetric  *MetricSpec `yaml:"good" validate:"required"`
 	TotalMetric *MetricSpec `yaml:"total" validate:"required"`
 }
 
-// RawMetricSpec represents integration with a metric source for a particular threshold
+// RawMetricSpec represents integration with a metric source for a particular threshold.
 type RawMetricSpec struct {
 	MetricQuery *MetricSpec `yaml:"query" validate:"required"`
 }
@@ -193,7 +195,7 @@ type MetricSourceSpec struct {
 	Kind    string `yaml:"kind" validate:"omitempty,metricSourceKind" example:"Agent"`
 }
 
-// MetricSpec defines single time series obtained from data source
+// MetricSpec defines single time series obtained from data source.
 type MetricSpec struct {
 	Prometheus          *PrometheusMetric          `yaml:"prometheus,omitempty"`
 	Datadog             *DatadogMetric             `yaml:"datadog,omitempty"`
@@ -217,51 +219,51 @@ type MetricSpec struct {
 	Instana             *InstanaMetric             `yaml:"instana,omitempty"`
 }
 
-// PrometheusMetric represents metric from Prometheus
+// PrometheusMetric represents metric from Prometheus.
 type PrometheusMetric struct {
 	PromQL *string `yaml:"promql" validate:"required" example:"cpu_usage_user{cpu=\"cpu-total\"}"`
 }
 
-// AmazonPrometheusMetric represents metric from Amazon Managed Prometheus
+// AmazonPrometheusMetric represents metric from Amazon Managed Prometheus.
 type AmazonPrometheusMetric struct {
 	PromQL *string `yaml:"promql" validate:"required" example:"cpu_usage_user{cpu=\"cpu-total\"}"`
 }
 
-// DatadogMetric represents metric from Datadog
+// DatadogMetric represents metric from Datadog.
 type DatadogMetric struct {
 	Query *string `yaml:"query" validate:"required"`
 }
 
-// NewRelicMetric represents metric from NewRelic
+// NewRelicMetric represents metric from NewRelic.
 type NewRelicMetric struct {
 	NRQL *string `yaml:"nrql" validate:"required"`
 }
 
-// ThousandEyesMetric represents metric from ThousandEyes
+// ThousandEyesMetric represents metric from ThousandEyes.
 type ThousandEyesMetric struct {
 	TestID   *int64  `yaml:"testID" validate:"required,gte=0"`
 	TestType *string `yaml:"testType" validate:"supportedThousandEyesTestType"`
 }
 
-// AppDynamicsMetric represents metric from AppDynamics
+// AppDynamicsMetric represents metric from AppDynamics.
 type AppDynamicsMetric struct {
 	ApplicationName *string `yaml:"applicationName" validate:"required,notEmpty"`
 	MetricPath      *string `yaml:"metricPath" validate:"required,unambiguousAppDynamicMetricPath"`
 }
 
-// SplunkMetric represents metric from Splunk
+// SplunkMetric represents metric from Splunk.
 type SplunkMetric struct {
 	Query *string `yaml:"query" validate:"required,notEmpty,splunkQueryValid"`
 }
 
-// LightstepMetric represents metric from Lightstep
+// LightstepMetric represents metric from Lightstep.
 type LightstepMetric struct {
 	StreamID   *string  `yaml:"streamId" validate:"required"`
 	TypeOfData *string  `yaml:"typeOfData" validate:"required,oneof=latency error_rate good total"`
 	Percentile *float64 `yaml:"percentile,omitempty"`
 }
 
-// SplunkObservabilityMetric represents metric from SplunkObservability
+// SplunkObservabilityMetric represents metric from SplunkObservability.
 type SplunkObservabilityMetric struct {
 	Program *string `yaml:"program" validate:"required"`
 }
@@ -353,7 +355,7 @@ type GraphiteMetric struct {
 	MetricPath *string `yaml:"metricPath" validate:"required,metricPathGraphite"`
 }
 
-// BigQueryMetric represents metric from BigQuery
+// BigQueryMetric represents metric from BigQuery.
 type BigQueryMetric struct {
 	Query     string `yaml:"query" validate:"required,bigQueryRequiredColumns"`
 	ProjectID string `yaml:"projectId" validate:"required"`

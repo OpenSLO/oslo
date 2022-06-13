@@ -20,12 +20,14 @@ package convert
 import (
 	"testing"
 
-	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
+
+	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 )
 
 func Test_getCountMetrics(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name        string
 		ratioMetric v1.RatioMetric
@@ -73,7 +75,9 @@ total:
 	}
 
 	for _, tt := range tests {
+		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := getN9CountMetrics(tt.ratioMetric)
 
 			if (err != nil) != tt.wantErr {
@@ -89,6 +93,7 @@ total:
 }
 
 func Test_getMetricSource(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		args    v1.MetricSource
@@ -417,7 +422,9 @@ func Test_getMetricSource(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := getN9MetricSource(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getMetricSource() error = %v, wantErr %v", err, tt.wantErr)

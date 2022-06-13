@@ -80,7 +80,7 @@ func Parse(fileContent []byte, m ObjectGeneric, filename string) (manifest.OpenS
 // ----------------------------------------------------------------------------
 
 // Labels is a map of labels.
-type Labels map[string][]string
+type Labels map[string]string
 
 // Annotations is a map of annotations.
 type Annotations map[string]string
@@ -89,9 +89,8 @@ type Annotations map[string]string
 type Metadata struct {
 	Name        string `yaml:"name" validate:"required" example:"name"`
 	DisplayName string `yaml:"displayName,omitempty" validate:"omitempty,min=0,max=63" example:"Prometheus Source"`
-	// TODO add labels
-	Labels      Labels `json:"labels,omitempty" validate:"omitempty,labels"`
-	Annotations Labels `json:"annotations,omitempty" validate:"omitempty,labels"`
+	Labels      Labels `json:"labels,omitempty" validate:"omitempty"`
+	Annotations Labels `json:"annotations,omitempty" validate:"omitempty"`
 }
 
 // MetadataHolder is an intermediate structure that can provides metadata related

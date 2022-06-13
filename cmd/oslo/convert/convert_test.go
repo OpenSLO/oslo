@@ -49,6 +49,33 @@ spec:
 			wantErr: false,
 		},
 		{
+			name: "Single file - Service - labels",
+			args: []string{
+				"-o", "nobl9",
+				"-f", "../../../test/v1/service/service-with-labels.yaml",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: Service
+metadata:
+    name: my-rad-service
+    displayName: My Rad Service
+    project: default
+    labels:
+        costCentre:
+            - project1
+        serviceTier:
+            - tier-1
+        team:
+            - identity
+        userImpacting:
+            - "true"
+spec:
+    description: This is a great description of an even better service.
+`,
+			wantErr: false,
+		},
+		{
 			name: "Single file - Service - non-default project",
 			args: []string{
 				"-o", "nobl9",
