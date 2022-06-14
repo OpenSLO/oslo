@@ -134,8 +134,8 @@ type ThresholdBase struct {
 
 // Threshold represents single threshold for SLO, for internal usage.
 type Threshold struct {
-	ThresholdBase `yaml:",inline"`
-	BudgetTarget *float64 `yaml:"target" validate:"required,numeric,gte=0,lt=1" example:"0.9"`
+	ThresholdBase   `yaml:",inline"`
+	BudgetTarget    *float64          `yaml:"target" validate:"required,numeric,gte=0,lt=1" example:"0.9"`
 	TimeSliceTarget *float64          `yaml:"timeSliceTarget,omitempty" example:"0.9"`
 	CountMetrics    *CountMetricsSpec `yaml:"countMetrics,omitempty"`
 	RawMetric       *RawMetricSpec    `yaml:"rawMetric,omitempty"`
