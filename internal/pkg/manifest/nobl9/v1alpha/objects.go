@@ -38,6 +38,7 @@ const (
 	KindService = "Service"
 )
 
+// Labels represents a set of labels.
 type Labels map[string][]string
 
 // Metadata represents part of object which is is common for all available Objects, for internal usage.
@@ -87,7 +88,7 @@ type AlertPolicy struct {
 type AlertPolicySpec struct {
 	Description      string           `yaml:"description" validate:"description" example:"Error budget is at risk"`
 	Severity         string           `yaml:"severity" validate:"required,severity" example:"High"`
-	CoolDownDuration string           `yaml:"coolDown,omitempty" validate:"omitempty,validDuration,nonNegativeDuration,durationAtLeast=5m" example:"5m"` //nolint:lll
+	CoolDownDuration string           `yaml:"coolDown,omitempty" validate:"omitempty,validDuration" example:"5m"` //nolint:lll
 	Conditions       []AlertCondition `yaml:"conditions" validate:"required,min=1,dive"`
 	AlertMethods     []string         `yaml:"alertMethods"`
 }

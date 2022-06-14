@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v3"
 
 	"github.com/OpenSLO/oslo/pkg/manifest"
@@ -56,7 +57,7 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
-	var allErrors []string
+	var allErrors error
 	var parsedStructs []manifest.OpenSLOKind
 	switch m.APIVersion {
 	// This is where we add new versions of the OpenSLO spec.
@@ -85,7 +86,7 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 
 			content, e := v1alpha.Parse(c, o, filename)
 			if e != nil {
-				allErrors = append(allErrors, e.Error())
+				allErrors = multierror.Append(allErrors, e)
 			}
 			parsedStructs = append(parsedStructs, content)
 		}
@@ -114,16 +115,13 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 
 			content, e := v1.Parse(c, o, filename)
 			if e != nil {
-				allErrors = append(allErrors, e.Error())
+				allErrors = multierror.Append(allErrors, e)
 			}
 			parsedStructs = append(parsedStructs, content)
 		}
 	default:
-		allErrors = append(allErrors, fmt.Sprintf("Unsupported API Version in file %s", filename))
-	}
-	if len(allErrors) > 0 {
-		return nil, errors.New(strings.Join(allErrors, "\n"))
+		allErrors = multierror.Append(allErrors, fmt.Errorf("unsupported API Version in file %s", filename))
 	}
 
-	return parsedStructs, nil
+	return parsedStructs, allErrors
 }

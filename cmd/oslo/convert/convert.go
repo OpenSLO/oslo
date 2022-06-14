@@ -20,6 +20,7 @@ package convert
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -61,7 +62,7 @@ The output is written to standard output.  If you want to write to a file, you c
 					return err
 				}
 				for _, file := range dirFiles {
-					files = append(files, directory+"/"+file.Name())
+					files = append(files, filepath.Join(directory, file.Name()))
 				}
 			}
 
