@@ -37,15 +37,15 @@ import (
 // RemoveDuplicates to remove duplicate string from a slice.
 func RemoveDuplicates(s []string) []string {
 	result := make([]string, 0, len(s))
-	m := make(map[string]bool)
+	m := make(map[string]struct{})
+
 	for _, v := range s {
-		if _, ok := m[v]; !ok {
-			m[v] = true
+		if _, exists := m[v]; !exists {
+			m[v] = struct{}{}
+			result = append(result, v)
 		}
 	}
-	for k := range m {
-		result = append(result, k)
-	}
+
 	return result
 }
 
