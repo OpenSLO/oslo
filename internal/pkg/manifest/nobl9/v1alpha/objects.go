@@ -134,8 +134,6 @@ type ThresholdBase struct {
 // Threshold represents single threshold for SLO, for internal usage.
 type Threshold struct {
 	ThresholdBase `yaml:",inline"`
-	// <!-- Go struct field and type names renaming budgetTarget to target has been postponed after GA as requested
-	// in PC-1240. -->
 	BudgetTarget *float64 `yaml:"target" validate:"required,numeric,gte=0,lt=1" example:"0.9"`
 	// <!-- Go struct field and type names renaming thresholds to objectives has been postponed after GA as requested
 	// in PC-1240. -->
