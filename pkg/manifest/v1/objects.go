@@ -87,10 +87,10 @@ type Annotations map[string]string
 
 // Metadata represents part of object which is is common for all available Objects, for internal usage.
 type Metadata struct {
-	Name        string `yaml:"name" validate:"required" example:"name"`
-	DisplayName string `yaml:"displayName,omitempty" validate:"omitempty,min=0,max=63" example:"Prometheus Source"`
-	Labels      Labels `json:"labels,omitempty" validate:"omitempty,labels"`
-	Annotations Labels `json:"annotations,omitempty" validate:"omitempty,labels"`
+	Name        string      `yaml:"name" validate:"required" example:"name"`
+	DisplayName string      `yaml:"displayName,omitempty" validate:"omitempty,min=0,max=63" example:"Prometheus Source"`
+	Labels      Labels      `json:"labels,omitempty" validate:"omitempty,labels"`
+	Annotations Annotations `json:"annotations,omitempty" validate:"omitempty,labels"`
 }
 
 // MetadataHolder is an intermediate structure that can provides metadata related
