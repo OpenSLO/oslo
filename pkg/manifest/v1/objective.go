@@ -17,10 +17,6 @@ limitations under the License.
 */
 package v1
 
-import (
-	"github.com/OpenSLO/oslo/pkg/manifest"
-)
-
 // Calendar struct represents calendar time window.
 type Calendar struct {
 	StartTime string `yaml:"startTime" validate:"required,dateWithTime" example:"2020-01-21 12:30:00"`
@@ -61,8 +57,8 @@ type SLOSpec struct {
 
 // SLO struct which mapped one to one with kind: slo yaml definition, external usage.
 type SLO struct {
-	manifest.ObjectHeader `yaml:",inline"`
-	Spec                  SLOSpec `yaml:"spec" validate:"required"`
+	ObjectHeader `yaml:",inline"`
+	Spec         SLOSpec `yaml:"spec" validate:"required"`
 }
 
 // Kind returns the name of this type.

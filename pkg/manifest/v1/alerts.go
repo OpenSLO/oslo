@@ -16,14 +16,10 @@ limitations under the License.
 */
 package v1
 
-import (
-	"github.com/OpenSLO/oslo/pkg/manifest"
-)
-
 // AlertCondition is a condition that is used to trigger an alert.
 type AlertCondition struct {
-	manifest.ObjectHeader `yaml:",inline"`
-	Spec                  AlertConditionSpec `yaml:"spec"`
+	ObjectHeader `yaml:",inline"`
+	Spec         AlertConditionSpec `yaml:"spec"`
 }
 
 // AlertConditionInline is used for inline definitions.  It is slightly
@@ -59,8 +55,8 @@ type ConditionType struct {
 
 // AlertNotificationTarget is a target for sending alerts.
 type AlertNotificationTarget struct {
-	manifest.ObjectHeader `yaml:",inline"`
-	Spec                  AlertNotificationTargetSpec `yaml:"spec"`
+	ObjectHeader `yaml:",inline"`
+	Spec         AlertNotificationTargetSpec `yaml:"spec"`
 }
 
 // AlertNotificationTargetSpec is the specification of an alert notification target.
@@ -71,8 +67,8 @@ type AlertNotificationTargetSpec struct {
 
 // AlertPolicy is a policy for sending alerts.
 type AlertPolicy struct {
-	manifest.ObjectHeader `yaml:",inline"`
-	Spec                  AlertPolicySpec `yaml:"spec"`
+	ObjectHeader `yaml:",inline"`
+	Spec         AlertPolicySpec `yaml:"spec"`
 }
 
 // AlertPolicyCondition is a condition that is used to trigger an alert in an alert policy.  It can
