@@ -28,8 +28,7 @@ type DataSourceSpec struct {
 // SLI represents the SLI.
 type SLI struct {
 	ObjectHeader `yaml:",inline"`
-	Metadata     Metadata `yaml:"metadata" validate:"required"`
-	Spec         SLISpec  `yaml:"spec" validate:"required"`
+	Spec         SLISpec `yaml:"spec" validate:"required"`
 }
 
 // SLIInline represents the SLI inline.

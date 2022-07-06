@@ -58,8 +58,7 @@ type SLOSpec struct {
 // SLO struct which mapped one to one with kind: slo yaml definition, external usage.
 type SLO struct {
 	ObjectHeader `yaml:",inline"`
-	Metadata     Metadata `yaml:"metadata" validate:"required"`
-	Spec         SLOSpec  `yaml:"spec" validate:"required"`
+	Spec         SLOSpec `yaml:"spec" validate:"required"`
 }
 
 // Kind returns the name of this type.

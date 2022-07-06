@@ -19,7 +19,6 @@ package v1
 // AlertCondition is a condition that is used to trigger an alert.
 type AlertCondition struct {
 	ObjectHeader `yaml:",inline"`
-	Metadata     Metadata           `yaml:"metadata" validate:"required"`
 	Spec         AlertConditionSpec `yaml:"spec"`
 }
 
@@ -69,7 +68,6 @@ type AlertNotificationTargetSpec struct {
 // AlertPolicy is a policy for sending alerts.
 type AlertPolicy struct {
 	ObjectHeader `yaml:",inline"`
-	Metadata     Metadata        `yaml:"metadata" validate:"required"`
 	Spec         AlertPolicySpec `yaml:"spec"`
 }
 
