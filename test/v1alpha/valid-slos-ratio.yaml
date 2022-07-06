@@ -11,12 +11,12 @@ spec:
       good:
         source: prometheus
         queryType: promql
-        query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
+        query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globalaccount"}
       counter: true
       total:
         source: prometheus
         queryType: promql
-        query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
+        query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globalaccount"}
     displayName: painful
     target: 0.98
     value: 1

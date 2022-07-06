@@ -108,8 +108,8 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 	_ = validate.RegisterValidation("validDuration", isValidDurationString)
 
 	var allErrors []string
-	for _, ival := range c {
-		if err := validate.Struct(ival); err != nil {
+	for _, v := range c {
+		if err := validate.Struct(v); err != nil {
 			for _, err := range err.(validator.ValidationErrors) { //nolint: errorlint
 				allErrors = append(allErrors, err.Error())
 			}
@@ -124,13 +124,13 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 // validateFiles validates the given array of filenames.
 func validateFiles(files []string) error {
 	var allErrors []string
-	for _, ival := range files {
-		c, e := ReadConf(ival)
+	for _, file := range files {
+		c, e := ReadConf(file)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())
 			break
 		}
-		content, err := Parse(c, ival)
+		content, err := Parse(c, file)
 		if err != nil {
 			allErrors = append(allErrors, err.Error())
 			break
