@@ -14,7 +14,7 @@
 
 .PHONY: build
 build:
-	go build
+	go build -o bin/oslo
 
 .PHONY: install/checks/spell-and-markdown
 install/checks/spell-and-markdown:
@@ -33,4 +33,4 @@ run/checks/golangci-lint:
 
 .PHONY: run/tests
 run/tests:
-	go test -v -race -cover ./...
+	go test -race -cover ./...

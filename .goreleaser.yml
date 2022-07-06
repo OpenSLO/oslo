@@ -1,15 +1,15 @@
 builds:
-- env:
-    - CGO_ENABLED=0
-  main: .
-  goos:
-    - linux
-    - darwin
-    - windows
+  - env:
+      - CGO_ENABLED=0
+    main: .
+    binary: bin/oslo
+    goos:
+      - linux
+      - darwin
+      - windows
 
 archives:
-  -
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
+  - name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
     replacements:
       darwin: Darwin
       linux: Linux

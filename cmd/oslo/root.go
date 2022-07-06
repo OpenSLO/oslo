@@ -18,8 +18,9 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/OpenSLO/oslo/internal/pkg/fmt"
-	"github.com/OpenSLO/oslo/internal/pkg/validate"
+	"github.com/OpenSLO/oslo/cmd/oslo/convert"
+	fmtCmd "github.com/OpenSLO/oslo/cmd/oslo/fmt"
+	"github.com/OpenSLO/oslo/cmd/oslo/validate"
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -37,7 +38,8 @@ func newRootCmd() *cobra.Command {
 	}
 
 	rootCmd.AddCommand(validate.NewValidateCmd())
-	rootCmd.AddCommand(fmt.NewFmtCmd())
+	rootCmd.AddCommand(fmtCmd.NewFmtCmd())
+	rootCmd.AddCommand(convert.NewConvertCmd())
 
 	return rootCmd
 }

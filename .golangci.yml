@@ -1,6 +1,9 @@
 run:
   timeout: 5m
   modules-download-mode: readonly
+  # not our current version, but we need to wait until this supports 1.18
+  # https://github.com/golangci/golangci-lint/issues/2649
+  go: "1.17"
 
 issues:
   # Enable all checks (which was as default disabled e.g. comments).

@@ -1,6 +1,4 @@
 /*
-Package manifest provides foundational structs.
-
 Copyright © 2022 OpenSLO Team
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,21 +13,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+package validate
 
-package manifest
+import (
+	"fmt"
 
-// ObjectHeader represents Header which is common for all available Objects.
-type ObjectHeader struct {
-	APIVersion string `yaml:"apiVersion" validate:"required" example:"openslo/v1alpha"`
-}
+	"github.com/spf13/cobra"
 
-// ObjectGeneric represents struct to which every Objects is parsable
-// Specific types of Object have different structures as Spec.
-type ObjectGeneric struct {
-	ObjectHeader `yaml:",inline"`
-}
+	"github.com/OpenSLO/oslo/internal/pkg/validate"
+)
 
-// OpenSLOKind represents a type of object described by OpenSLO.
-type OpenSLOKind interface {
-	Kind() string
+// NewValidateCmd returns a new cobra.Command for the validate command.
+func NewValidateCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "validate",
+		Short: "Validates your yaml file against the OpenSLO spec.",
+		Long:  `Validates your yaml file against the OpenSLO spec.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if e := validate.Files(args); e != nil {
+				return e
+			}
+
+			fmt.Println("Valid!")
+			return nil
+		},
+	}
 }

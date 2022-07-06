@@ -17,86 +17,14 @@ package validate
 
 import (
 	"errors"
-	"fmt"
-	"io"
-	"os"
-	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
+	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
 	"github.com/OpenSLO/oslo/pkg/manifest"
-	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
-	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
 )
-
-var (
-	labelRegexp               = regexp.MustCompile(`^[\p{L}]([\_\-0-9\p{L}]*[0-9\p{L}])?$`)
-	hasUpperCaseLettersRegexp = regexp.MustCompile(`[A-Z]+`)
-)
-
-// ReadConf reads in filename for a yaml file, and unmarshals it.
-func ReadConf(filename string) ([]byte, error) {
-	if filename == "-" {
-		return io.ReadAll(os.Stdin)
-	}
-	fileContent, err := os.ReadFile(filepath.Clean(filename))
-	if err != nil {
-		return nil, err
-	}
-	return fileContent, nil
-}
-
-// Parse takes the provided byte array, parses it, and returns a parsed struct.
-func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) {
-	var m manifest.ObjectGeneric
-
-	// unmarshal here to get the APIVersion so we can process the file correctly
-	if err := yaml.Unmarshal(fileContent, &m); err != nil {
-		return nil, fmt.Errorf("in file %q: %w", filename, err)
-	}
-
-	var allErrors []string
-	var parsedStructs []manifest.OpenSLOKind
-	switch m.APIVersion {
-	// This is where we add new versions of the OpenSLO spec.
-	case v1alpha.APIVersion:
-		// unmarshal again to get the v1alpha struct
-		var o v1alpha.ObjectGeneric
-		if err := yaml.Unmarshal(fileContent, &o); err != nil {
-			return nil, fmt.Errorf("in file %q: %w", filename, err)
-		}
-
-		content, e := v1alpha.Parse(fileContent, o, filename)
-		if e != nil {
-			allErrors = append(allErrors, e.Error())
-		}
-		parsedStructs = append(parsedStructs, content)
-	case v1.APIVersion:
-		// unmarshal again to get the v1 struct
-		var o v1.ObjectGeneric
-		if err := yaml.Unmarshal(fileContent, &o); err != nil {
-			return nil, fmt.Errorf("in file %q: %w", filename, err)
-		}
-
-		content, e := v1.Parse(fileContent, o, filename)
-		if e != nil {
-			allErrors = append(allErrors, e.Error())
-		}
-		parsedStructs = append(parsedStructs, content)
-	default:
-		allErrors = append(allErrors, fmt.Sprintf("Unsupported API Version in file %s", filename))
-	}
-	if len(allErrors) > 0 {
-		return nil, errors.New(strings.Join(allErrors, "\n"))
-	}
-
-	return parsedStructs, nil
-}
 
 // validateStruct takes the given struct and validates it.
 func validateStruct(c []manifest.OpenSLOKind) error {
@@ -104,7 +32,6 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 
 	_ = validate.RegisterValidation("dateWithTime", isDateWithTimeValid)
 	_ = validate.RegisterValidation("timeZone", isTimeZoneValid)
-	_ = validate.RegisterValidation("labels", isValidLabel)
 	_ = validate.RegisterValidation("validDuration", isValidDurationString)
 
 	var allErrors []string
@@ -121,16 +48,17 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 	return nil
 }
 
-// validateFiles validates the given array of filenames.
-func validateFiles(files []string) error {
+// Files validates the given array of filenames.
+func Files(files []string) error {
 	var allErrors []string
 	for _, file := range files {
-		c, e := ReadConf(file)
+		c, e := yamlutils.ReadConf(file)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())
 			break
 		}
-		content, err := Parse(c, file)
+
+		content, err := yamlutils.Parse(c, file)
 		if err != nil {
 			allErrors = append(allErrors, err.Error())
 			break
@@ -145,24 +73,6 @@ func validateFiles(files []string) error {
 	return nil
 }
 
-// NewValidateCmd returns a new cobra.Command for the validate command.
-func NewValidateCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "validate",
-		Short: "Validates your yaml file against the OpenSLO spec.",
-		Long:  `Validates your yaml file against the OpenSLO spec.`,
-		Args:  cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if e := validateFiles(args); e != nil {
-				return e
-			}
-
-			fmt.Println("Valid!")
-			return nil
-		},
-	}
-}
-
 func isValidDurationString(fl validator.FieldLevel) bool {
 	for _, s := range []string{"s", "m", "h", "d", "w", "M", "Q", "Y"} {
 		duration := fl.Field().String()
@@ -175,7 +85,7 @@ func isValidDurationString(fl validator.FieldLevel) bool {
 
 func isDateWithTimeValid(fl validator.FieldLevel) bool {
 	if fl.Field().String() != "" {
-		_, err := time.Parse("2006-01-02 15:04:05", fl.Field().String())
+		_, err := time.Parse("2006-01-02T15:04:05Z", fl.Field().String())
 		if err != nil {
 			return false
 		}
@@ -191,53 +101,4 @@ func isTimeZoneValid(fl validator.FieldLevel) bool {
 		}
 	}
 	return true
-}
-
-func isValidLabel(fl validator.FieldLevel) bool {
-	labels := fl.Field().Interface().(v1.Labels)
-	for key, values := range labels {
-		if !validateLabel(key) {
-			return false
-		}
-		if duplicates(values) {
-			return false
-		}
-		for _, val := range values {
-			// Validate only if len(val) > 0, in case where we have only key labels, there is always empty val string
-			// and this is not an error
-			if len(val) > 0 && !validateLabel(val) {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func validateLabel(value string) bool {
-	if len(value) > 63 || len(value) < 1 {
-		return false
-	}
-
-	if !labelRegexp.MatchString(value) {
-		return false
-	}
-	return !hasUpperCaseLettersRegexp.MatchString(value)
-}
-
-func duplicates(list []string) bool {
-	duplicateFrequency := make(map[string]int)
-
-	for _, item := range list {
-		_, exist := duplicateFrequency[item]
-
-		if exist {
-			duplicateFrequency[item]++
-		} else {
-			duplicateFrequency[item] = 1
-		}
-		if duplicateFrequency[item] > 1 {
-			return true
-		}
-	}
-	return false
 }

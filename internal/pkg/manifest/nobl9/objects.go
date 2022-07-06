@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package manifest
+package nobl9manifest
 
 // ObjectHeader represents Header which is common for all available Objects.
 type ObjectHeader struct {

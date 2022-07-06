@@ -33,7 +33,35 @@ Valid!
 
 ## Usage
 
-Right now, the only function is `validate`, which you can call with `oslo validate`
+### Validate
+
+`oslo validate` will validate the provided OpenSLO YAML document
+
+### Convert
+
+`oslo convert` will convert the given OpenSLO YAML document to the provided
+format.
+
+example:
+
+```bash
+oslo convert -f file1.yaml -f file2.yaml -o nobl9
+```
+
+That will take the provided yaml files, convert them to Nobl9 formatted config
+format, and output to stdout.
+
+*NOTE:* Currently only Nobl9 is supported for output. Additionally, deeply nested
+metric sources are not supported. For metric sources that might have a deeply
+nested structure, we support a flattened structure, e.g.
+
+```yaml
+metricSource:
+  type: Instana
+  spec:
+    infrastructure.query: "myQuery"
+    infrastructure.metricRetrievalMethod: "myMetricRetrievalMethod"
+```
 
 ## Testing
 

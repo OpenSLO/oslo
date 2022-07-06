@@ -20,42 +20,32 @@ package fmt
 import (
 	"fmt"
 	"io"
-	"os"
 
-	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/OpenSLO/oslo/internal/pkg/validate"
+	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
 )
 
-// NewFmtCmd returns a new command for formatting a file.
-func NewFmtCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "fmt",
-		Short: "Formats the provided input into the standard format.",
-		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := fmtFile(cmd.OutOrStdout(), args[0]); err != nil {
-				fmt.Fprintln(cmd.ErrOrStderr(), err)
-				os.Exit(1)
-			}
-		},
-	}
-}
-
-func fmtFile(out io.Writer, source string) error {
-	content, err := validate.ReadConf(source)
+// File formats a single file and writes it to the provided writer.
+func File(out io.Writer, source string) error {
+	// Get the file contents.
+	content, err := yamlutils.ReadConf(source)
 	if err != nil {
 		return fmt.Errorf("issue reading content: %w", err)
 	}
-	parsed, err := validate.Parse(content, source)
+
+	// Parse the byte arrays to OpenSLOKind objects.
+	parsed, err := yamlutils.Parse(content, source)
 	if err != nil {
 		return fmt.Errorf("issue parsing content: %w", err)
 	}
+
+	// New encoder that will write to the provided writer.
 	enc := yaml.NewEncoder(out)
 	enc.SetIndent(2)
 
 	for _, o := range parsed {
+		// Encode the object to YAML.
 		if err := enc.Encode(o); err != nil {
 			return err
 		}

@@ -43,17 +43,17 @@ type SLISpec struct {
 	RatioMetric     *RatioMetric        `yaml:"ratioMetric,omitempty" validate:"required_without=ThresholdMetric"`
 }
 
-// MetricSourceHolder represents the metric source holder.
-type MetricSourceHolder struct {
-	MetricSource MetricSource `yaml:"metricSource" validate:"required"`
-}
-
 // RatioMetric represents the ratio metric.
 type RatioMetric struct {
 	Counter bool                `yaml:"counter" example:"true"`
 	Good    *MetricSourceHolder `yaml:"good,omitempty" validate:"required_without=Bad"`
 	Bad     *MetricSourceHolder `yaml:"bad,omitempty" validate:"required_without=Good"`
 	Total   MetricSourceHolder  `yaml:"total" validate:"required"`
+}
+
+// MetricSourceHolder represents the metric source holder.
+type MetricSourceHolder struct {
+	MetricSource MetricSource `yaml:"metricSource" validate:"required"`
 }
 
 // MetricSource represents the metric source.
