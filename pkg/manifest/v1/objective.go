@@ -49,7 +49,7 @@ type SLOSpec struct {
 	BudgetingMethod string       `yaml:"budgetingMethod" validate:"required,oneof=Occurrences Timeslices" example:"Occurrences"` //nolint:lll
 	TimeWindow      []TimeWindow `yaml:"timeWindow" validate:"required,len=1,dive"`
 	Objectives      []Objective  `yaml:"objectives" validate:"required,dive"`
-	// We dont make clear in the spec if this is a ref or inline.
+	// We don't make clear in the spec if this is a ref or inline.
 	// We will make it a ref for now.
 	// https://github.com/OpenSLO/OpenSLO/issues/133
 	AlertPolicies []string `yaml:"alertPolicies" validate:"dive"`
