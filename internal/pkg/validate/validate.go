@@ -52,13 +52,13 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 func Files(files []string) error {
 	var allErrors []string
 	for _, file := range files {
-		c, e := yamlutils.ReadConf(ival)
+		c, e := yamlutils.ReadConf(file)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())
 			break
 		}
 
-		content, err := yamlutils.Parse(c, ival)
+		content, err := yamlutils.Parse(c, file)
 		if err != nil {
 			allErrors = append(allErrors, err.Error())
 			break
