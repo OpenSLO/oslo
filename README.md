@@ -34,9 +34,11 @@ Valid!
 ## Usage
 
 ### Validate
+
 `oslo validate` will validate the provided OpenSLO YAML document
 
 ### Convert
+
 `oslo convert` will convert the given OpenSLO YAML document to the provided
 format.
 
