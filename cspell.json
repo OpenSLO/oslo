@@ -1,5 +1,8 @@
 {
   "language": "en_US",
+  "import": [
+    "@cspell/dict-lorem-ipsum/cspell-ext.json"
+  ],
   "dictionaries": [
     "bash",
     "companies",
@@ -7,7 +10,8 @@
     "go",
     "html",
     "misc",
-    "softwareTerms"
+    "softwareTerms",
+    "lorem-ipsum"
   ],
   "ignorePaths": [
     ".vscode/",
@@ -24,6 +28,16 @@
     "gochecknoglobals",
     "golangci",
     "mitchellh",
-    "nolint"
+    "myservice",
+    "nolint",
+    "oneof",
+    "openslo",
+    "oslo",
+    "promql",
+    "slos",
+    "stretchr",
+    "structs",
+    "tada",
+    "unmarshals"
   ]
 }

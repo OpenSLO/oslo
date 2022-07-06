@@ -10,7 +10,7 @@ spec:
     thresholdMetric:
       source: prometheus
       queryType: promql
-      query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globacount"}
+      query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globalaccount"}
   objectives:
     - displayName: Weiner Shirt-zel Front Page
       op: gt

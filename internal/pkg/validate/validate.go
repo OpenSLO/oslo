@@ -35,8 +35,8 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 	_ = validate.RegisterValidation("validDuration", isValidDurationString)
 
 	var allErrors []string
-	for _, ival := range c {
-		if err := validate.Struct(ival); err != nil {
+	for _, v := range c {
+		if err := validate.Struct(v); err != nil {
 			for _, err := range err.(validator.ValidationErrors) { //nolint: errorlint
 				allErrors = append(allErrors, err.Error())
 			}
@@ -51,7 +51,7 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 // Files validates the given array of filenames.
 func Files(files []string) error {
 	var allErrors []string
-	for _, ival := range files {
+	for _, file := range files {
 		c, e := yamlutils.ReadConf(ival)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())

@@ -11,7 +11,7 @@ jobs:
       - name: Set up prerequisites - node and yarn
         uses: actions/setup-node@v3
         with:
-          node-version: "15.x"
+          node-version: "18.x"
       - name: Set up yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -24,3 +24,6 @@ jobs:
       - name: Install spell and markdown checkers
         run: |
           make install/checks/spell-and-markdown
+      - name: Run spell and markdown checkers
+        run: |
+          make run/checks/spell-and-markdown

@@ -17,10 +17,6 @@ limitations under the License.
 */
 package v1
 
-import (
-	"github.com/OpenSLO/oslo/pkg/manifest"
-)
-
 // Calendar struct represents calendar time window.
 type Calendar struct {
 	StartTime string `yaml:"startTime" validate:"required,dateWithTime" example:"2020-01-21 12:30:00"`
@@ -53,7 +49,7 @@ type SLOSpec struct {
 	BudgetingMethod string       `yaml:"budgetingMethod" validate:"required,oneof=Occurrences Timeslices" example:"Occurrences"` //nolint:lll
 	TimeWindow      []TimeWindow `yaml:"timeWindow" validate:"required,len=1,dive"`
 	Objectives      []Objective  `yaml:"objectives" validate:"required,dive"`
-	// We dont make clear in the spec if this is a ref or inline.
+	// We don't make clear in the spec if this is a ref or inline.
 	// We will make it a ref for now.
 	// https://github.com/OpenSLO/OpenSLO/issues/133
 	AlertPolicies []string `yaml:"alertPolicies" validate:"dive"`
@@ -61,7 +57,7 @@ type SLOSpec struct {
 
 // SLO struct which mapped one to one with kind: slo yaml definition, external usage.
 type SLO struct {
-	manifest.ObjectHeader `yaml:",inline"`
+	ObjectHeader `yaml:",inline"`
 	Metadata              Metadata `yaml:"metadata" validate:"required"`
 	Spec                  SLOSpec  `yaml:"spec" validate:"required"`
 }

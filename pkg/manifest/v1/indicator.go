@@ -13,14 +13,10 @@ limitations under the License.
 
 package v1
 
-import (
-	"github.com/OpenSLO/oslo/pkg/manifest"
-)
-
 // DataSource defines the data source for the SLI.
 type DataSource struct {
-	manifest.ObjectHeader `yaml:",inline"`
-	Spec                  DataSourceSpec `yaml:"spec" validate:"required"`
+	ObjectHeader `yaml:",inline"`
+	Spec         DataSourceSpec `yaml:"spec" validate:"required"`
 }
 
 // DataSourceSpec defines the data source specification.
@@ -31,7 +27,7 @@ type DataSourceSpec struct {
 
 // SLI represents the SLI.
 type SLI struct {
-	manifest.ObjectHeader `yaml:",inline"`
+	ObjectHeader `yaml:",inline"`
 	Metadata              Metadata `yaml:"metadata" validate:"required"`
 	Spec                  SLISpec  `yaml:"spec" validate:"required"`
 }
