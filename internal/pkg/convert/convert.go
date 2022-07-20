@@ -616,7 +616,7 @@ func getN9TimeWindow(tw []v1.TimeWindow) ([]nobl9v1alpha.TimeWindow, error) {
 
 	if len(tw) < 1 {
 		_ = printError("Nobl9 requires a TimeWindow defined.")
-		return nil, fmt.Errorf("No TimeWindow found")
+		return nil, fmt.Errorf("no TimeWindow found")
 	}
 
 	duration := tw[0].Duration
