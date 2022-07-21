@@ -357,13 +357,9 @@ combined-stream@^1.0.8:
   dependencies:
     delayed-stream "~1.0.0"
 
-commander@^9.4.0:
+commander@^9.4.0, commander@~9.4.0:
   version "9.4.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-9.4.0.tgz#bc4a40918fefe52e22450c111ecd6b7acce6f11c"
-
-commander@~9.0.0:
-  version "9.0.0"
-  resolved "https://registry.npmjs.org/commander/-/commander-9.0.0.tgz"
 
 comment-json@^4.2.2:
   version "4.2.2"
@@ -503,9 +499,9 @@ dot-prop@^5.2.0:
   dependencies:
     is-obj "^2.0.0"
 
-entities@~2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/entities/-/entities-2.1.0.tgz"
+entities@~3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/entities/-/entities-3.0.1.tgz#2b887ca62585e96db3903482d336c1006c3001d4"
 
 error-ex@^1.3.1:
   version "1.3.2"
@@ -593,7 +589,7 @@ get-stdin@~9.0.0:
   version "9.0.0"
   resolved "https://registry.npmjs.org/get-stdin/-/get-stdin-9.0.0.tgz"
 
-glob@^7.1.3, glob@~7.2.0:
+glob@^7.1.3:
   version "7.2.0"
   resolved "https://registry.npmjs.org/glob/-/glob-7.2.0.tgz"
   dependencies:
@@ -604,7 +600,7 @@ glob@^7.1.3, glob@~7.2.0:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^8.0.3:
+glob@^8.0.3, glob@~8.0.3:
   version "8.0.3"
   resolved "https://registry.npmjs.org/glob/-/glob-8.0.3.tgz"
   dependencies:
@@ -670,9 +666,9 @@ ini@^1.3.4:
   version "1.3.8"
   resolved "https://registry.npmjs.org/ini/-/ini-1.3.8.tgz"
 
-ini@~2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/ini/-/ini-2.0.0.tgz"
+ini@~3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/ini/-/ini-3.0.0.tgz#2f6de95006923aa75feed8894f5686165adc08f1"
 
 is-arrayish@^0.2.1:
   version "0.2.1"
@@ -706,9 +702,9 @@ json-parse-even-better-errors@^2.3.0:
   version "2.3.1"
   resolved "https://registry.npmjs.org/json-parse-even-better-errors/-/json-parse-even-better-errors-2.3.1.tgz"
 
-jsonc-parser@~3.0.0:
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/jsonc-parser/-/jsonc-parser-3.0.0.tgz"
+jsonc-parser@~3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-3.1.0.tgz#73b8f0e5c940b83d03476bc2e51a20ef0932615d"
 
 jsonfile@^6.0.1:
   version "6.1.0"
@@ -723,9 +719,9 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.npmjs.org/lines-and-columns/-/lines-and-columns-1.1.6.tgz"
   integrity "sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA= sha512-8ZmlJFVK9iCmtLz19HpSsR8HaAMWBT284VMNednLwlIMDP2hJDCIhUp0IZ2xUcZ+Ob6BM0VvCSJwzASDM45NLQ=="
 
-linkify-it@^3.0.1:
-  version "3.0.2"
-  resolved "https://registry.npmjs.org/linkify-it/-/linkify-it-3.0.2.tgz"
+linkify-it@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/linkify-it/-/linkify-it-4.0.1.tgz#01f1d5e508190d06669982ba31a7d9f56a5751ec"
   dependencies:
     uc.micro "^1.0.1"
 
@@ -747,40 +743,40 @@ make-dir@^3.0.0:
   dependencies:
     semver "^6.0.0"
 
-markdown-it@12.3.2:
-  version "12.3.2"
-  resolved "https://registry.npmjs.org/markdown-it/-/markdown-it-12.3.2.tgz"
+markdown-it@13.0.1:
+  version "13.0.1"
+  resolved "https://registry.yarnpkg.com/markdown-it/-/markdown-it-13.0.1.tgz#c6ecc431cacf1a5da531423fc6a42807814af430"
   dependencies:
     argparse "^2.0.1"
-    entities "~2.1.0"
-    linkify-it "^3.0.1"
+    entities "~3.0.1"
+    linkify-it "^4.0.1"
     mdurl "^1.0.1"
     uc.micro "^1.0.5"
 
-markdownlint-cli@^0.31.1:
-  version "0.31.1"
-  resolved "https://registry.npmjs.org/markdownlint-cli/-/markdownlint-cli-0.31.1.tgz"
+markdownlint-cli@^0.32.0:
+  version "0.32.0"
+  resolved "https://registry.yarnpkg.com/markdownlint-cli/-/markdownlint-cli-0.32.0.tgz#bd2263f16fe214b6e3acf762921671aeb772915e"
   dependencies:
-    commander "~9.0.0"
+    commander "~9.4.0"
     get-stdin "~9.0.0"
-    glob "~7.2.0"
+    glob "~8.0.3"
     ignore "~5.2.0"
     js-yaml "^4.1.0"
-    jsonc-parser "~3.0.0"
-    markdownlint "~0.25.1"
-    markdownlint-rule-helpers "~0.16.0"
-    minimatch "~3.0.5"
-    run-con "~1.2.10"
+    jsonc-parser "~3.1.0"
+    markdownlint "~0.26.0"
+    markdownlint-rule-helpers "~0.17.0"
+    minimatch "~5.1.0"
+    run-con "~1.2.11"
 
-markdownlint-rule-helpers@~0.16.0:
-  version "0.16.0"
-  resolved "https://registry.npmjs.org/markdownlint-rule-helpers/-/markdownlint-rule-helpers-0.16.0.tgz"
+markdownlint-rule-helpers@~0.17.0:
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/markdownlint-rule-helpers/-/markdownlint-rule-helpers-0.17.0.tgz#eca5d0c1c132608cbe287cd924969a9e6c9821ed"
 
-markdownlint@~0.25.1:
-  version "0.25.1"
-  resolved "https://registry.npmjs.org/markdownlint/-/markdownlint-0.25.1.tgz"
+markdownlint@~0.26.0:
+  version "0.26.0"
+  resolved "https://registry.yarnpkg.com/markdownlint/-/markdownlint-0.26.0.tgz#1e800ecc709ed4061c18ab03f1cba23f58511421"
   dependencies:
-    markdown-it "12.3.2"
+    markdown-it "13.0.1"
 
 mdurl@^1.0.1:
   version "1.0.1"
@@ -804,21 +800,21 @@ mime-types@^2.1.12:
   dependencies:
     mime-db "1.52.0"
 
-minimatch@^3.0.4, minimatch@~3.0.5:
+minimatch@^3.0.4:
   version "3.0.8"
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-3.0.8.tgz"
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.npmjs.org/minimatch/-/minimatch-5.0.1.tgz"
+minimatch@^5.0.1, minimatch@~5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-5.1.0.tgz#1717b464f4971b144f6aabe8f2d0b8e4511e09c7"
   dependencies:
     brace-expansion "^2.0.1"
 
-minimist@^1.2.5:
+minimist@^1.2.6:
   version "1.2.6"
-  resolved "https://registry.npmjs.org/minimist/-/minimist-1.2.6.tgz"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
 
 node-fetch@^2.6.7:
   version "2.6.7"
@@ -908,13 +904,13 @@ rimraf@^3.0.2:
   dependencies:
     glob "^7.1.3"
 
-run-con@~1.2.10:
-  version "1.2.10"
-  resolved "https://registry.npmjs.org/run-con/-/run-con-1.2.10.tgz"
+run-con@~1.2.11:
+  version "1.2.11"
+  resolved "https://registry.yarnpkg.com/run-con/-/run-con-1.2.11.tgz#0014ed430bad034a60568dfe7de2235f32e3f3c4"
   dependencies:
     deep-extend "^0.6.0"
-    ini "~2.0.0"
-    minimist "^1.2.5"
+    ini "~3.0.0"
+    minimist "^1.2.6"
     strip-json-comments "~3.1.1"
 
 semver@^6.0.0:

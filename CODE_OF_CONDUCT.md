@@ -119,7 +119,5 @@ This Code of Conduct is adapted from the [Contributor Covenant version 2.0](http
 Community Impact Guidelines were inspired by [Mozilla's code of conduct
 enforcement ladder](https://github.com/mozilla/diversity).
 
-[homepage]: https://www.contributor-covenant.org
-
 For answers to common questions about this code of conduct, see the [FAQ](https://www.contributor-covenant.org/faq)
 ([translations](https://www.contributor-covenant.org/translations)).
