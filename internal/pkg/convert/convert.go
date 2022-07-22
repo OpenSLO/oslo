@@ -162,7 +162,7 @@ func getN9SLObjects(
 		s := slo.(v1.SLO)
 
 		// Check that the service name is in the list of service names, and warn the user if it isn't.
-		if !stringInSlice(s.Spec.Service, serviceNames) {
+		if s.Spec.Service != "" && !stringInSlice(s.Spec.Service, serviceNames) {
 			_ = printWarning(
 				fmt.Sprintf(
 					"Service %s is not in the list of services for SLO %s. "+
@@ -614,6 +614,11 @@ func getN9TimeWindow(tw []v1.TimeWindow) ([]nobl9v1alpha.TimeWindow, error) {
 		return nil, fmt.Errorf("OpenSLO only supports one TimeWindow")
 	}
 
+	if len(tw) < 1 {
+		_ = printError("Nobl9 requires a TimeWindow defined.")
+		return nil, fmt.Errorf("no TimeWindow found")
+	}
+
 	duration := tw[0].Duration
 
 	unit, err := getDurationUnit(duration[len(duration)-1:])
@@ -852,6 +857,28 @@ func printWarning(message string) error {
 	}
 
 	yellow.DisableColor()
+	white.DisableColor()
+
+	color.Unset()
+	return nil
+}
+
+func printError(message string) error {
+	red := color.New(color.FgRed).Add(color.Bold)
+	white := color.New(color.FgWhite).Add(color.Bold)
+
+	red.EnableColor()
+	white.EnableColor()
+
+	if _, err := red.Fprint(os.Stderr, "ERROR: "); err != nil {
+		return fmt.Errorf("issue printing warning: %w", err)
+	}
+
+	if _, err := white.Fprintln(os.Stderr, message); err != nil {
+		return fmt.Errorf("issue printing warning: %w", err)
+	}
+
+	red.DisableColor()
 	white.DisableColor()
 
 	color.Unset()
