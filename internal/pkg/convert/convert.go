@@ -627,13 +627,23 @@ func getN9TimeWindow(tw []v1.TimeWindow) ([]nobl9v1alpha.TimeWindow, error) {
 		return nil, fmt.Errorf("issue converting duration to int: %w", err)
 	}
 
-	return []nobl9v1alpha.TimeWindow{
+	rval := []nobl9v1alpha.TimeWindow{
 		{
 			Unit:      unit,
 			Count:     durationInt,
 			IsRolling: tw[0].IsRolling,
 		},
-	}, nil
+	}
+
+	// only add Calendar for Calendar aligned
+	if !tw[0].IsRolling {
+		rval[0].Calendar = &nobl9v1alpha.Calendar{
+			TimeZone:  tw[0].Calendar.TimeZone,
+			StartTime: tw[0].Calendar.StartTime,
+		}
+	}
+
+	return rval, nil
 }
 
 // Constructs Nobl9 AlertPolicy objects from our list of OpenSLOKinds.
