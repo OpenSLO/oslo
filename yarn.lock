@@ -753,9 +753,9 @@ markdown-it@13.0.1:
     mdurl "^1.0.1"
     uc.micro "^1.0.5"
 
-markdownlint-cli@^0.32.0:
-  version "0.32.0"
-  resolved "https://registry.yarnpkg.com/markdownlint-cli/-/markdownlint-cli-0.32.0.tgz#bd2263f16fe214b6e3acf762921671aeb772915e"
+markdownlint-cli@^0.32.1:
+  version "0.32.1"
+  resolved "https://registry.yarnpkg.com/markdownlint-cli/-/markdownlint-cli-0.32.1.tgz#09925582833b73a578eab71bc7c5a467ae84aaa3"
   dependencies:
     commander "~9.4.0"
     get-stdin "~9.0.0"
@@ -763,18 +763,18 @@ markdownlint-cli@^0.32.0:
     ignore "~5.2.0"
     js-yaml "^4.1.0"
     jsonc-parser "~3.1.0"
-    markdownlint "~0.26.0"
-    markdownlint-rule-helpers "~0.17.0"
+    markdownlint "~0.26.1"
+    markdownlint-rule-helpers "~0.17.1"
     minimatch "~5.1.0"
     run-con "~1.2.11"
 
-markdownlint-rule-helpers@~0.17.0:
-  version "0.17.0"
-  resolved "https://registry.yarnpkg.com/markdownlint-rule-helpers/-/markdownlint-rule-helpers-0.17.0.tgz#eca5d0c1c132608cbe287cd924969a9e6c9821ed"
+markdownlint-rule-helpers@~0.17.1:
+  version "0.17.1"
+  resolved "https://registry.yarnpkg.com/markdownlint-rule-helpers/-/markdownlint-rule-helpers-0.17.1.tgz#c7305a5f3b01b2f9e3a4d98e911f1d067abbda53"
 
-markdownlint@~0.26.0:
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/markdownlint/-/markdownlint-0.26.0.tgz#1e800ecc709ed4061c18ab03f1cba23f58511421"
+markdownlint@~0.26.1:
+  version "0.26.1"
+  resolved "https://registry.yarnpkg.com/markdownlint/-/markdownlint-0.26.1.tgz#0f6ea2d0fc08c4f41c6e001b467736405327a392"
   dependencies:
     markdown-it "13.0.1"
 
