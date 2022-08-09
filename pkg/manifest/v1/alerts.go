@@ -47,8 +47,8 @@ const (
 
 // ConditionType is the type of a condition to trigger an alert.
 type ConditionType struct {
-	Kind           *AlertConditionType `yaml:"kind" validate:"required,oneof=burnrate" example:"burnrate"`
-	Threshold      int                 `yaml:"threshold" validate:"required" example:"2"`
+	Kind           *AlertConditionType `yaml:"kind" validate:"required" example:"burnrate"`
+	Threshold      float64             `yaml:"threshold" validate:"required" example:"2"`
 	LookbackWindow string              `yaml:"lookbackWindow" validate:"required,validDuration" example:"1h"`
 	AlertAfter     string              `yaml:"alertAfter" validate:"required,validDuration" example:"5m"`
 }
