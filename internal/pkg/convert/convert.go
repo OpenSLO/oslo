@@ -1,13 +1,13 @@
 /*
 Package convert provides a command to convert from openslo to other formats.
 
-Copyright © 2022 OpenSLO Team
+# Copyright © 2022 OpenSLO Team
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -231,7 +231,7 @@ func getN9SLObjects(
 
 // Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives.
 func getN9Thresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Threshold, error) {
-	var t []nobl9v1alpha.Threshold // nolint:prealloc
+	var t []nobl9v1alpha.Threshold //nolint:prealloc
 	for _, v := range o {
 		v := v // local copy
 		// if the operator isn't nil, then assign it, otherwise keep it nil
@@ -296,7 +296,8 @@ func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) 
 }
 
 // Disabling the lint for this since theres not a really good way of doing this without a big switch statement.
-// nolint:cyclop
+//
+//nolint:cyclop
 func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 	// Nobl9 supported metric sources.
 	supportedMetricSources := map[string]string{
@@ -718,7 +719,7 @@ func getN9AlertCondition(
 	ac []manifest.OpenSLOKind,
 ) error {
 	// If we have an inline condition, we can use it.
-	// nolint: nestif
+	//nolint: nestif
 	if apc.AlertConditionInline != nil {
 		_ = printWarning("using the default averageBurnRate in AlertCondition, since there isn't a direct match")
 		_ = printWarning("Using default operator in AlertCondition, because OpenSLO doesn't support that feature")
@@ -819,10 +820,9 @@ func getN9ServiceObjects(parsed []manifest.OpenSLOKind, rval *[]interface{}, nam
 	return nil
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 //
 // Helper functions.
-//
 func printYaml(out io.Writer, object interface{}) error {
 	// Convert parsed to yaml and print to out.
 	yml, err := yaml.Marshal(object)
