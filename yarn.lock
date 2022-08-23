@@ -179,9 +179,9 @@
   version "2.0.9"
   resolved "https://registry.yarnpkg.com/@cspell/dict-latex/-/dict-latex-2.0.9.tgz#ba376b2ae8c4b9fad14e8ed293df027a8b08348f"
 
-"@cspell/dict-lorem-ipsum@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/@cspell/dict-lorem-ipsum/-/dict-lorem-ipsum-2.0.0.tgz"
+"@cspell/dict-lorem-ipsum@^2.0.0", "@cspell/dict-lorem-ipsum@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@cspell/dict-lorem-ipsum/-/dict-lorem-ipsum-2.0.1.tgz#694ffe36ea9cdb7bce35066a850f9d4e4811c5d9"
 
 "@cspell/dict-lua@^2.0.0":
   version "2.0.0"
