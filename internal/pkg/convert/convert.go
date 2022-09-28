@@ -248,27 +248,50 @@ func getN9Thresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Thr
 			value = 1
 		}
 
-		// Get CountMetrics if we have a ratioMetric
-		var cm nobl9v1alpha.CountMetricsSpec
-		if indicator.RatioMetric != nil {
-			c, err := getN9CountMetrics(*indicator.RatioMetric)
-			if err != nil {
-				return nil, fmt.Errorf("issue getting count metrics: %w", err)
-			}
-			cm = c
-		}
-
-		t = append(t, nobl9v1alpha.Threshold{
+		// start building our object
+		th := nobl9v1alpha.Threshold{
 			ThresholdBase: nobl9v1alpha.ThresholdBase{
 				DisplayName: v.DisplayName,
 				Value:       value,
 			},
 			Operator:     operator,
 			BudgetTarget: &v.Target,
-			CountMetrics: &cm,
-		})
+		}
+
+		// Get CountMetrics if we have a ratioMetric
+		if indicator.RatioMetric != nil {
+			c, err := getN9CountMetrics(*indicator.RatioMetric)
+			if err != nil {
+				return nil, fmt.Errorf("issue getting count metrics: %w", err)
+			}
+			th.CountMetrics = &c
+		}
+
+		// Get thresholdMetrics
+		if indicator.ThresholdMetric != nil {
+			r, err := getN9RawMetrics(*indicator.ThresholdMetric)
+			if err != nil {
+				return nil, fmt.Errorf("issue getting raw metrics: %w", err)
+			}
+			th.RawMetric = &r
+		}
+
+		t = append(t, th)
 	}
 	return t, nil
+}
+
+func getN9RawMetrics(r v1.MetricSourceHolder) (nobl9v1alpha.RawMetricSpec, error) {
+	raw, err := getN9MetricSource(r.MetricSource)
+	if err != nil {
+		return nobl9v1alpha.RawMetricSpec{}, fmt.Errorf("issue getting raw metric source: %w", err)
+	}
+
+	rm := nobl9v1alpha.RawMetricSpec{
+		MetricQuery: &raw,
+	}
+
+	return rm, nil
 }
 
 func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) {
