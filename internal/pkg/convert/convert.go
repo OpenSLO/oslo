@@ -234,10 +234,13 @@ func getN9Thresholds(o []v1.Objective, indicator v1.SLISpec) ([]nobl9v1alpha.Thr
 	var t []nobl9v1alpha.Threshold //nolint:prealloc
 	for _, v := range o {
 		v := v // local copy
-		// if the operator isn't nil, then assign it, otherwise keep it nil
+		// if the operator isn't nil, then assign it, otherwise use default
 		var operator *string
+		defaultOp := "lt"
 		if v.Op != "" {
 			operator = &v.Op
+		} else {
+			operator = &defaultOp
 		}
 
 		// if v.Value is set use that, otherwise default to 1
