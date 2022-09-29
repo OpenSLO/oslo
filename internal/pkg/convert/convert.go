@@ -355,10 +355,17 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 				Query: &query,
 			},
 		}
-	case supportedMetricSources["Prometheus"], supportedMetricSources["AmazonPrometheus"]:
+	case supportedMetricSources["Prometheus"]:
 		query := m.MetricSourceSpec["promql"]
 		ms = nobl9v1alpha.MetricSpec{
 			Prometheus: &nobl9v1alpha.PrometheusMetric{
+				PromQL: &query,
+			},
+		}
+	case supportedMetricSources["AmazonPrometheus"]:
+		query := m.MetricSourceSpec["promql"]
+		ms = nobl9v1alpha.MetricSpec{
+			AmazonPrometheus: &nobl9v1alpha.AmazonPrometheusMetric{
 				PromQL: &query,
 			},
 		}
