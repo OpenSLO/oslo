@@ -17,6 +17,10 @@ package main
 
 import cmd "github.com/OpenSLO/oslo/cmd/oslo"
 
+var (
+	version string
+)
+
 func main() {
-	cmd.Execute()
+	cmd.Execute(version)
 }

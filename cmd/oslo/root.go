@@ -25,16 +25,17 @@ import (
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	cobra.CheckErr(newRootCmd().Execute())
+func Execute(version string) {
+	cobra.CheckErr(newRootCmd(version).Execute())
 }
 
-func newRootCmd() *cobra.Command {
+func newRootCmd(version string) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:           "oslo",
 		Short:         "Oslo is a CLI tool for the OpenSLO spec",
 		SilenceErrors: true,
 		SilenceUsage:  true,
+		Version:       version,
 	}
 
 	rootCmd.AddCommand(validate.NewValidateCmd())
