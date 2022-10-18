@@ -276,6 +276,7 @@ spec:
             total:
                 datadog:
                     query: sum:trace.http.request.hits.by_http_status{*}.as_count()
+          op: lt
     service: TheServiceName
     timeWindows:
         - unit: Month

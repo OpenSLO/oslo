@@ -127,7 +127,7 @@ func Test_getMetricSource(t *testing.T) {
 					"promql": "myapp_server_requestMsec{host=\"*\",job=\"nginx\"}",
 				},
 			},
-			want: `prometheus:
+			want: `amazonPrometheus:
     promql: myapp_server_requestMsec{host="*",job="nginx"}
 `,
 		},
