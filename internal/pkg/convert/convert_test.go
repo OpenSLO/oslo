@@ -420,6 +420,20 @@ func Test_getMetricSource(t *testing.T) {
     logql: mylogql
 `,
 		},
+		{
+			name: "GoogleCloudMonitoring",
+			args: v1.MetricSource{
+				Type: "GoogleCloudMonitoring",
+				MetricSourceSpec: map[string]string{
+					"projectId": "myprojectid",
+					"query":     "myquery",
+				},
+			},
+			want: `gcm:
+    query: myquery
+    projectId: myprojectid
+`,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
