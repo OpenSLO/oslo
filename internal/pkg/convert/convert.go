@@ -327,27 +327,28 @@ func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) 
 func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 	// Nobl9 supported metric sources.
 	supportedMetricSources := map[string]string{
-		"AmazonPrometheus":    "AmazonPrometheus",
-		"AppDynamics":         "AppDynamics",
-		"BigQuery":            "BigQuery",
-		"CloudWatch":          "CloudWatch",
-		"CloudWatchMetric":    "CloudWatchMetric",
-		"Datadog":             "Datadog",
-		"Dynatrace":           "Dynatrace",
-		"Elasticsearch":       "Elasticsearch",
-		"GrafanaLoki":         "GrafanaLoki",
-		"Graphite":            "Graphite",
-		"Instana":             "Instana",
-		"Lightstep":           "Lightstep",
-		"NewRelic":            "NewRelic",
-		"OpenTSDB":            "OpenTSDB",
-		"Pingdom":             "Pingdom",
-		"Prometheus":          "Prometheus",
-		"Redshift":            "Redshift",
-		"Splunk":              "Splunk",
-		"SplunkObservability": "SplunkObservability",
-		"SumoLogic":           "SumoLogic",
-		"ThousandEyes":        "ThousandEyes",
+		"AmazonPrometheus":      "AmazonPrometheus",
+		"AppDynamics":           "AppDynamics",
+		"BigQuery":              "BigQuery",
+		"CloudWatch":            "CloudWatch",
+		"CloudWatchMetric":      "CloudWatchMetric",
+		"Datadog":               "Datadog",
+		"Dynatrace":             "Dynatrace",
+		"Elasticsearch":         "Elasticsearch",
+		"GoogleCloudMonitoring": "GoogleCloudMonitoring",
+		"GrafanaLoki":           "GrafanaLoki",
+		"Graphite":              "Graphite",
+		"Instana":               "Instana",
+		"Lightstep":             "Lightstep",
+		"NewRelic":              "NewRelic",
+		"OpenTSDB":              "OpenTSDB",
+		"Pingdom":               "Pingdom",
+		"Prometheus":            "Prometheus",
+		"Redshift":              "Redshift",
+		"Splunk":                "Splunk",
+		"SplunkObservability":   "SplunkObservability",
+		"SumoLogic":             "SumoLogic",
+		"ThousandEyes":          "ThousandEyes",
 	}
 	var ms nobl9v1alpha.MetricSpec
 	switch m.Type {
@@ -604,6 +605,15 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 		ms = nobl9v1alpha.MetricSpec{
 			GrafanaLoki: &nobl9v1alpha.GrafanaLokiMetric{
 				Logql: &logql,
+			},
+		}
+	case supportedMetricSources["GoogleCloudMonitoring"]:
+		query := m.MetricSourceSpec["query"]
+		projectID := m.MetricSourceSpec["projectId"]
+		ms = nobl9v1alpha.MetricSpec{
+			GoogleCloudMonitoring: &nobl9v1alpha.GoogleCloudMonitoringMetric{
+				Query:     &query,
+				ProjectID: &projectID,
 			},
 		}
 	default:

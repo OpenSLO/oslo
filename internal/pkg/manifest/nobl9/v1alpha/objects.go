@@ -197,26 +197,27 @@ type MetricSourceSpec struct {
 
 // MetricSpec defines single time series obtained from data source.
 type MetricSpec struct {
-	Prometheus          *PrometheusMetric          `yaml:"prometheus,omitempty"`
-	Datadog             *DatadogMetric             `yaml:"datadog,omitempty"`
-	NewRelic            *NewRelicMetric            `yaml:"newRelic,omitempty"`
-	AppDynamics         *AppDynamicsMetric         `yaml:"appDynamics,omitempty"`
-	Splunk              *SplunkMetric              `yaml:"splunk,omitempty"`
-	Lightstep           *LightstepMetric           `yaml:"lightstep,omitempty"`
-	SplunkObservability *SplunkObservabilityMetric `yaml:"splunkObservability,omitempty"`
-	Dynatrace           *DynatraceMetric           `yaml:"dynatrace,omitempty"`
-	Elasticsearch       *ElasticsearchMetric       `yaml:"elasticsearch,omitempty"`
-	ThousandEyes        *ThousandEyesMetric        `yaml:"thousandEyes,omitempty"`
-	Graphite            *GraphiteMetric            `yaml:"graphite,omitempty"`
-	BigQuery            *BigQueryMetric            `yaml:"bigQuery,omitempty"`
-	OpenTSDB            *OpenTSDBMetric            `yaml:"opentsdb,omitempty"`
-	GrafanaLoki         *GrafanaLokiMetric         `yaml:"grafanaLoki,omitempty"`
-	CloudWatch          *CloudWatchMetric          `yaml:"cloudWatch,omitempty"`
-	Pingdom             *PingdomMetric             `yaml:"pingdom,omitempty"`
-	AmazonPrometheus    *AmazonPrometheusMetric    `yaml:"amazonPrometheus,omitempty"`
-	Redshift            *RedshiftMetric            `yaml:"redshift,omitempty"`
-	SumoLogic           *SumoLogicMetric           `yaml:"sumoLogic,omitempty"`
-	Instana             *InstanaMetric             `yaml:"instana,omitempty"`
+	Prometheus            *PrometheusMetric            `yaml:"prometheus,omitempty"`
+	Datadog               *DatadogMetric               `yaml:"datadog,omitempty"`
+	NewRelic              *NewRelicMetric              `yaml:"newRelic,omitempty"`
+	AppDynamics           *AppDynamicsMetric           `yaml:"appDynamics,omitempty"`
+	Splunk                *SplunkMetric                `yaml:"splunk,omitempty"`
+	Lightstep             *LightstepMetric             `yaml:"lightstep,omitempty"`
+	SplunkObservability   *SplunkObservabilityMetric   `yaml:"splunkObservability,omitempty"`
+	Dynatrace             *DynatraceMetric             `yaml:"dynatrace,omitempty"`
+	Elasticsearch         *ElasticsearchMetric         `yaml:"elasticsearch,omitempty"`
+	ThousandEyes          *ThousandEyesMetric          `yaml:"thousandEyes,omitempty"`
+	Graphite              *GraphiteMetric              `yaml:"graphite,omitempty"`
+	BigQuery              *BigQueryMetric              `yaml:"bigQuery,omitempty"`
+	OpenTSDB              *OpenTSDBMetric              `yaml:"opentsdb,omitempty"`
+	GrafanaLoki           *GrafanaLokiMetric           `yaml:"grafanaLoki,omitempty"`
+	CloudWatch            *CloudWatchMetric            `yaml:"cloudWatch,omitempty"`
+	Pingdom               *PingdomMetric               `yaml:"pingdom,omitempty"`
+	AmazonPrometheus      *AmazonPrometheusMetric      `yaml:"amazonPrometheus,omitempty"`
+	Redshift              *RedshiftMetric              `yaml:"redshift,omitempty"`
+	SumoLogic             *SumoLogicMetric             `yaml:"sumoLogic,omitempty"`
+	Instana               *InstanaMetric               `yaml:"instana,omitempty"`
+	GoogleCloudMonitoring *GoogleCloudMonitoringMetric `yaml:"gcm,omitempty"`
 }
 
 // PrometheusMetric represents metric from Prometheus.
@@ -370,4 +371,10 @@ type OpenTSDBMetric struct {
 // GrafanaLokiMetric represents metric from GrafanaLokiMetric.
 type GrafanaLokiMetric struct {
 	Logql *string `yaml:"logql" validate:"required"`
+}
+
+// GoogleCloudMonitoringMetric represents metric from GoogleCloudMonitoring.
+type GoogleCloudMonitoringMetric struct {
+	Query     *string `yaml:"query" validate:"required"`
+	ProjectID *string `yaml:"projectId" validate:"required"`
 }
