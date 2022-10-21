@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+VERSION := $(shell git describe --tags)
 .PHONY: build
 build:
-	go build -o bin/oslo
+	go build -ldflags="-X 'main.version=${VERSION}'" -o bin/oslo
 
 .PHONY: install/checks/spell-and-markdown
 install/checks/spell-and-markdown:

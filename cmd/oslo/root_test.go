@@ -68,7 +68,7 @@ Flags:
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			actual := new(bytes.Buffer)
-			root := newRootCmd()
+			root := newRootCmd("testVersion")
 			root.SetOut(actual)
 			root.SetErr(actual)
 			root.SetArgs(tt.args)
