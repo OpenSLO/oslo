@@ -114,7 +114,7 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 
 			content, e := v1.Parse(c, o, filename)
 			if e != nil {
-				allErrors = multierror.Append(allErrors, e)
+				allErrors = multierror.Append(allErrors, fmt.Errorf("Error in %q: %w", filename, e))
 			}
 			parsedStructs = append(parsedStructs, content)
 		}
