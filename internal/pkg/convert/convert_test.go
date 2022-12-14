@@ -258,7 +258,7 @@ func Test_getMetricSource(t *testing.T) {
 					"metricName": "mymetricname",
 					"region":     "myregion",
 					"stat":       "mystat",
-					"dimensions": "mydimensions:myvalue, mydimensions2:myvalue2",
+					"dimensions": "name:mydimensions,value:myvalue;name:mydimensions2,value:myvalue2",
 					"sql":        "myquery",
 					"json":       "myjson",
 				},

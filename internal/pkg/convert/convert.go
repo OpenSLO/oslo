@@ -323,7 +323,7 @@ func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) 
 
 // Disabling the lint for this since theres not a really good way of doing this without a big switch statement.
 //
-//nolint:cyclop
+//nolint:cyclop,gocyclo
 func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 	// Nobl9 supported metric sources.
 	supportedMetricSources := map[string]string{
@@ -465,19 +465,28 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 
 		// split the incoming dimensions string into a CloudWatchMetricDimension
 		var dims []nobl9v1alpha.CloudWatchMetricDimension
-		for _, d := range strings.Split(dimensions, ",") {
-			kv := strings.Split(d, ":")
-			if len(kv) != 2 {
-				return nobl9v1alpha.MetricSpec{}, fmt.Errorf("invalid dimension: %s", d)
+		for _, sequence := range strings.Split(dimensions, ";") {
+			// for the cloudwatch dimensions, we expect them in a single set of kv pairs, with name and value as the two keys
+			// example: 'name:foo,value:"foo";name:bar,value:"bar"'
+			cwDim := nobl9v1alpha.CloudWatchMetricDimension{}
+			for _, dimMap := range strings.Split(sequence, ",") {
+				kv := strings.Split(dimMap, ":")
+				if len(kv) != 2 {
+					return nobl9v1alpha.MetricSpec{}, fmt.Errorf("invalid dimension: %s", dimMap)
+				}
+
+				key := strings.TrimSpace(kv[0])
+				val := strings.TrimSpace(kv[1])
+
+				if strings.ToLower(key) == "name" {
+					cwDim.Name = &val
+				}
+
+				if strings.ToLower(key) == "value" {
+					cwDim.Value = &val
+				}
 			}
-
-			key := strings.TrimSpace(kv[0])
-			val := strings.TrimSpace(kv[1])
-
-			dims = append(dims, nobl9v1alpha.CloudWatchMetricDimension{
-				Name:  &key,
-				Value: &val,
-			})
+			dims = append(dims, cwDim)
 		}
 
 		// convert dimensions (which is a string) to []nobl9v1alpha.CloudWatchMetricDimension

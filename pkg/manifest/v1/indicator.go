@@ -13,6 +13,13 @@ limitations under the License.
 
 package v1
 
+import (
+	"fmt"
+	"strings"
+
+	"gopkg.in/yaml.v3"
+)
+
 // DataSource defines the data source for the SLI.
 type DataSource struct {
 	ObjectHeader `yaml:",inline"`
@@ -61,6 +68,60 @@ type MetricSource struct {
 	MetricSourceRef  string            `yaml:"metricSourceRef,omitempty" validate:"required_without=MetricSourceSpec"`
 	Type             string            `yaml:"type,omitempty" validate:"required_without=MetricSourceRef"`
 	MetricSourceSpec map[string]string `yaml:"spec" validate:"required_without=MetricSourceRef"`
+}
+
+// UnmarshalYAML is used to override the default unmarshal behavior
+// Since MetricSources don't have a determined structure, we need to do a few things here:
+//  1. Pull out the MetricSourceRef and Type separately, and add them to the MetricSource
+//  2. Attempt to unmarshal the MetricSourceSpec, which can be either a string or an array.
+//     2a.  If its a string, add it as a single string
+//     2b.  If its an array, flatten it to a single string
+//
+// This also assumes a certain flat structure that we can revisit if the need arises.
+//
+
+func (m *MetricSource) UnmarshalYAML(value *yaml.Node) error {
+	// temp struct to unmarshal the string values
+	var tmpMetricSource struct {
+		MetricSourceRef  string               `yaml:"metricSourceRef,omitempty" validate:"required_without=MetricSourceSpec"`
+		Type             string               `yaml:"type,omitempty" validate:"required_without=MetricSourceRef"`
+		MetricSourceSpec map[string]yaml.Node `yaml:"spec"`
+	}
+
+	if err := value.Decode(&tmpMetricSource); err != nil {
+		return err
+	}
+
+	// no error with these, assign them
+	m.MetricSourceRef = tmpMetricSource.MetricSourceRef
+	m.Type = tmpMetricSource.Type
+	// initialize this so we can assign the values later
+	m.MetricSourceSpec = make(map[string]string)
+
+	for k, v := range tmpMetricSource.MetricSourceSpec {
+		// simple use case
+		if v.Kind == yaml.ScalarNode {
+			m.MetricSourceSpec[k] = v.Value
+		}
+
+		if v.Kind == yaml.SequenceNode {
+			// top level string that we will join with a semicolon
+			seqStrings := []string{}
+			for _, node := range v.Content {
+				if node.Kind == yaml.MappingNode {
+					// each of these are k/v pairs that we will join with a comma
+					kvPairs := []string{}
+					for i := 0; i < len(node.Content); i += 2 {
+						kvPairs = append(kvPairs, fmt.Sprintf("%s:%s", node.Content[i].Value, node.Content[i+1].Value))
+					}
+					seqStrings = append(seqStrings, strings.Join(kvPairs, ","))
+				}
+			}
+			m.MetricSourceSpec[k] = strings.Join(seqStrings, ";")
+		}
+	}
+
+	return nil
 }
 
 // Kind returns the name of this type.
