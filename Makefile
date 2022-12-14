@@ -17,6 +17,11 @@ VERSION := $(shell git describe --tags)
 build:
 	go build -ldflags="-X 'main.version=${VERSION}'" -o bin/oslo
 
+.PHONY: install
+install: run/tests build
+	mkdir -p ${GOPATH}/bin
+	mv ./bin/oslo ${GOPATH}/bin/
+
 .PHONY: install/checks/spell-and-markdown
 install/checks/spell-and-markdown:
 	yarn
