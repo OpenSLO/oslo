@@ -70,14 +70,16 @@ type MetricSource struct {
 	MetricSourceSpec map[string]string `yaml:"spec" validate:"required_without=MetricSourceRef"`
 }
 
-//nolint:gci
 // UnmarshalYAML is used to override the default unmarshal behavior
 // Since MetricSources don't have a determined structure, we need to do a few things here:
-// 1. Pull out the MetricSourceRef and Type separately, and add them to the MetricSource
-// 2. Attempt to unmarshal the MetricSourceSpec, which can be either a string or an array.
-//   2a.  If its a string, add it as a single string
-//   2b.  If its an array, flatten it to a single string
+//  1. Pull out the MetricSourceRef and Type separately, and add them to the MetricSource
+//  2. Attempt to unmarshal the MetricSourceSpec, which can be either a string or an array.
+//     2a.  If its a string, add it as a single string
+//     2b.  If its an array, flatten it to a single string
+//
 // This also assumes a certain flat structure that we can revisit if the need arises.
+//
+
 func (m *MetricSource) UnmarshalYAML(value *yaml.Node) error {
 	// temp struct to unmarshal the string values
 	var tmpMetricSource struct {

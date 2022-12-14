@@ -1,4 +1,4 @@
-//nolint:gci
+
 /*
 Copyright © 2022 OpenSLO Team
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +20,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//nolint:godot
 // spell-checker:disable
+//
+
 func Test_MetricSource(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
