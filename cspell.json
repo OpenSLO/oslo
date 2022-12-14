@@ -29,6 +29,7 @@
         "Dynatrace",
         "fatih",
         "forbidigo",
+        "GOPATH",
         "gochecknoglobals",
         "gocognit",
         "gocyclo",
