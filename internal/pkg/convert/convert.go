@@ -323,7 +323,7 @@ func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) 
 
 // Disabling the lint for this since theres not a really good way of doing this without a big switch statement.
 //
-//nolint:cyclop
+//nolint:cyclop,gocyclo
 func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 	// Nobl9 supported metric sources.
 	supportedMetricSources := map[string]string{
@@ -485,7 +485,6 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 				if strings.ToLower(key) == "value" {
 					cwDim.Value = &val
 				}
-
 			}
 			dims = append(dims, cwDim)
 		}

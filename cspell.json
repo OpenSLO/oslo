@@ -31,6 +31,7 @@
         "forbidigo",
         "gochecknoglobals",
         "gocognit",
+        "gocyclo",
         "golangci",
         "hashicorp",
         "ibartholomew",
