@@ -451,3 +451,46 @@ func Test_getMetricSource(t *testing.T) {
 		})
 	}
 }
+
+func Test_getN9Indicator(t *testing.T) {
+	t.Parallel()
+	t.Run("unknown", func(t *testing.T) {
+		t.Parallel()
+		var s v1.SLIInline
+		ind := getN9Indicator(&s, "foo")
+		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
+	})
+	t.Run("Total MetricSource exists", func(t *testing.T) {
+		t.Parallel()
+		s := v1.SLIInline{
+			Spec: v1.SLISpec{
+				RatioMetric: &v1.RatioMetric{
+					Total: v1.MetricSourceHolder{
+						MetricSource: v1.MetricSource{
+							MetricSourceRef: "baz",
+						},
+					},
+				},
+			},
+		}
+		ind := getN9Indicator(&s, "foo")
+		assert.Equal(t, "baz", ind.MetricSource.Name)
+	})
+	t.Run("Only Good MetricSource exists", func(t *testing.T) {
+		t.Parallel()
+		// if total doesn't exists, use default behavior and generate ChangeMe indicator
+		s := v1.SLIInline{
+			Spec: v1.SLISpec{
+				RatioMetric: &v1.RatioMetric{
+					Good: &v1.MetricSourceHolder{
+						MetricSource: v1.MetricSource{
+							MetricSourceRef: "baz",
+						},
+					},
+				},
+			},
+		}
+		ind := getN9Indicator(&s, "foo")
+		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
+	})
+}

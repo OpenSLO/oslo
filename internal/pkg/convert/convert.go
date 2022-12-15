@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -187,15 +188,6 @@ func getN9SLObjects(
 			}
 		}
 
-		// Warn about changes to the Indicator
-		_ = printWarning(
-			fmt.Sprintf(
-				"OpenSLO doesn't support the Indicator or Agent configuration, "+
-					"so the name of the Agent for %s has been defaulted to 'ChangeMe'. "+
-					"Update with the name and kind of the integration in Nobl9 before applying.",
-				s.Metadata.DisplayName,
-			))
-
 		tw, err := getN9TimeWindow(s.Spec.TimeWindow)
 		if err != nil {
 			return fmt.Errorf("issue getting time window: %w", err)
@@ -211,11 +203,7 @@ func getN9SLObjects(
 		*rval = append(*rval, nobl9v1alpha.SLO{
 			ObjectHeader: getN9ObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, project, s.Metadata.Labels),
 			Spec: nobl9v1alpha.SLOSpec{
-				Indicator: nobl9v1alpha.Indicator{
-					MetricSource: nobl9v1alpha.MetricSourceSpec{
-						Name: "ChangeMe",
-					},
-				},
+				Indicator:       getN9Indicator(s.Spec.Indicator, project),
 				Description:     s.Spec.Description,
 				BudgetingMethod: s.Spec.BudgetingMethod,
 				Service:         s.Spec.Service,
@@ -227,6 +215,50 @@ func getN9SLObjects(
 	}
 
 	return nil
+}
+
+// returns nobl9 indicator base on discovery and assumptions.
+func getN9Indicator(s *v1.SLIInline, project string) nobl9v1alpha.Indicator {
+	// Warn about changes to the Indicator and return it up to the available discovery
+	var rmt string
+	if (s != nil && s.Spec != v1.SLISpec{} && s.Spec.RatioMetric != nil) {
+		rm := s.Spec.RatioMetric
+		if !reflect.ValueOf(rm.Total).IsZero() &&
+			!reflect.ValueOf(rm.Total.MetricSource).IsZero() &&
+			!reflect.ValueOf(rm.Total.MetricSource.MetricSourceRef).IsZero() {
+			rmt = rm.Total.MetricSource.MetricSourceRef
+		}
+	}
+	switch {
+	case rmt != "":
+		_ = printWarning(
+			fmt.Sprintf(
+				"OpenSLO discovered RatioMetric source total source which will be used as Indicator. "+
+					"Indicator type is assumed to be direct. "+
+					"Please verify Nobl9 SLO %s before applying.",
+				s.Metadata.DisplayName,
+			))
+		return nobl9v1alpha.Indicator{
+			MetricSource: nobl9v1alpha.MetricSourceSpec{
+				Kind:    "Direct",
+				Name:    rmt,
+				Project: project,
+			},
+		}
+	default:
+		_ = printWarning(
+			fmt.Sprintf(
+				"OpenSLO doesn't support the Indicator or Agent configuration, "+
+					"so the name of the Agent for %s has been defaulted to 'ChangeMe'. "+
+					"Update with the name and kind of the integration in Nobl9 before applying.",
+				s.Metadata.DisplayName,
+			))
+		return nobl9v1alpha.Indicator{
+			MetricSource: nobl9v1alpha.MetricSourceSpec{
+				Name: "ChangeMe",
+			},
+		}
+	}
 }
 
 // Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives.
