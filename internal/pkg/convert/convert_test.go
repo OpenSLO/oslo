@@ -18,8 +18,10 @@ limitations under the License.
 package convert
 
 import (
+	"bytes"
 	"testing"
 
+	nobl9v1alpha "github.com/OpenSLO/oslo/internal/pkg/manifest/nobl9/v1alpha"
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 	"github.com/stretchr/testify/assert"
@@ -452,53 +454,53 @@ func Test_getMetricSource(t *testing.T) {
 	}
 }
 
-func Test_getN9Indicator(t *testing.T) {
-	t.Parallel()
-	t.Run("nil", func(t *testing.T) {
-		t.Parallel()
-		ind := getN9Indicator(nil, "foo")
-		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
-	})
-	t.Run("unknown", func(t *testing.T) {
-		t.Parallel()
-		var s v1.SLIInline
-		ind := getN9Indicator(&s, "foo")
-		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
-	})
-	t.Run("Total MetricSource exists", func(t *testing.T) {
-		t.Parallel()
-		s := v1.SLIInline{
-			Spec: v1.SLISpec{
-				RatioMetric: &v1.RatioMetric{
-					Total: v1.MetricSourceHolder{
-						MetricSource: v1.MetricSource{
-							MetricSourceRef: "baz",
-						},
-					},
-				},
-			},
-		}
-		ind := getN9Indicator(&s, "foo")
-		assert.Equal(t, "baz", ind.MetricSource.Name)
-	})
-	t.Run("Only Good MetricSource exists", func(t *testing.T) {
-		t.Parallel()
-		// if total doesn't exists, use default behavior and generate ChangeMe indicator
-		s := v1.SLIInline{
-			Spec: v1.SLISpec{
-				RatioMetric: &v1.RatioMetric{
-					Good: &v1.MetricSourceHolder{
-						MetricSource: v1.MetricSource{
-							MetricSourceRef: "baz",
-						},
-					},
-				},
-			},
-		}
-		ind := getN9Indicator(&s, "foo")
-		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
-	})
-}
+// func Test_getN9Indicator(t *testing.T) {
+// 	t.Parallel()
+// 	t.Run("nil", func(t *testing.T) {
+// 		t.Parallel()
+// 		ind := getN9Indicator(nil, "foo")
+// 		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
+// 	})
+// 	t.Run("unknown", func(t *testing.T) {
+// 		t.Parallel()
+// 		var s v1.SLIInline
+// 		ind := getN9Indicator(&s, "foo")
+// 		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
+// 	})
+// 	t.Run("Total MetricSource exists", func(t *testing.T) {
+// 		t.Parallel()
+// 		s := v1.SLIInline{
+// 			Spec: v1.SLISpec{
+// 				RatioMetric: &v1.RatioMetric{
+// 					Total: v1.MetricSourceHolder{
+// 						MetricSource: v1.MetricSource{
+// 							MetricSourceRef: "baz",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		}
+// 		ind := getN9Indicator(&s, "foo")
+// 		assert.Equal(t, "baz", ind.MetricSource.Name)
+// 	})
+// 	t.Run("Only Good MetricSource exists", func(t *testing.T) {
+// 		t.Parallel()
+// 		// if total doesn't exists, use default behavior and generate ChangeMe indicator
+// 		s := v1.SLIInline{
+// 			Spec: v1.SLISpec{
+// 				RatioMetric: &v1.RatioMetric{
+// 					Good: &v1.MetricSourceHolder{
+// 						MetricSource: v1.MetricSource{
+// 							MetricSourceRef: "baz",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		}
+// 		ind := getN9Indicator(&s, "foo")
+// 		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
+// 	})
+// }
 
 func Test_RemoveDuplicates(t *testing.T) {
 	tests := []struct {
@@ -716,6 +718,14 @@ func Test_getParsedObjects(t *testing.T) {
 								IsRolling: true,
 							},
 						},
+						Objectives: []v1.Objective{
+							{
+								DisplayName: "Test Objective",
+								Op:          "gte",
+								Value:       10,
+								Target:      0.98,
+							},
+						},
 						AlertPolicies: []string{},
 					},
 				},
@@ -775,6 +785,594 @@ func Test_getParsedObjects(t *testing.T) {
 			got, err := getParsedObjects(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getParsedObjects() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_Nobl9(t *testing.T) {
+	type args struct {
+		filenames []string
+		project   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantOut string
+		wantErr bool
+	}{
+		{
+			name: "Single Service Single file",
+			args: args{
+				filenames: []string{
+					"../../../test/v1/service/service-with-labels.yaml",
+				},
+				project: "default",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: Service
+metadata:
+    name: my-rad-service
+    displayName: My Rad Service
+    project: default
+    labels:
+        costCentre:
+            - project1
+        serviceTier:
+            - tier-1
+        team:
+            - identity
+        userImpacting:
+            - "true"
+spec:
+    description: This is a great description of an even better service.
+`,
+		},
+		{
+			name: "Single SLO single file",
+			args: args{
+				filenames: []string{
+					"../../../test/v1/slo/slo-indicatorref-rolling-alerts.yaml",
+				},
+				project: "default",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: SLO
+metadata:
+    name: TestSLO
+    displayName: Test SLO
+    project: default
+spec:
+    description: This is a great description
+    indicator:
+        metricSource:
+            project: default
+            name: Changeme
+            kind: Agent
+    budgetingMethod: Occurrences
+    objectives:
+        - displayName: Foo Total Errors
+          value: 1
+          target: 0.98
+          op: lt
+    service: TheServiceName
+    timeWindows:
+        - unit: Day
+          count: 1
+          isRolling: true
+    alertPolicies:
+        - FooAlertPolicy
+`,
+		},
+		{
+			name: "Multiple Kinds Single File",
+			args: args{
+				filenames: []string{
+					"../../../test/v1/multi.yaml",
+				},
+				project: "default",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: SLO
+metadata:
+    name: foo-slo
+    displayName: FOO SLO
+    project: default
+spec:
+    description: Foo SLO
+    indicator:
+        metricSource:
+            project: default
+            name: foo-cloudwatch
+            kind: Agent
+    budgetingMethod: Occurrences
+    objectives:
+        - displayName: Test Objective
+          value: 10
+          target: 0.98
+          rawMetric:
+            query:
+                cloudWatch:
+                    region: us-east-1
+                    namespace: CloudWatchSynthetics
+                    metricName: 2xx
+                    stat: SampleCount
+                    dimensions:
+                        - name: CanaryName
+                          value: web-app
+                    sql: ""
+                    json: ""
+          op: gte
+    service: foo-slos
+    timeWindows:
+        - unit: Day
+          count: 28
+          isRolling: true
+    alertPolicies: []
+`,
+		},
+		{
+			name: "Multiple Kinds Multiple Files",
+			args: args{
+				filenames: []string{
+					"../../../test/v1/slo/slo-indicatorRef-rolling-cloudwatch.yaml",
+					"../../../test/v1/sli/sli-threshold-cloudwatch.yaml",
+					"../../../test/v1/data-source/data-source-cloudwatch.yaml",
+				},
+				project: "default",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: SLO
+metadata:
+    name: foo-openslo-slo
+    displayName: FOO OPENSLO SLO
+    project: default
+spec:
+    description: ""
+    indicator:
+        metricSource:
+            project: default
+            name: foo-cloudwatch
+            kind: Agent
+    budgetingMethod: Occurrences
+    objectives:
+        - displayName: Test Objective
+          value: 10
+          target: 0.98
+          rawMetric:
+            query:
+                cloudWatch:
+                    region: us-east-1
+                    namespace: CloudWatchSynthetics
+                    metricName: 2xx
+                    stat: SampleCount
+                    dimensions:
+                        - name: CanaryName
+                          value: web-app
+                    sql: ""
+                    json: ""
+          op: gte
+    service: foo-slos
+    timeWindows:
+        - unit: Day
+          count: 28
+          isRolling: true
+    alertPolicies: []
+`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out := &bytes.Buffer{}
+			if err := Nobl9(out, tt.args.filenames, tt.args.project); (err != nil) != tt.wantErr {
+				t.Errorf("Nobl9() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotOut := out.String(); gotOut != tt.wantOut {
+				assert.Equal(t, tt.wantOut, gotOut)
+			}
+		})
+	}
+}
+
+func Test_getN9Indicator(t *testing.T) {
+	var nilIndicator v1.SLISpec
+	type args struct {
+		indicator v1.SLISpec
+		project   string
+	}
+	tests := []struct {
+		name string
+		args args
+		want nobl9v1alpha.Indicator
+	}{
+		{
+			name: "nil Indicator",
+			args: args{
+				indicator: nilIndicator,
+				project:   "default",
+			},
+			want: nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: "default",
+					Name:    "Changeme",
+					Kind:    "Agent",
+				},
+			},
+		},
+		{
+			name: "Empty Indicator",
+			args: args{
+				indicator: nilIndicator,
+			},
+			want: nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: "default",
+					Name:    "Changeme",
+					Kind:    "Agent",
+				},
+			},
+		},
+		{
+			name: "Empty RatioMetric",
+			args: args{
+				indicator: v1.SLISpec{
+					RatioMetric: &v1.RatioMetric{},
+				},
+				project: "FooBar",
+			},
+			want: nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: "FooBar",
+					Name:    "Changeme",
+					Kind:    "Agent",
+				},
+			},
+		},
+		{
+			name: "Empty ThresholdMetric",
+			args: args{
+				indicator: v1.SLISpec{
+					ThresholdMetric: &v1.MetricSourceHolder{},
+				},
+				project: "FooBar",
+			},
+			want: nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: "FooBar",
+					Name:    "Changeme",
+					Kind:    "Agent",
+				},
+			},
+		},
+		{
+			name: "Ratio Metric with good and total",
+			args: args{
+				indicator: v1.SLISpec{
+					RatioMetric: &v1.RatioMetric{
+						Good: &v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								MetricSourceRef: "foo-bar-sli",
+							},
+						},
+						Total: v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								MetricSourceRef: "foo-bar-sli",
+							},
+						},
+					},
+				},
+				project: "FooBar",
+			},
+			want: nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: "FooBar",
+					Name:    "foo-bar-sli",
+					Kind:    "Agent",
+				},
+			},
+		},
+		{
+			name: "Ratio Metric with bad and total",
+			args: args{
+				indicator: v1.SLISpec{
+					RatioMetric: &v1.RatioMetric{
+						Bad: &v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								MetricSourceRef: "foo-bar-sli",
+							},
+						},
+						Total: v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								MetricSourceRef: "foo-bar-bad-sli",
+							},
+						},
+					},
+				},
+				project: "FooBar",
+			},
+			want: nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: "FooBar",
+					Name:    "foo-bar-bad-sli",
+					Kind:    "Agent",
+				},
+			},
+		},
+		{
+			name: "Threshold Metric",
+			args: args{
+				indicator: v1.SLISpec{
+					ThresholdMetric: &v1.MetricSourceHolder{
+						MetricSource: v1.MetricSource{
+							MetricSourceRef: "thresh-foo-sli",
+						},
+					},
+				},
+				project: "FooBarThresh",
+			},
+			want: nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: "FooBarThresh",
+					Name:    "thresh-foo-sli",
+					Kind:    "Agent",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := getN9Indicator(tt.args.indicator, tt.args.project)
+
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_getN9Thresholds(t *testing.T) {
+	type args struct {
+		o         []v1.Objective
+		indicator v1.SLISpec
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []nobl9v1alpha.Threshold
+		wantErr bool
+	}{
+		{
+			name: "Single Objective, no Indicator",
+			args: args{
+				o: []v1.Objective{
+					{
+						DisplayName: "foo1",
+						Op:          "gte",
+						Value:       0.01,
+						Target:      100,
+					},
+				},
+			},
+			want: []nobl9v1alpha.Threshold{
+				{
+					ThresholdBase: nobl9v1alpha.ThresholdBase{
+						DisplayName: "foo1",
+						Value:       0.01,
+					},
+					// anonymous function since we have to pass the address
+					BudgetTarget: func() *float64 { i := float64(100); return &i }(),
+					Operator:     func() *string { i := "gte"; return &i }(),
+				},
+			},
+		},
+		{
+			name: "Single Objective, RatioMetric Good Indicator",
+			args: args{
+				o: []v1.Objective{
+					{
+						DisplayName: "foo1",
+						Op:          "gte",
+						Value:       0.01,
+						Target:      100,
+					},
+				},
+				indicator: v1.SLISpec{
+					RatioMetric: &v1.RatioMetric{
+						Counter: true,
+						Good: &v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								Type: "Datadog",
+								MetricSourceSpec: map[string]string{
+									"query": "foo",
+								},
+							},
+						},
+						Total: v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								Type: "Datadog",
+								MetricSourceSpec: map[string]string{
+									"query": "bar",
+								},
+							},
+						},
+					},
+				},
+			},
+			want: []nobl9v1alpha.Threshold{
+				{
+					ThresholdBase: nobl9v1alpha.ThresholdBase{
+						DisplayName: "foo1",
+						Value:       0.01,
+					},
+					// anonymous function since we have to pass the address
+					BudgetTarget: func() *float64 { i := float64(100); return &i }(),
+					CountMetrics: &nobl9v1alpha.CountMetricsSpec{
+						Incremental: func() *bool { i := true; return &i }(),
+						GoodMetric: &nobl9v1alpha.MetricSpec{
+							Datadog: &nobl9v1alpha.DatadogMetric{
+								Query: func() *string { i := "foo"; return &i }(),
+							},
+						},
+						TotalMetric: &nobl9v1alpha.MetricSpec{
+							Datadog: &nobl9v1alpha.DatadogMetric{
+								Query: func() *string { i := "bar"; return &i }(),
+							},
+						},
+					},
+					Operator: func() *string { i := "gte"; return &i }(),
+				},
+			},
+		},
+		{
+			name: "Single Objective, RatioMetric Bad Indicator",
+			args: args{
+				o: []v1.Objective{
+					{
+						DisplayName: "foo1",
+						Op:          "gte",
+						Value:       0.01,
+						Target:      100,
+					},
+				},
+				indicator: v1.SLISpec{
+					RatioMetric: &v1.RatioMetric{
+						Counter: true,
+						Bad: &v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								Type: "Datadog",
+								MetricSourceSpec: map[string]string{
+									"query": "foo",
+								},
+							},
+						},
+						Total: v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								Type: "Datadog",
+								MetricSourceSpec: map[string]string{
+									"query": "bar",
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "Single Objective, Threshold Indicator",
+			args: args{
+				o: []v1.Objective{
+					{
+						DisplayName: "foo1",
+						Op:          "gte",
+						Value:       0.01,
+						Target:      100,
+					},
+				},
+				indicator: v1.SLISpec{
+					ThresholdMetric: &v1.MetricSourceHolder{
+						MetricSource: v1.MetricSource{
+							Type: "NewRelic",
+							MetricSourceSpec: map[string]string{
+								"nrql": "foo-bar",
+							},
+						},
+					},
+				},
+			},
+			want: []nobl9v1alpha.Threshold{
+				{
+					ThresholdBase: nobl9v1alpha.ThresholdBase{
+						DisplayName: "foo1",
+						Value:       0.01,
+					},
+					// anonymous function since we have to pass the address
+					BudgetTarget: func() *float64 { i := float64(100); return &i }(),
+					RawMetric: &nobl9v1alpha.RawMetricSpec{
+						MetricQuery: &nobl9v1alpha.MetricSpec{
+							NewRelic: &nobl9v1alpha.NewRelicMetric{
+								NRQL: func() *string { i := "foo-bar"; return &i }(),
+							},
+						},
+					},
+					Operator: func() *string { i := "gte"; return &i }(),
+				},
+			},
+		},
+		{
+			name: "Multiple Objectives, Threshold Indicator",
+			args: args{
+				o: []v1.Objective{
+					{
+						DisplayName: "foo1",
+						Op:          "gte",
+						Value:       0.98,
+						Target:      200,
+					},
+					{
+						DisplayName: "foo1",
+						Op:          "gte",
+						Value:       0.01,
+						Target:      100,
+					},
+				},
+				indicator: v1.SLISpec{
+					ThresholdMetric: &v1.MetricSourceHolder{
+						MetricSource: v1.MetricSource{
+							Type: "NewRelic",
+							MetricSourceSpec: map[string]string{
+								"nrql": "foo-bar",
+							},
+						},
+					},
+				},
+			},
+			want: []nobl9v1alpha.Threshold{
+				{
+					ThresholdBase: nobl9v1alpha.ThresholdBase{
+						DisplayName: "foo1",
+						Value:       0.98,
+					},
+					// anonymous function since we have to pass the address
+					BudgetTarget: func() *float64 { i := float64(200); return &i }(),
+					RawMetric: &nobl9v1alpha.RawMetricSpec{
+						MetricQuery: &nobl9v1alpha.MetricSpec{
+							NewRelic: &nobl9v1alpha.NewRelicMetric{
+								NRQL: func() *string { i := "foo-bar"; return &i }(),
+							},
+						},
+					},
+					Operator: func() *string { i := "gte"; return &i }(),
+				},
+				{
+					ThresholdBase: nobl9v1alpha.ThresholdBase{
+						DisplayName: "foo1",
+						Value:       0.01,
+					},
+					// anonymous function since we have to pass the address
+					BudgetTarget: func() *float64 { i := float64(100); return &i }(),
+					RawMetric: &nobl9v1alpha.RawMetricSpec{
+						MetricQuery: &nobl9v1alpha.MetricSpec{
+							NewRelic: &nobl9v1alpha.NewRelicMetric{
+								NRQL: func() *string { i := "foo-bar"; return &i }(),
+							},
+						},
+					},
+					Operator: func() *string { i := "gte"; return &i }(),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getN9Thresholds(tt.args.o, tt.args.indicator)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getN9Thresholds() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			assert.Equal(t, tt.want, got)

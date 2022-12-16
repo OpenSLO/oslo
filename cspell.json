@@ -25,6 +25,8 @@
     ],
     "allowCompoundWords": true,
     "words": [
+        "bazbat",
+        "changeme",
         "cyclop",
         "Dynatrace",
         "fatih",
@@ -72,6 +74,7 @@
         "nobl",
         "nolint",
         "NRQL",
+        "nrql",
         "oneof",
         "openslo",
         "opentsdb",

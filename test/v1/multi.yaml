@@ -12,10 +12,11 @@ spec:
     - duration: 28d
       isRolling: true
   budgetingMethod: Occurrences
-  objective: # see objectives below for details
+  objectives: # see objectives below for details
     - displayName: Test Objective
       op: gte
       target: 0.98
+      value: 10
   alertPolicies: []
 ---
 apiVersion: openslo/v1

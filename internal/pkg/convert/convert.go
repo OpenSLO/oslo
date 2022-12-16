@@ -195,15 +195,18 @@ func getN9SLObjects(
 
 		// Get the Objectives, aka Thresholds
 		indicator := getN9SLISpec(s.Spec, parsed)
+		// TODO this isn't returning any thresholds
 		thresholds, err := getN9Thresholds(s.Spec.Objectives, indicator)
 		if err != nil {
 			return fmt.Errorf("issue getting thresholds: %w", err)
 		}
 
+		n9Indicator := getN9Indicator(indicator, project)
+
 		*rval = append(*rval, nobl9v1alpha.SLO{
 			ObjectHeader: getN9ObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, project, s.Metadata.Labels),
 			Spec: nobl9v1alpha.SLOSpec{
-				Indicator:       getN9Indicator(s.Spec.Indicator, project),
+				Indicator:       n9Indicator,
 				Description:     s.Spec.Description,
 				BudgetingMethod: s.Spec.BudgetingMethod,
 				Service:         s.Spec.Service,
@@ -217,62 +220,84 @@ func getN9SLObjects(
 	return nil
 }
 
-// returns nobl9 indicator base on discovery and assumptions.
-func getN9Indicator(s *v1.SLIInline, project string) nobl9v1alpha.Indicator {
-	// Warn about changes to the Indicator and return it up to the available discovery
-	var rmt string
-	if (s != nil && s.Spec != v1.SLISpec{} && s.Spec.RatioMetric != nil) {
-		rm := s.Spec.RatioMetric
-		if !reflect.ValueOf(rm.Total).IsZero() &&
-			!reflect.ValueOf(rm.Total.MetricSource).IsZero() &&
-			!reflect.ValueOf(rm.Total.MetricSource.MetricSourceRef).IsZero() {
-			rmt = rm.Total.MetricSource.MetricSourceRef
-		}
+func getN9MetricSourceName(msh v1.MetricSourceHolder) (string, error) {
+	name := msh.MetricSource.MetricSourceRef
+	if name != "" {
+		return name, nil
 	}
-	switch {
-	case rmt != "":
-		_ = printWarning(
-			fmt.Sprintf(
-				"OpenSLO discovered RatioMetric source total source which will be used as Indicator. "+
-					"Indicator type is assumed to be direct. "+
-					"Please verify Nobl9 SLO %s before applying.",
-				s.Metadata.DisplayName,
-			))
-		return nobl9v1alpha.Indicator{
-			MetricSource: nobl9v1alpha.MetricSourceSpec{
-				Kind:    "Direct",
-				Name:    rmt,
-				Project: project,
-			},
+
+	return "", fmt.Errorf("MetricSourceRef was empty")
+}
+
+// returns nobl9 indicator base on discovery and assumptions.
+func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
+	// Since we don't have a way of specifying MetricSource.Kind in OpenSLO, use Nobl9's default
+	// of Agent, and warn the user
+	printWarning(
+		"We don't have a way of specifying the MetricSource Kind (Agent or Direct) in OpenSLO " +
+			"so we will use Nobl9's default of Agent",
+	)
+
+	// check to make sure we have a project, and use default if not
+	var metricSourceProject string
+	if project != "" {
+		metricSourceProject = project
+	} else {
+		metricSourceProject = "default"
+	}
+
+	// check to make sure that we have an indicator
+	if !reflect.ValueOf(i).IsZero() {
+		var name string
+		// check to see if we have a ThresholdMetric, and use that to set the the MetricSource
+		if !reflect.ValueOf(i.ThresholdMetric).IsZero() {
+			if n, err := getN9MetricSourceName(*i.ThresholdMetric); err == nil {
+				name = n
+			} else {
+				printWarning("Threshold MetricSource was set but the MetricSourceRef was not, so setting the name to Changeme for the MetricSource. Please update accordingly")
+				name = "Changeme"
+			}
 		}
-	case s != nil:
-		_ = printWarning(
-			fmt.Sprintf(
-				"OpenSLO doesn't support the Indicator or Agent configuration, "+
-					"so the name of the Agent for %s has been defaulted to 'ChangeMe'. "+
-					"Update with the name and kind of the integration in Nobl9 before applying.",
-				s.Metadata.Name,
-			))
-		return nobl9v1alpha.Indicator{
-			MetricSource: nobl9v1alpha.MetricSourceSpec{
-				Name: "ChangeMe",
-			},
+
+		// check to see if we have a RawMetric and use that to set the MetricSource
+		if !reflect.ValueOf(i.RatioMetric).IsZero() {
+			// try all the possible MetricSourceHolders that a ratio metric might have
+			if !reflect.ValueOf(i.RatioMetric.Good).IsZero() {
+				if n, err := getN9MetricSourceName(*i.RatioMetric.Good); err == nil {
+					name = n
+				}
+			}
+			if !reflect.ValueOf(i.RatioMetric.Bad).IsZero() {
+				if n, err := getN9MetricSourceName(*i.RatioMetric.Bad); err == nil {
+					name = n
+				}
+			}
+			if !reflect.ValueOf(i.RatioMetric.Total).IsZero() {
+				if n, err := getN9MetricSourceName(i.RatioMetric.Total); err == nil {
+					name = n
+				}
+			}
 		}
-	default:
-		_ = printWarning(
-			fmt.Sprint(
-				"OpenSLO doesn't support the Indicator or Agent configuration, " +
-					"so the name of the Agent has been defaulted to 'ChangeMe'. " +
-					"Update with the name and kind of the integration in Nobl9 before applying.",
-			))
-		return nobl9v1alpha.Indicator{
-			MetricSource: nobl9v1alpha.MetricSourceSpec{
-				Name: "ChangeMe",
-			},
+		if name != "" {
+			return nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: metricSourceProject,
+					Name:    name,
+					Kind:    "Agent",
+				},
+			}
 		}
 	}
 
-	// return nobl9v1alpha.Indicator{}
+	// Default return.  This handles any issues we might have found
+	printWarning("No indicator found, or missing either a ThresholdMetric or RatioMetric, so using a default Indicator and MetricSource.  Please update accordingly.")
+	return nobl9v1alpha.Indicator{
+		MetricSource: nobl9v1alpha.MetricSourceSpec{
+			Project: metricSourceProject,
+			Name:    "Changeme",
+			Kind:    "Agent",
+		},
+	}
 }
 
 // Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives.
