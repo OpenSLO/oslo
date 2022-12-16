@@ -20,10 +20,10 @@ package convert
 import (
 	"testing"
 
+	"github.com/OpenSLO/oslo/pkg/manifest"
+	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
-
-	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 )
 
 func Test_getCountMetrics(t *testing.T) {
@@ -454,6 +454,11 @@ func Test_getMetricSource(t *testing.T) {
 
 func Test_getN9Indicator(t *testing.T) {
 	t.Parallel()
+	t.Run("nil", func(t *testing.T) {
+		t.Parallel()
+		ind := getN9Indicator(nil, "foo")
+		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
+	})
 	t.Run("unknown", func(t *testing.T) {
 		t.Parallel()
 		var s v1.SLIInline
@@ -493,4 +498,286 @@ func Test_getN9Indicator(t *testing.T) {
 		ind := getN9Indicator(&s, "foo")
 		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
 	})
+}
+
+func Test_RemoveDuplicates(t *testing.T) {
+	tests := []struct {
+		name  string
+		input []string
+		want  []string
+	}{
+		{
+			name:  "empty array",
+			input: []string{},
+			want:  []string{},
+		},
+		{
+			name:  "All unique",
+			input: []string{"a", "b", "c"},
+			want:  []string{"a", "b", "c"},
+		},
+		{
+			name:  "Some dupes",
+			input: []string{"a", "b", "c", "b", "a"},
+			want:  []string{"a", "b", "c"},
+		},
+		{
+			name:  "All the same",
+			input: []string{"a", "a", "a"},
+			want:  []string{"a"},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := RemoveDuplicates(tt.input)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_getParsedObjects(t *testing.T) {
+	// needed farther down to test an empty list
+	var empty []manifest.OpenSLOKind
+	// needed here so we can pass in the pointer address later
+	sliName := "foo-sli"
+
+	tests := []struct {
+		name    string
+		args    []string
+		want    []manifest.OpenSLOKind
+		wantErr bool
+	}{
+		{
+			name: "empty list",
+			args: []string{},
+			want: empty,
+		},
+		{
+			name: "Single DataSource per file",
+			args: []string{"../../../test/v1/data-source/data-source.yaml"},
+			want: []manifest.OpenSLOKind{
+				v1.DataSource{
+					ObjectHeader: v1.ObjectHeader{
+						ObjectHeader: manifest.ObjectHeader{
+							APIVersion: "openslo/v1",
+						},
+						Kind: "DataSource",
+						MetadataHolder: v1.MetadataHolder{
+							Metadata: v1.Metadata{
+								Name:        "TestDataSource",
+								DisplayName: "Test Data Source",
+							},
+						},
+					},
+					Spec: v1.DataSourceSpec{
+						Type: "CloudWatch",
+						ConnectionDetails: map[string]string{
+							"accessKeyID":     "accessKey",
+							"secretAccessKey": "secretAccessKey",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Single Service file",
+			args: []string{"../../../test/v1/service/service.yaml"},
+			want: []manifest.OpenSLOKind{
+				v1.Service{
+					ObjectHeader: v1.ObjectHeader{
+						ObjectHeader: manifest.ObjectHeader{
+							APIVersion: "openslo/v1",
+						},
+						Kind: "Service",
+						MetadataHolder: v1.MetadataHolder{
+							Metadata: v1.Metadata{
+								Name:        "my-rad-service",
+								DisplayName: "My Rad Service",
+							},
+						},
+					},
+					Spec: v1.ServiceSpec{
+						Description: "This is a great description of an even better service.",
+					},
+				},
+			},
+		},
+		{
+			name: "Single SLI per file",
+			args: []string{"../../../test/v1/sli/sli-description-threshold-metricsourceref.yaml"},
+			want: []manifest.OpenSLOKind{
+				v1.SLI{
+					ObjectHeader: v1.ObjectHeader{
+						ObjectHeader: manifest.ObjectHeader{
+							APIVersion: "openslo/v1",
+						},
+						Kind: "SLI",
+						MetadataHolder: v1.MetadataHolder{
+							Metadata: v1.Metadata{
+								Name:        "GreatSLI",
+								DisplayName: "Great SLI",
+							},
+						},
+					},
+					Spec: v1.SLISpec{
+						ThresholdMetric: &v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								MetricSourceRef: "redshift-datasource",
+								MetricSourceSpec: map[string]string{
+									"clusterId":    "metrics-cluster",
+									"databaseName": "metrics-db",
+									"query":        "SELECT value, timestamp FROM metrics WHERE timestamp BETWEEN :date_from AND :date_to",
+									"region":       "eu-central-1",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Multiple Files",
+			args: []string{"../../../test/v1/service/service.yaml", "../../../test/v1/sli/sli-description-threshold-metricsourceref.yaml"},
+			want: []manifest.OpenSLOKind{
+				v1.Service{
+					ObjectHeader: v1.ObjectHeader{
+						ObjectHeader: manifest.ObjectHeader{
+							APIVersion: "openslo/v1",
+						},
+						Kind: "Service",
+						MetadataHolder: v1.MetadataHolder{
+							Metadata: v1.Metadata{
+								Name:        "my-rad-service",
+								DisplayName: "My Rad Service",
+							},
+						},
+					},
+					Spec: v1.ServiceSpec{
+						Description: "This is a great description of an even better service.",
+					},
+				},
+				v1.SLI{
+					ObjectHeader: v1.ObjectHeader{
+						ObjectHeader: manifest.ObjectHeader{
+							APIVersion: "openslo/v1",
+						},
+						Kind: "SLI",
+						MetadataHolder: v1.MetadataHolder{
+							Metadata: v1.Metadata{
+								Name:        "GreatSLI",
+								DisplayName: "Great SLI",
+							},
+						},
+					},
+					Spec: v1.SLISpec{
+						ThresholdMetric: &v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								MetricSourceRef: "redshift-datasource",
+								MetricSourceSpec: map[string]string{
+									"clusterId":    "metrics-cluster",
+									"databaseName": "metrics-db",
+									"query":        "SELECT value, timestamp FROM metrics WHERE timestamp BETWEEN :date_from AND :date_to",
+									"region":       "eu-central-1",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Multiple definitions per file",
+			args: []string{"../../../test/v1/multi.yaml"},
+			want: []manifest.OpenSLOKind{
+				v1.SLO{
+					ObjectHeader: v1.ObjectHeader{
+						ObjectHeader: manifest.ObjectHeader{
+							APIVersion: "openslo/v1",
+						},
+						Kind: "SLO",
+						MetadataHolder: v1.MetadataHolder{
+							Metadata: v1.Metadata{
+								Name:        "foo-slo",
+								DisplayName: "FOO SLO",
+							},
+						},
+					},
+					Spec: v1.SLOSpec{
+						Description:     "Foo SLO",
+						Service:         "foo-slos",
+						IndicatorRef:    &sliName,
+						BudgetingMethod: "Occurrences",
+						TimeWindow: []v1.TimeWindow{
+							{
+								Duration:  "28d",
+								IsRolling: true,
+							},
+						},
+						AlertPolicies: []string{},
+					},
+				},
+				v1.SLI{
+					ObjectHeader: v1.ObjectHeader{
+						ObjectHeader: manifest.ObjectHeader{
+							APIVersion: "openslo/v1",
+						},
+						Kind: "SLI",
+						MetadataHolder: v1.MetadataHolder{
+							Metadata: v1.Metadata{
+								Name: "foo-sli",
+							},
+						},
+					},
+					Spec: v1.SLISpec{
+						ThresholdMetric: &v1.MetricSourceHolder{
+							MetricSource: v1.MetricSource{
+								MetricSourceRef: "foo-cloudwatch",
+								Type:            "CloudWatch",
+								MetricSourceSpec: map[string]string{
+									"dimensions": "name:CanaryName,value:web-app",
+									"metricName": "2xx",
+									"namespace":  "CloudWatchSynthetics",
+									"region":     "us-east-1",
+									"stat":       "SampleCount",
+								},
+							},
+						},
+					},
+				},
+				v1.DataSource{
+					ObjectHeader: v1.ObjectHeader{
+						ObjectHeader: manifest.ObjectHeader{
+							APIVersion: "openslo/v1",
+						},
+						Kind: "DataSource",
+						MetadataHolder: v1.MetadataHolder{
+							Metadata: v1.Metadata{
+								Name: "foo-cloudwatch",
+							},
+						},
+					},
+					Spec: v1.DataSourceSpec{
+						Type: "CloudWatch",
+						ConnectionDetails: map[string]string{
+							"accessKeyID":     "FOOBAR",
+							"secretAccessKey": "BAZBAT",
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getParsedObjects(tt.args)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getParsedObjects() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }

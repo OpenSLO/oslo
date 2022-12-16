@@ -1,0 +1,48 @@
+---
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: foo-slo
+  displayName: FOO SLO
+spec:
+  description: "Foo SLO"
+  service: foo-slos
+  indicatorRef: foo-sli
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objective: # see objectives below for details
+    - displayName: Test Objective
+      op: gte
+      target: 0.98
+  alertPolicies: []
+---
+apiVersion: openslo/v1
+kind: SLI
+metadata:
+  name: foo-sli
+spec:
+  description: string # optional up to 1050 characters
+  thresholdMetric: # either thresholdMetric or ratioMetric must be provided
+    metricSource:
+      metricSourceRef: foo-cloudwatch
+      type: CloudWatch
+      spec:
+        metricName: 2xx
+        namespace: CloudWatchSynthetics
+        region: us-east-1
+        stat: SampleCount
+        dimensions:
+          - name: CanaryName
+            value: web-app
+---
+apiVersion: openslo/v1
+kind: DataSource
+metadata:
+  name: foo-cloudwatch
+spec:
+  type: CloudWatch # predefined type e.g. Prometheus, Datadog, etc.
+  connectionDetails:
+    accessKeyID: FOOBAR
+    secretAccessKey: BAZBAT

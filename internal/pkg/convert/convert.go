@@ -245,13 +245,25 @@ func getN9Indicator(s *v1.SLIInline, project string) nobl9v1alpha.Indicator {
 				Project: project,
 			},
 		}
-	default:
+	case s != nil:
 		_ = printWarning(
 			fmt.Sprintf(
 				"OpenSLO doesn't support the Indicator or Agent configuration, "+
 					"so the name of the Agent for %s has been defaulted to 'ChangeMe'. "+
 					"Update with the name and kind of the integration in Nobl9 before applying.",
-				s.Metadata.DisplayName,
+				s.Metadata.Name,
+			))
+		return nobl9v1alpha.Indicator{
+			MetricSource: nobl9v1alpha.MetricSourceSpec{
+				Name: "ChangeMe",
+			},
+		}
+	default:
+		_ = printWarning(
+			fmt.Sprint(
+				"OpenSLO doesn't support the Indicator or Agent configuration, " +
+					"so the name of the Agent has been defaulted to 'ChangeMe'. " +
+					"Update with the name and kind of the integration in Nobl9 before applying.",
 			))
 		return nobl9v1alpha.Indicator{
 			MetricSource: nobl9v1alpha.MetricSourceSpec{
@@ -259,6 +271,8 @@ func getN9Indicator(s *v1.SLIInline, project string) nobl9v1alpha.Indicator {
 			},
 		}
 	}
+
+	// return nobl9v1alpha.Indicator{}
 }
 
 // Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives.

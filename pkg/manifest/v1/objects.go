@@ -40,8 +40,8 @@ const (
 )
 
 // Parse is responsible for parsing all structs in this apiVersion.
-func Parse(fileContent []byte, m ObjectGeneric, filename string) (manifest.OpenSLOKind, error) {
-	switch m.Kind {
+func Parse(fileContent []byte, m ObjectGeneric, filename string, kind string) (manifest.OpenSLOKind, error) {
+	switch kind {
 	case KindAlertCondition:
 		var content AlertCondition
 		err := yaml.Unmarshal(fileContent, &content)
