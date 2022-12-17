@@ -263,7 +263,7 @@ spec:
         metricSource:
             project: default
             name: datadog-datasource
-            kind: Direct
+            kind: Agent
     budgetingMethod: Occurrences
     objectives:
         - displayName: Foo Total Errors
