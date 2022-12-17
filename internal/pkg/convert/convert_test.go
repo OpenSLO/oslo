@@ -21,11 +21,12 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v3"
+
 	nobl9v1alpha "github.com/OpenSLO/oslo/internal/pkg/manifest/nobl9/v1alpha"
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/yaml.v3"
 )
 
 func Test_getCountMetrics(t *testing.T) {
@@ -503,6 +504,7 @@ func Test_getMetricSource(t *testing.T) {
 // }
 
 func Test_RemoveDuplicates(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input []string
@@ -541,6 +543,7 @@ func Test_RemoveDuplicates(t *testing.T) {
 }
 
 func Test_getParsedObjects(t *testing.T) {
+	t.Parallel()
 	// needed farther down to test an empty list
 	var empty []manifest.OpenSLOKind
 	// needed here so we can pass in the pointer address later
@@ -642,7 +645,10 @@ func Test_getParsedObjects(t *testing.T) {
 		},
 		{
 			name: "Multiple Files",
-			args: []string{"../../../test/v1/service/service.yaml", "../../../test/v1/sli/sli-description-threshold-metricsourceref.yaml"},
+			args: []string{
+				"../../../test/v1/service/service.yaml",
+				"../../../test/v1/sli/sli-description-threshold-metricsourceref.yaml",
+			},
 			want: []manifest.OpenSLOKind{
 				v1.Service{
 					ObjectHeader: v1.ObjectHeader{
@@ -781,7 +787,9 @@ func Test_getParsedObjects(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := getParsedObjects(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getParsedObjects() error = %v, wantErr %v", err, tt.wantErr)
@@ -793,6 +801,7 @@ func Test_getParsedObjects(t *testing.T) {
 }
 
 func Test_Nobl9(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		filenames []string
 		project   string
@@ -968,7 +977,9 @@ spec:
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			out := &bytes.Buffer{}
 			if err := Nobl9(out, tt.args.filenames, tt.args.project); (err != nil) != tt.wantErr {
 				t.Errorf("Nobl9() error = %v, wantErr %v", err, tt.wantErr)
@@ -982,6 +993,7 @@ spec:
 }
 
 func Test_getN9Indicator(t *testing.T) {
+	t.Parallel()
 	var nilIndicator v1.SLISpec
 	type args struct {
 		indicator v1.SLISpec
@@ -1127,7 +1139,9 @@ func Test_getN9Indicator(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := getN9Indicator(tt.args.indicator, tt.args.project)
 
 			assert.Equal(t, tt.want, got)
@@ -1136,6 +1150,7 @@ func Test_getN9Indicator(t *testing.T) {
 }
 
 func Test_getN9Thresholds(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		o         []v1.Objective
 		indicator v1.SLISpec
@@ -1166,7 +1181,7 @@ func Test_getN9Thresholds(t *testing.T) {
 					},
 					// anonymous function since we have to pass the address
 					BudgetTarget: func() *float64 { i := float64(100); return &i }(),
-					Operator:     func() *string { i := "gte"; return &i }(),
+					Operator:     func() *string { i := "gte"; return &i }(), //nolint:goconst
 				},
 			},
 		},
@@ -1296,7 +1311,7 @@ func Test_getN9Thresholds(t *testing.T) {
 					RawMetric: &nobl9v1alpha.RawMetricSpec{
 						MetricQuery: &nobl9v1alpha.MetricSpec{
 							NewRelic: &nobl9v1alpha.NewRelicMetric{
-								NRQL: func() *string { i := "foo-bar"; return &i }(),
+								NRQL: func() *string { i := "foo-bar"; return &i }(), //nolint:goconst
 							},
 						},
 					},
@@ -1369,7 +1384,9 @@ func Test_getN9Thresholds(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := getN9Thresholds(tt.args.o, tt.args.indicator)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getN9Thresholds() error = %v, wantErr %v", err, tt.wantErr)

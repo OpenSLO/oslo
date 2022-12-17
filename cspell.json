@@ -33,6 +33,8 @@
         "forbidigo",
         "gochecknoglobals",
         "gocognit",
+        "gocognitx",
+        "goconst",
         "gocyclo",
         "golangci",
         "gopath",

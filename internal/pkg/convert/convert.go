@@ -195,7 +195,6 @@ func getN9SLObjects(
 
 		// Get the Objectives, aka Thresholds
 		indicator := getN9SLISpec(s.Spec, parsed)
-		// TODO this isn't returning any thresholds
 		thresholds, err := getN9Thresholds(s.Spec.Objectives, indicator)
 		if err != nil {
 			return fmt.Errorf("issue getting thresholds: %w", err)
@@ -230,10 +229,12 @@ func getN9MetricSourceName(msh v1.MetricSourceHolder) (string, error) {
 }
 
 // returns nobl9 indicator base on discovery and assumptions.
+//
+//nolint:gocognit,cyclop
 func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
 	// Since we don't have a way of specifying MetricSource.Kind in OpenSLO, use Nobl9's default
 	// of Agent, and warn the user
-	printWarning(
+	_ = printWarning(
 		"We don't have a way of specifying the MetricSource Kind (Agent or Direct) in OpenSLO " +
 			"so we will use Nobl9's default of Agent",
 	)
@@ -247,6 +248,7 @@ func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
 	}
 
 	// check to make sure that we have an indicator
+	//nolint:nestif
 	if !reflect.ValueOf(i).IsZero() {
 		var name string
 		// check to see if we have a ThresholdMetric, and use that to set the the MetricSource
@@ -254,7 +256,10 @@ func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
 			if n, err := getN9MetricSourceName(*i.ThresholdMetric); err == nil {
 				name = n
 			} else {
-				printWarning("Threshold MetricSource was set but the MetricSourceRef was not, so setting the name to Changeme for the MetricSource. Please update accordingly")
+				_ = printWarning(
+					"Threshold MetricSource was set but the MetricSourceRef was not, " +
+						"so setting the name to Changeme for the MetricSource. Please update accordingly",
+				)
 				name = "Changeme"
 			}
 		}
@@ -290,7 +295,10 @@ func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
 	}
 
 	// Default return.  This handles any issues we might have found
-	printWarning("No indicator found, or missing either a ThresholdMetric or RatioMetric, so using a default Indicator and MetricSource.  Please update accordingly.")
+	_ = printWarning(
+		"No indicator found, or missing either a ThresholdMetric or RatioMetric, " +
+			"so using a default Indicator and MetricSource.  Please update accordingly.",
+	)
 	return nobl9v1alpha.Indicator{
 		MetricSource: nobl9v1alpha.MetricSourceSpec{
 			Project: metricSourceProject,
