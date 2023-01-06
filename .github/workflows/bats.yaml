@@ -3,7 +3,7 @@ on:
   pull_request:
 jobs:
   batsTests:
-    name: lint
+    name: Test Binary
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-12]
