@@ -51,4 +51,6 @@ run/tests:
 
 .PHONY: run/bats/tests
 run/bats/tests:
+	ls -al
+	ls -al test_helper
 	find test/cli -type f -name "*.bats" ! -path "test/cli/test_helper/*" | xargs bats
