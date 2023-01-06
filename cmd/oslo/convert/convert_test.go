@@ -261,8 +261,9 @@ spec:
     description: This is a great description
     indicator:
         metricSource:
-            name: ChangeMe
-            kind: ""
+            project: default
+            name: datadog-datasource
+            kind: Agent
     budgetingMethod: Occurrences
     objectives:
         - displayName: Foo Total Errors

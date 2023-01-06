@@ -12,7 +12,8 @@ information also check the website: [openslo.com](https://openslo.com/).
 ### From source
 
 1. Checkout this repository
-1. Install oslo with `go install github.com/OpenSLO/oslo@latest`
+1. From the root of the project, run `make install`.  This will build and install
+the binary into your `GOPATH`
 
 ### Homebrew
 

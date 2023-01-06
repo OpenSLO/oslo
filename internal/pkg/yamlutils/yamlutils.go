@@ -112,9 +112,11 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 				return nil, fmt.Errorf("in file %q: %w", filename, err)
 			}
 
-			content, e := v1.Parse(c, o, filename)
+			kind := i.(map[string]interface{})["kind"].(string)
+			content, e := v1.Parse(c, o, filename, kind)
+
 			if e != nil {
-				allErrors = multierror.Append(allErrors, e)
+				allErrors = multierror.Append(allErrors, fmt.Errorf("error in %q: %w", filename, e))
 			}
 			parsedStructs = append(parsedStructs, content)
 		}

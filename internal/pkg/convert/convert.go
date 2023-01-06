@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -187,15 +188,6 @@ func getN9SLObjects(
 			}
 		}
 
-		// Warn about changes to the Indicator
-		_ = printWarning(
-			fmt.Sprintf(
-				"OpenSLO doesn't support the Indicator or Agent configuration, "+
-					"so the name of the Agent for %s has been defaulted to 'ChangeMe'. "+
-					"Update with the name and kind of the integration in Nobl9 before applying.",
-				s.Metadata.DisplayName,
-			))
-
 		tw, err := getN9TimeWindow(s.Spec.TimeWindow)
 		if err != nil {
 			return fmt.Errorf("issue getting time window: %w", err)
@@ -208,14 +200,12 @@ func getN9SLObjects(
 			return fmt.Errorf("issue getting thresholds: %w", err)
 		}
 
+		n9Indicator := getN9Indicator(indicator, project)
+
 		*rval = append(*rval, nobl9v1alpha.SLO{
 			ObjectHeader: getN9ObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, project, s.Metadata.Labels),
 			Spec: nobl9v1alpha.SLOSpec{
-				Indicator: nobl9v1alpha.Indicator{
-					MetricSource: nobl9v1alpha.MetricSourceSpec{
-						Name: "ChangeMe",
-					},
-				},
+				Indicator:       n9Indicator,
 				Description:     s.Spec.Description,
 				BudgetingMethod: s.Spec.BudgetingMethod,
 				Service:         s.Spec.Service,
@@ -227,6 +217,95 @@ func getN9SLObjects(
 	}
 
 	return nil
+}
+
+func getN9MetricSourceName(msh v1.MetricSourceHolder) (string, error) {
+	name := msh.MetricSource.MetricSourceRef
+	if name != "" {
+		return name, nil
+	}
+
+	return "", fmt.Errorf("MetricSourceRef was empty")
+}
+
+// returns nobl9 indicator base on discovery and assumptions.
+//
+//nolint:gocognit,cyclop
+func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
+	// Since we don't have a way of specifying MetricSource.Kind in OpenSLO, use Nobl9's default
+	// of Agent, and warn the user
+	_ = printWarning(
+		"We don't have a way of specifying the MetricSource Kind (Agent or Direct) in OpenSLO " +
+			"so we will use Nobl9's default of Agent",
+	)
+
+	// check to make sure we have a project, and use default if not
+	var metricSourceProject string
+	if project != "" {
+		metricSourceProject = project
+	} else {
+		metricSourceProject = "default"
+	}
+
+	// check to make sure that we have an indicator
+	//nolint:nestif
+	if !reflect.ValueOf(i).IsZero() {
+		var name string
+		// check to see if we have a ThresholdMetric, and use that to set the the MetricSource
+		if !reflect.ValueOf(i.ThresholdMetric).IsZero() {
+			if n, err := getN9MetricSourceName(*i.ThresholdMetric); err == nil {
+				name = n
+			} else {
+				_ = printWarning(
+					"Threshold MetricSource was set but the MetricSourceRef was not, " +
+						"so setting the name to Changeme for the MetricSource. Please update accordingly",
+				)
+				name = "Changeme"
+			}
+		}
+
+		// check to see if we have a RawMetric and use that to set the MetricSource
+		if !reflect.ValueOf(i.RatioMetric).IsZero() {
+			// try all the possible MetricSourceHolders that a ratio metric might have
+			if !reflect.ValueOf(i.RatioMetric.Good).IsZero() {
+				if n, err := getN9MetricSourceName(*i.RatioMetric.Good); err == nil {
+					name = n
+				}
+			}
+			if !reflect.ValueOf(i.RatioMetric.Bad).IsZero() {
+				if n, err := getN9MetricSourceName(*i.RatioMetric.Bad); err == nil {
+					name = n
+				}
+			}
+			if !reflect.ValueOf(i.RatioMetric.Total).IsZero() {
+				if n, err := getN9MetricSourceName(i.RatioMetric.Total); err == nil {
+					name = n
+				}
+			}
+		}
+		if name != "" {
+			return nobl9v1alpha.Indicator{
+				MetricSource: nobl9v1alpha.MetricSourceSpec{
+					Project: metricSourceProject,
+					Name:    name,
+					Kind:    "Agent",
+				},
+			}
+		}
+	}
+
+	// Default return.  This handles any issues we might have found
+	_ = printWarning(
+		"No indicator found, or missing either a ThresholdMetric or RatioMetric, " +
+			"so using a default Indicator and MetricSource.  Please update accordingly.",
+	)
+	return nobl9v1alpha.Indicator{
+		MetricSource: nobl9v1alpha.MetricSourceSpec{
+			Project: metricSourceProject,
+			Name:    "Changeme",
+			Kind:    "Agent",
+		},
+	}
 }
 
 // Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives.
@@ -323,7 +402,7 @@ func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) 
 
 // Disabling the lint for this since theres not a really good way of doing this without a big switch statement.
 //
-//nolint:cyclop
+//nolint:cyclop,gocyclo
 func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 	// Nobl9 supported metric sources.
 	supportedMetricSources := map[string]string{
@@ -465,19 +544,28 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 
 		// split the incoming dimensions string into a CloudWatchMetricDimension
 		var dims []nobl9v1alpha.CloudWatchMetricDimension
-		for _, d := range strings.Split(dimensions, ",") {
-			kv := strings.Split(d, ":")
-			if len(kv) != 2 {
-				return nobl9v1alpha.MetricSpec{}, fmt.Errorf("invalid dimension: %s", d)
+		for _, sequence := range strings.Split(dimensions, ";") {
+			// for the cloudwatch dimensions, we expect them in a single set of kv pairs, with name and value as the two keys
+			// example: 'name:foo,value:"foo";name:bar,value:"bar"'
+			cwDim := nobl9v1alpha.CloudWatchMetricDimension{}
+			for _, dimMap := range strings.Split(sequence, ",") {
+				kv := strings.Split(dimMap, ":")
+				if len(kv) != 2 {
+					return nobl9v1alpha.MetricSpec{}, fmt.Errorf("invalid dimension: %s", dimMap)
+				}
+
+				key := strings.TrimSpace(kv[0])
+				val := strings.TrimSpace(kv[1])
+
+				if strings.ToLower(key) == "name" {
+					cwDim.Name = &val
+				}
+
+				if strings.ToLower(key) == "value" {
+					cwDim.Value = &val
+				}
 			}
-
-			key := strings.TrimSpace(kv[0])
-			val := strings.TrimSpace(kv[1])
-
-			dims = append(dims, nobl9v1alpha.CloudWatchMetricDimension{
-				Name:  &key,
-				Value: &val,
-			})
+			dims = append(dims, cwDim)
 		}
 
 		// convert dimensions (which is a string) to []nobl9v1alpha.CloudWatchMetricDimension

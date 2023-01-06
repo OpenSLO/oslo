@@ -1,0 +1,18 @@
+apiVersion: openslo/v1
+kind: SLI
+metadata:
+  name: foo-sli
+spec:
+  description: string # optional up to 1050 characters
+  thresholdMetric: # either thresholdMetric or ratioMetric must be provided
+    metricSource:
+      metricSourceRef: foo-cloudwatch
+      type: CloudWatch
+      spec:
+        metricName: 2xx
+        namespace: CloudWatchSynthetics
+        region: us-east-1
+        stat: SampleCount
+        dimensions:
+          - name: CanaryName
+            value: web-app
