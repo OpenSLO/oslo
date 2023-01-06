@@ -25,5 +25,3 @@ rm -rf /tmp/bats-assert.tgz
 echo -n "."
 
 echo "Done!"
-
-ls -al
