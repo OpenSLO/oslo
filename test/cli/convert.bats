@@ -40,13 +40,13 @@ teardown_file() {
   assert_output
 }
 
-@test "nobl9 - oslo converts file with mutliple kinds successfully" {
+@test "nobl9 - oslo converts file with multiple kinds successfully" {
   run oslo convert -f test/v1/multi.yaml -o nobl9
   assert_equal $status 0
   assert_output --partial "apiVersion"
 }
 
-@test "nobl9 - oslo converts mutliple files successfully" {
+@test "nobl9 - oslo converts multiple files successfully" {
   run oslo convert \
     -f test/v1/slo/slo-indicatorRef-rolling-cloudwatch.yaml \
     -f test/v1/sli/sli-threshold-cloudwatch.yaml \
