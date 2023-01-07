@@ -262,8 +262,6 @@ func Test_getMetricSource(t *testing.T) {
 					"region":     "myregion",
 					"stat":       "mystat",
 					"dimensions": "name:mydimensions,value:myvalue;name:mydimensions2,value:myvalue2",
-					"sql":        "myquery",
-					"json":       "myjson",
 				},
 			},
 			want: `cloudWatch:
@@ -276,8 +274,6 @@ func Test_getMetricSource(t *testing.T) {
           value: myvalue
         - name: mydimensions2
           value: myvalue2
-    sql: myquery
-    json: myjson
 `,
 		},
 		{
@@ -454,54 +450,6 @@ func Test_getMetricSource(t *testing.T) {
 		})
 	}
 }
-
-// func Test_getN9Indicator(t *testing.T) {
-// 	t.Parallel()
-// 	t.Run("nil", func(t *testing.T) {
-// 		t.Parallel()
-// 		ind := getN9Indicator(nil, "foo")
-// 		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
-// 	})
-// 	t.Run("unknown", func(t *testing.T) {
-// 		t.Parallel()
-// 		var s v1.SLIInline
-// 		ind := getN9Indicator(&s, "foo")
-// 		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
-// 	})
-// 	t.Run("Total MetricSource exists", func(t *testing.T) {
-// 		t.Parallel()
-// 		s := v1.SLIInline{
-// 			Spec: v1.SLISpec{
-// 				RatioMetric: &v1.RatioMetric{
-// 					Total: v1.MetricSourceHolder{
-// 						MetricSource: v1.MetricSource{
-// 							MetricSourceRef: "baz",
-// 						},
-// 					},
-// 				},
-// 			},
-// 		}
-// 		ind := getN9Indicator(&s, "foo")
-// 		assert.Equal(t, "baz", ind.MetricSource.Name)
-// 	})
-// 	t.Run("Only Good MetricSource exists", func(t *testing.T) {
-// 		t.Parallel()
-// 		// if total doesn't exists, use default behavior and generate ChangeMe indicator
-// 		s := v1.SLIInline{
-// 			Spec: v1.SLISpec{
-// 				RatioMetric: &v1.RatioMetric{
-// 					Good: &v1.MetricSourceHolder{
-// 						MetricSource: v1.MetricSource{
-// 							MetricSourceRef: "baz",
-// 						},
-// 					},
-// 				},
-// 			},
-// 		}
-// 		ind := getN9Indicator(&s, "foo")
-// 		assert.Equal(t, "ChangeMe", ind.MetricSource.Name)
-// 	})
-// }
 
 func Test_RemoveDuplicates(t *testing.T) {
 	t.Parallel()
@@ -914,8 +862,6 @@ spec:
                     dimensions:
                         - name: CanaryName
                           value: web-app
-                    sql: ""
-                    json: ""
           op: gte
     service: foo-slos
     timeWindows:
@@ -964,8 +910,6 @@ spec:
                     dimensions:
                         - name: CanaryName
                           value: web-app
-                    sql: ""
-                    json: ""
           op: gte
     service: foo-slos
     timeWindows:
@@ -1392,6 +1336,80 @@ func Test_getN9Thresholds(t *testing.T) {
 				t.Errorf("getN9Thresholds() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func Test_getN9CloudWatchQuery(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		m map[string]string
+	}
+	tests := []struct {
+		name string
+		args args
+		want nobl9v1alpha.CloudWatchMetric
+	}{
+		{
+			name: "has dimensions",
+			args: args{
+				m: map[string]string{
+					"namespace":  "mynamespace",
+					"metricName": "mymetricname",
+					"region":     "myregion",
+					"stat":       "mystat",
+					"dimensions": "name:mydimensions,value:myvalue;name:mydimensions2,value:myvalue2",
+				},
+			},
+			want: nobl9v1alpha.CloudWatchMetric{
+				Stat: func() *string { i := "mystat"; return &i }(),
+				Dimensions: []nobl9v1alpha.CloudWatchMetricDimension{
+					{
+						Name:  func() *string { i := "mydimensions"; return &i }(),
+						Value: func() *string { i := "myvalue"; return &i }(),
+					},
+					{
+						Name:  func() *string { i := "mydimensions2"; return &i }(),
+						Value: func() *string { i := "myvalue2"; return &i }(),
+					},
+				},
+			},
+		},
+		{
+			name: "has json",
+			args: args{
+				m: map[string]string{
+					"namespace":  "mynamespace",
+					"metricName": "mymetricname",
+					"region":     "myregion",
+					"json":       "{\"foo\": \"bar\"}",
+				},
+			},
+			want: nobl9v1alpha.CloudWatchMetric{
+				JSON: func() *string { i := "{\"foo\": \"bar\"}"; return &i }(),
+			},
+		},
+		{
+			name: "has SQL",
+			args: args{
+				m: map[string]string{
+					"namespace":  "mynamespace",
+					"metricName": "mymetricname",
+					"region":     "myregion",
+					"sql":        "SELECT * FROM FOO",
+				},
+			},
+			want: nobl9v1alpha.CloudWatchMetric{
+				SQL: func() *string { i := "SELECT * FROM FOO"; return &i }(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := getN9CloudWatchQuery(tt.args.m)
 			assert.Equal(t, tt.want, got)
 		})
 	}

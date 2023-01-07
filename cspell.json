@@ -87,6 +87,7 @@
         "Rollup",
         "rval",
         "server",
+        "sloctl",
         "slos",
         "stretchr",
         "structs",
@@ -94,7 +95,8 @@
         "TSDB",
         "unflatten",
         "unflattens",
-        "unmarshals"
+        "unmarshals",
+        "usix"
     ],
     "enabledLanguageIds": [
         "asciidoc",
