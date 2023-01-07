@@ -402,7 +402,7 @@ func getN9CountMetrics(r v1.RatioMetric) (nobl9v1alpha.CountMetricsSpec, error) 
 
 // Disabling the lint for this since theres not a really good way of doing this without a big switch statement.
 //
-//nolint:cyclop,gocyclo
+//nolint:cyclop
 func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 	// Nobl9 supported metric sources.
 	supportedMetricSources := map[string]string{
@@ -537,48 +537,14 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 		namespace := m.MetricSourceSpec["namespace"]
 		metricName := m.MetricSourceSpec["metricName"]
 		region := m.MetricSourceSpec["region"]
-		stat := m.MetricSourceSpec["stat"]
-		dimensions := m.MetricSourceSpec["dimensions"]
-		sql := m.MetricSourceSpec["sql"]
-		json := m.MetricSourceSpec["json"]
 
-		// split the incoming dimensions string into a CloudWatchMetricDimension
-		var dims []nobl9v1alpha.CloudWatchMetricDimension
-		for _, sequence := range strings.Split(dimensions, ";") {
-			// for the cloudwatch dimensions, we expect them in a single set of kv pairs, with name and value as the two keys
-			// example: 'name:foo,value:"foo";name:bar,value:"bar"'
-			cwDim := nobl9v1alpha.CloudWatchMetricDimension{}
-			for _, dimMap := range strings.Split(sequence, ",") {
-				kv := strings.Split(dimMap, ":")
-				if len(kv) != 2 {
-					return nobl9v1alpha.MetricSpec{}, fmt.Errorf("invalid dimension: %s", dimMap)
-				}
+		cwm := getN9CloudWatchQuery(m.MetricSourceSpec)
+		cwm.Namespace = &namespace
+		cwm.MetricName = &metricName
+		cwm.Region = &region
 
-				key := strings.TrimSpace(kv[0])
-				val := strings.TrimSpace(kv[1])
-
-				if strings.ToLower(key) == "name" {
-					cwDim.Name = &val
-				}
-
-				if strings.ToLower(key) == "value" {
-					cwDim.Value = &val
-				}
-			}
-			dims = append(dims, cwDim)
-		}
-
-		// convert dimensions (which is a string) to []nobl9v1alpha.CloudWatchMetricDimension
 		ms = nobl9v1alpha.MetricSpec{
-			CloudWatch: &nobl9v1alpha.CloudWatchMetric{
-				Namespace:  &namespace,
-				MetricName: &metricName,
-				Dimensions: dims,
-				Region:     &region,
-				Stat:       &stat,
-				SQL:        &sql,
-				JSON:       &json,
-			},
+			CloudWatch: &cwm,
 		}
 	case supportedMetricSources["Redshift"]:
 		query := m.MetricSourceSpec["query"]
@@ -718,6 +684,61 @@ func getN9MetricSource(m v1.MetricSource) (nobl9v1alpha.MetricSpec, error) {
 		)
 	}
 	return ms, nil
+}
+
+func getN9CloudWatchQuery(m map[string]string) nobl9v1alpha.CloudWatchMetric {
+	switch {
+	case m["sql"] != "":
+		val := m["sql"]
+		return nobl9v1alpha.CloudWatchMetric{
+			SQL: &val,
+		}
+	case m["json"] != "":
+		val := m["json"]
+		return nobl9v1alpha.CloudWatchMetric{
+			JSON: &val,
+		}
+	case m["dimensions"] != "":
+		val, _ := getN9CloudWatchDims(m["dimensions"])
+		stat := m["stat"]
+		return nobl9v1alpha.CloudWatchMetric{
+			Stat:       &stat,
+			Dimensions: val,
+		}
+	}
+
+	return nobl9v1alpha.CloudWatchMetric{}
+}
+
+func getN9CloudWatchDims(dimensions string) ([]nobl9v1alpha.CloudWatchMetricDimension, error) {
+	// split the incoming dimensions string into a CloudWatchMetricDimension
+	dimsPieces := strings.Split(dimensions, ";")
+	dims := make([]nobl9v1alpha.CloudWatchMetricDimension, 0, len(dimsPieces))
+	for _, sequence := range dimsPieces {
+		// for the cloudwatch dimensions, we expect them in a single set of kv pairs, with name and value as the two keys
+		// example: 'name:foo,value:"foo";name:bar,value:"bar"'
+		cwDim := nobl9v1alpha.CloudWatchMetricDimension{}
+		for _, dimMap := range strings.Split(sequence, ",") {
+			kv := strings.Split(dimMap, ":")
+			if len(kv) != 2 {
+				return []nobl9v1alpha.CloudWatchMetricDimension{}, fmt.Errorf("invalid dimension: %s", dimMap)
+			}
+
+			key := strings.TrimSpace(kv[0])
+			val := strings.TrimSpace(kv[1])
+
+			if strings.ToLower(key) == "name" {
+				cwDim.Name = &val
+			}
+
+			if strings.ToLower(key) == "value" {
+				cwDim.Value = &val
+			}
+		}
+		dims = append(dims, cwDim)
+	}
+
+	return dims, nil
 }
 
 func getN9SLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) v1.SLISpec {

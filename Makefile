@@ -26,6 +26,14 @@ install: run/tests build
 install/checks/spell-and-markdown:
 	yarn
 
+.PHONY: install/bats
+install/bats:
+	@yarn global add bats
+
+.PHONY: install/bats/dependencies
+install/bats/dependencies:
+	@./test/cli/install-deps.sh
+
 .PHONY: run/checks/spell-and-markdown
 run/checks/spell-and-markdown:
 	yarn check-trailing-whitespaces
@@ -40,3 +48,7 @@ run/checks/golangci-lint:
 .PHONY: run/tests
 run/tests:
 	go test -race -cover ./...
+
+.PHONY: run/bats/tests
+run/bats/tests:
+	find test/cli -type f -name "*.bats" ! -path "test/cli/test_helper/*" | xargs bats
