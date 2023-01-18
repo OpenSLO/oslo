@@ -1,5 +1,5 @@
 {
-    "version": "0.1",
+    "version": "0.2",
     "language": "en_US",
     "import": [
         "@cspell/dict-lorem-ipsum/cspell-ext.json"
@@ -14,14 +14,13 @@
         "softwareTerms",
         "lorem-ipsum"
     ],
+    "useGitignore": true,
     "ignorePaths": [
         ".vscode/",
         "**/*.lock",
         "**/*.mod",
         "**/go.sum",
-        "**/node_modules/**",
-        "package.json",
-        "oslo"
+        "package.json"
     ],
     "allowCompoundWords": true,
     "words": [
