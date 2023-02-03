@@ -86,11 +86,9 @@ func getObjectByKind(kind string, objects []manifest.OpenSLOKind) []manifest.Ope
 //  Nobl9 Conversion
 //
 
-// Nobl9 annotations
 const (
 	n9KindAnnotation = "nobl9-kind:"
-)
-const (
+
 	kindAgent  string = "Agent"
 	kindDirect string = "Direct"
 )
@@ -227,13 +225,13 @@ func getN9SLObjects(
 	return nil
 }
 
-func getN9MetricSourceName(msh v1.MetricSourceHolder) (string, error) {
+func getN9MetricSourceName(msh v1.MetricSourceHolder) (string, bool) {
 	name := msh.MetricSource.MetricSourceRef
 	if name != "" {
-		return name, nil
+		return name, true
 	}
 
-	return "", fmt.Errorf("MetricSourceRef was empty")
+	return "", false
 }
 
 // returns nobl9 indicator base on discovery and assumptions.
@@ -258,7 +256,7 @@ func getN9Indicator(i v1.SLISpec, annotations []string, project string) nobl9v1a
 		var name string
 		// check to see if we have a ThresholdMetric, and use that to set the MetricSource
 		if !reflect.ValueOf(i.ThresholdMetric).IsZero() {
-			if n, err := getN9MetricSourceName(*i.ThresholdMetric); err == nil {
+			if n, ok := getN9MetricSourceName(*i.ThresholdMetric); ok {
 				name = n
 			} else {
 				_ = printWarning(
@@ -273,17 +271,17 @@ func getN9Indicator(i v1.SLISpec, annotations []string, project string) nobl9v1a
 		if !reflect.ValueOf(i.RatioMetric).IsZero() {
 			// try all the possible MetricSourceHolders that a ratio metric might have
 			if !reflect.ValueOf(i.RatioMetric.Good).IsZero() {
-				if n, err := getN9MetricSourceName(*i.RatioMetric.Good); err == nil {
+				if n, ok := getN9MetricSourceName(*i.RatioMetric.Good); ok {
 					name = n
 				}
 			}
 			if !reflect.ValueOf(i.RatioMetric.Bad).IsZero() {
-				if n, err := getN9MetricSourceName(*i.RatioMetric.Bad); err == nil {
+				if n, ok := getN9MetricSourceName(*i.RatioMetric.Bad); ok {
 					name = n
 				}
 			}
 			if !reflect.ValueOf(i.RatioMetric.Total).IsZero() {
-				if n, err := getN9MetricSourceName(i.RatioMetric.Total); err == nil {
+				if n, ok := getN9MetricSourceName(i.RatioMetric.Total); ok {
 					name = n
 				}
 			}
