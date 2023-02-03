@@ -101,7 +101,7 @@ spec:
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := Parse(tt.args.fileContent, tt.args.filename)
+			got, _, err := Parse(tt.args.fileContent, tt.args.filename)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return

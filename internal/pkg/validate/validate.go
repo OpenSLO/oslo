@@ -58,7 +58,7 @@ func Files(files []string) error {
 			break
 		}
 
-		content, err := yamlutils.Parse(c, file)
+		content, _, err := yamlutils.Parse(c, file)
 		if err != nil {
 			allErrors = append(allErrors, err.Error())
 			break

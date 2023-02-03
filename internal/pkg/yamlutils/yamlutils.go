@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v3"
@@ -48,23 +49,22 @@ func ReadConf(filename string) ([]byte, error) {
 // Parse takes the provided byte array, parses it, and returns an array of parsed struts.
 // Ignoring the complexity linting errors for now, until we can figure
 // out how to handle the complexity better.
-func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) { //nolint: gocognit, cyclop
+func Parse(fileContent []byte, filename string) (parsedStructs []manifest.OpenSLOKind, annotations []string, err error) { //nolint: gocognit, cyclop
 	var m manifest.ObjectGeneric
-
 	// unmarshal here to get the APIVersion so we can process the file correctly
-	if err := yaml.Unmarshal(fileContent, &m); err != nil {
-		return nil, fmt.Errorf("in file %q: %w", filename, err)
+	if err = yaml.Unmarshal(fileContent, &m); err != nil {
+		return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
 	}
+	annotations, err = parseAnnotations(fileContent)
 
 	var allErrors error
-	var parsedStructs []manifest.OpenSLOKind
 	switch m.APIVersion {
 	// This is where we add new versions of the OpenSLO spec.
 	case v1alpha.APIVersion:
 		// unmarshal again to get the v1alpha struct
 		var o v1alpha.ObjectGeneric
 		if err := yaml.Unmarshal(fileContent, &o); err != nil {
-			return nil, fmt.Errorf("in file %q: %w", filename, err)
+			return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
 		}
 
 		// loop through and get all of the documents in the file
@@ -76,11 +76,11 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 				break
 			}
 			if err != nil {
-				return nil, fmt.Errorf("in file %q: %w", filename, err)
+				return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
 			}
 			c, err := yaml.Marshal(&i)
 			if err != nil {
-				return nil, fmt.Errorf("in file %q: %w", filename, err)
+				return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
 			}
 
 			content, e := v1alpha.Parse(c, o, filename)
@@ -93,9 +93,8 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 		// unmarshal again to get the v1 struct
 		var o v1.ObjectGeneric
 		if err := yaml.Unmarshal(fileContent, &o); err != nil {
-			return nil, fmt.Errorf("in file %q: %w", filename, err)
+			return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
 		}
-
 		// loop through and get all of the documents in the file
 		decoder := yaml.NewDecoder(strings.NewReader(string(fileContent)))
 		for {
@@ -105,11 +104,11 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 				break
 			}
 			if err != nil {
-				return nil, fmt.Errorf("in file %q: %w", filename, err)
+				return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
 			}
 			c, err := yaml.Marshal(&i)
 			if err != nil {
-				return nil, fmt.Errorf("in file %q: %w", filename, err)
+				return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
 			}
 
 			kind := i.(map[string]interface{})["kind"].(string)
@@ -124,5 +123,46 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 		allErrors = multierror.Append(allErrors, fmt.Errorf("unsupported API Version in file %s", filename))
 	}
 
-	return parsedStructs, allErrors
+	return parsedStructs, annotations, allErrors
+}
+
+const annotationPrefix = "#annotation:"
+
+func parseAnnotations(fileContent []byte) (annotations []string, err error) {
+	var node yaml.Node
+	if err = yaml.Unmarshal(fileContent, &node); err != nil {
+		return nil, err
+	}
+	var wg sync.WaitGroup
+	annotationsChan := make(chan string)
+	wg.Add(1)
+	go findComments(&node, &wg, annotationsChan)
+	go func() {
+		wg.Wait()
+		close(annotationsChan)
+	}()
+	for comment := range annotationsChan {
+		comment = strings.Replace(comment, " ", "", -1)
+		if strings.HasPrefix(comment, annotationPrefix) {
+			annotations = append(annotations, strings.TrimPrefix(comment, annotationPrefix))
+		}
+	}
+	return annotations, nil
+}
+
+func findComments(node *yaml.Node, wg *sync.WaitGroup, annotationsChan chan<- string) {
+	defer wg.Done()
+	if node.HeadComment != "" {
+		annotationsChan <- node.HeadComment
+	} else if node.LineComment != "" {
+		annotationsChan <- node.LineComment
+	} else if node.FootComment != "" {
+		annotationsChan <- node.FootComment
+	}
+	if len(node.Content) > 0 {
+		for _, n := range node.Content {
+			wg.Add(1)
+			go findComments(n, wg, annotationsChan)
+		}
+	}
 }

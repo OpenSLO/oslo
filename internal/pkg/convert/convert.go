@@ -50,24 +50,24 @@ func RemoveDuplicates(s []string) []string {
 	return result
 }
 
-func getParsedObjects(filenames []string) ([]manifest.OpenSLOKind, error) {
-	var parsed []manifest.OpenSLOKind
+func getParsedObjects(filenames []string) (parsed []manifest.OpenSLOKind, annotations []string, err error) {
 	for _, filename := range filenames {
 		// Get the file contents.
 		content, err := yamlutils.ReadConf(filename)
 		if err != nil {
-			return nil, fmt.Errorf("issue reading content: %w", err)
+			return nil, annotations, fmt.Errorf("issue reading content: %w", err)
 		}
 
 		// Parse the byte arrays to OpenSLOKind objects.
-		p, err := yamlutils.Parse(content, filename)
+		var p []manifest.OpenSLOKind
+		p, annotations, err = yamlutils.Parse(content, filename)
 		if err != nil {
-			return nil, fmt.Errorf("issue parsing content: %w", err)
+			return nil, annotations, fmt.Errorf("issue parsing content: %w", err)
 		}
 
 		parsed = append(parsed, p...)
 	}
-	return parsed, nil
+	return parsed, annotations, nil
 }
 
 // function that that returns an object by Kind from a list of OpenSLOKinds.
@@ -85,6 +85,15 @@ func getObjectByKind(kind string, objects []manifest.OpenSLOKind) []manifest.Ope
 //
 //  Nobl9 Conversion
 //
+
+// Nobl9 annotations
+const (
+	n9KindAnnotation = "nobl9-kind:"
+)
+const (
+	kindAgent  string = "Agent"
+	kindDirect string = "Direct"
+)
 
 /*
 Nobl9 converts the provided file to Nobl9 yaml.
@@ -111,29 +120,29 @@ func Nobl9(out io.Writer, filenames []string, project string) error {
 	var serviceNames []string
 	var alertPolicyNames []string
 
-	parsed, err := getParsedObjects(filenames)
+	parsed, annotations, err := getParsedObjects(filenames)
 	if err != nil {
 		return fmt.Errorf("issue parsing content: %w", err)
 	}
 
 	// Get the service objects.
-	if err := getN9ServiceObjects(parsed, &rval, &serviceNames, project); err != nil {
+	if err = getN9ServiceObjects(parsed, &rval, &serviceNames, project); err != nil {
 		return fmt.Errorf("issue getting service objects: %w", err)
 	}
 
 	// Get the alertPolicy objects.
-	if err := getN9AlertPolicyObjects(parsed, &rval, &alertPolicyNames, project); err != nil {
+	if err = getN9AlertPolicyObjects(parsed, &rval, &alertPolicyNames, project); err != nil {
 		return fmt.Errorf("issue getting alertPolicy objects: %w", err)
 	}
 
 	// Get the SLO objects.
-	if err := getN9SLObjects(parsed, &rval, serviceNames, alertPolicyNames, project); err != nil {
+	if err = getN9SLObjects(parsed, &rval, annotations, serviceNames, alertPolicyNames, project); err != nil {
 		return fmt.Errorf("issue getting SLO objects: %w", err)
 	}
 
 	// Print out all of our objects.
 	for _, s := range rval {
-		err := printYaml(out, s)
+		err = printYaml(out, s)
 		if err != nil {
 			return fmt.Errorf("issue printing content: %w", err)
 		}
@@ -146,20 +155,19 @@ func Nobl9(out io.Writer, filenames []string, project string) error {
 func getN9SLObjects(
 	parsed []manifest.OpenSLOKind,
 	rval *[]interface{},
+	annotations,
 	serviceNames,
 	alertPolicies []string,
 	project string,
 ) error {
-	// Get the SLO object.
-	ap := getObjectByKind("SLO", parsed)
+	objects := getObjectByKind("SLO", parsed)
 
-	// Return if ap is empty.
-	if len(ap) == 0 {
+	if len(objects) == 0 {
 		return nil
 	}
 
-	// for each SLO object, create a Nobl9 SLO object.
-	for _, slo := range ap {
+	// For each SLO object, create a Nobl9 SLO object.
+	for _, slo := range objects {
 		s := slo.(v1.SLO)
 
 		// Check that the service name is in the list of service names, and warn the user if it isn't.
@@ -200,7 +208,7 @@ func getN9SLObjects(
 			return fmt.Errorf("issue getting thresholds: %w", err)
 		}
 
-		n9Indicator := getN9Indicator(indicator, project)
+		n9Indicator := getN9Indicator(indicator, annotations, project)
 
 		*rval = append(*rval, nobl9v1alpha.SLO{
 			ObjectHeader: getN9ObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, project, s.Metadata.Labels),
@@ -231,27 +239,24 @@ func getN9MetricSourceName(msh v1.MetricSourceHolder) (string, error) {
 // returns nobl9 indicator base on discovery and assumptions.
 //
 //nolint:gocognit,cyclop
-func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
+func getN9Indicator(i v1.SLISpec, annotations []string, project string) nobl9v1alpha.Indicator {
 	// Since we don't have a way of specifying MetricSource.Kind in OpenSLO, use Nobl9's default
 	// of Agent, and warn the user
 	_ = printWarning(
-		"We don't have a way of specifying the MetricSource Kind (Agent or Direct) in OpenSLO " +
-			"so we will use Nobl9's default of Agent",
+		"We set as default MetricSource Kind Agent if you want to change it to Direct use can use annotation",
 	)
 
 	// check to make sure we have a project, and use default if not
-	var metricSourceProject string
+	metricSourceProject := "default"
 	if project != "" {
 		metricSourceProject = project
-	} else {
-		metricSourceProject = "default"
 	}
 
 	// check to make sure that we have an indicator
 	//nolint:nestif
 	if !reflect.ValueOf(i).IsZero() {
 		var name string
-		// check to see if we have a ThresholdMetric, and use that to set the the MetricSource
+		// check to see if we have a ThresholdMetric, and use that to set the MetricSource
 		if !reflect.ValueOf(i.ThresholdMetric).IsZero() {
 			if n, err := getN9MetricSourceName(*i.ThresholdMetric); err == nil {
 				name = n
@@ -288,7 +293,7 @@ func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
 				MetricSource: nobl9v1alpha.MetricSourceSpec{
 					Project: metricSourceProject,
 					Name:    name,
-					Kind:    "Agent",
+					Kind:    getKindFromAnnotations(annotations),
 				},
 			}
 		}
@@ -303,9 +308,26 @@ func getN9Indicator(i v1.SLISpec, project string) nobl9v1alpha.Indicator {
 		MetricSource: nobl9v1alpha.MetricSourceSpec{
 			Project: metricSourceProject,
 			Name:    "Changeme",
-			Kind:    "Agent",
+			Kind:    getKindFromAnnotations(annotations),
 		},
 	}
+}
+
+func getKindFromAnnotations(annotations []string) string {
+	for _, annotation := range annotations {
+		if strings.HasPrefix(annotation, n9KindAnnotation) {
+			kind := strings.TrimPrefix(annotation, n9KindAnnotation)
+			switch strings.ToLower(kind) {
+			case "direct":
+				return kindDirect
+			case "agent":
+				return kindAgent
+			default:
+				return kindAgent
+			}
+		}
+	}
+	return kindAgent
 }
 
 // Return a list of nobl9v1alpha.Thresholds from a list of v1.Objectives.
