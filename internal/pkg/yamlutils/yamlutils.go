@@ -135,6 +135,7 @@ func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 
 const annotationPrefix = "#annotation:"
 
+// parseAnnotations reads all comments with prefix #annotation: from spec and return them for further use.
 func parseAnnotations(fileContent []byte) (annotations []string, err error) {
 	var node yaml.Node
 	if err := yaml.Unmarshal(fileContent, &node); err != nil {
@@ -157,6 +158,8 @@ func parseAnnotations(fileContent []byte) (annotations []string, err error) {
 	return annotations, nil
 }
 
+// findComments travers yaml node by node and check if nodes have any comment, if so send that to check if it is
+// annotation.
 func findComments(node *yaml.Node, wg *sync.WaitGroup, annotationsChan chan<- string) {
 	defer wg.Done()
 	switch {
