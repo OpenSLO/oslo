@@ -158,7 +158,7 @@ func parseAnnotations(fileContent []byte) (annotations []string, err error) {
 	return annotations, nil
 }
 
-// findComments travers yaml node by node and check if nodes have any comment, if so send that to check if it is
+// findComments traverse yaml node by node and check if nodes have any comment, if so send that to check if it is
 // annotation.
 func findComments(node *yaml.Node, wg *sync.WaitGroup, annotationsChan chan<- string) {
 	defer wg.Done()
