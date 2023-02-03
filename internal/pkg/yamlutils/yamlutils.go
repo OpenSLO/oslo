@@ -49,13 +49,20 @@ func ReadConf(filename string) ([]byte, error) {
 // Parse takes the provided byte array, parses it, and returns an array of parsed struts.
 // Ignoring the complexity linting errors for now, until we can figure
 // out how to handle the complexity better.
-func Parse(fileContent []byte, filename string) (parsedStructs []manifest.OpenSLOKind, annotations []string, err error) { //nolint: gocognit, cyclop
+func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
+	parsedStructs []manifest.OpenSLOKind,
+	annotations []string,
+	err error,
+) {
 	var m manifest.ObjectGeneric
 	// unmarshal here to get the APIVersion so we can process the file correctly
 	if err = yaml.Unmarshal(fileContent, &m); err != nil {
 		return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
 	}
 	annotations, err = parseAnnotations(fileContent)
+	if err != nil {
+		return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
+	}
 
 	var allErrors error
 	switch m.APIVersion {
@@ -130,7 +137,7 @@ const annotationPrefix = "#annotation:"
 
 func parseAnnotations(fileContent []byte) (annotations []string, err error) {
 	var node yaml.Node
-	if err = yaml.Unmarshal(fileContent, &node); err != nil {
+	if err := yaml.Unmarshal(fileContent, &node); err != nil {
 		return nil, err
 	}
 	var wg sync.WaitGroup
@@ -142,7 +149,7 @@ func parseAnnotations(fileContent []byte) (annotations []string, err error) {
 		close(annotationsChan)
 	}()
 	for comment := range annotationsChan {
-		comment = strings.Replace(comment, " ", "", -1)
+		comment = strings.ReplaceAll(comment, " ", "")
 		if strings.HasPrefix(comment, annotationPrefix) {
 			annotations = append(annotations, strings.TrimPrefix(comment, annotationPrefix))
 		}
@@ -152,12 +159,13 @@ func parseAnnotations(fileContent []byte) (annotations []string, err error) {
 
 func findComments(node *yaml.Node, wg *sync.WaitGroup, annotationsChan chan<- string) {
 	defer wg.Done()
-	if node.HeadComment != "" {
+	switch {
+	case node.HeadComment != "":
 		annotationsChan <- node.HeadComment
-	} else if node.LineComment != "" {
-		annotationsChan <- node.LineComment
-	} else if node.FootComment != "" {
-		annotationsChan <- node.FootComment
+	case node.LineComment != "":
+		annotationsChan <- node.HeadComment
+	case node.FootComment != "":
+		annotationsChan <- node.HeadComment
 	}
 	if len(node.Content) > 0 {
 		for _, n := range node.Content {
