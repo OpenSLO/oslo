@@ -919,6 +919,42 @@ spec:
     alertPolicies: []
 `,
 		},
+		{
+			name: "Test adding annotation to chose indicator kind",
+			args: args{
+				filenames: []string{
+					"../../../test/v1/slo/slo-with-annotations.yaml",
+				},
+				project: "default",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: SLO
+metadata:
+    name: monthy-openslo-slo
+    displayName: Python
+    project: default
+spec:
+    description: ""
+    indicator:
+        metricSource:
+            project: default
+            name: Changeme
+            kind: Direct
+    budgetingMethod: Occurrences
+    objectives:
+        - displayName: Life of Brian
+          value: 10
+          target: 0.98
+          op: gte
+    service: foo-slos
+    timeWindows:
+        - unit: Day
+          count: 28
+          isRolling: true
+    alertPolicies: []
+`,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
