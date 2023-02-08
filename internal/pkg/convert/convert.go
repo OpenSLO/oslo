@@ -50,24 +50,24 @@ func RemoveDuplicates(s []string) []string {
 	return result
 }
 
-func getParsedObjects(filenames []string) (parsed []manifest.OpenSLOKind, annotations []string, err error) {
+func getParsedObjects(filenames []string) (parsed []manifest.OpenSLOKind, err error) {
 	for _, filename := range filenames {
 		// Get the file contents.
 		content, err := yamlutils.ReadConf(filename)
 		if err != nil {
-			return nil, annotations, fmt.Errorf("issue reading content: %w", err)
+			return nil, fmt.Errorf("issue reading content: %w", err)
 		}
 
 		// Parse the byte arrays to OpenSLOKind objects.
 		var p []manifest.OpenSLOKind
-		p, annotations, err = yamlutils.Parse(content, filename)
+		p, err = yamlutils.Parse(content, filename)
 		if err != nil {
-			return nil, annotations, fmt.Errorf("issue parsing content: %w", err)
+			return nil, fmt.Errorf("issue parsing content: %w", err)
 		}
 
 		parsed = append(parsed, p...)
 	}
-	return parsed, annotations, nil
+	return parsed, nil
 }
 
 // function that that returns an object by Kind from a list of OpenSLOKinds.
@@ -87,7 +87,7 @@ func getObjectByKind(kind string, objects []manifest.OpenSLOKind) []manifest.Ope
 //
 
 const (
-	n9KindAnnotation = "nobl9-kind:"
+	n9KindAnnotation = "nobl9.com/indicator-kind"
 
 	kindAgent  string = "Agent"
 	kindDirect string = "Direct"
@@ -118,7 +118,7 @@ func Nobl9(out io.Writer, filenames []string, project string) error {
 	var serviceNames []string
 	var alertPolicyNames []string
 
-	parsed, annotations, err := getParsedObjects(filenames)
+	parsed, err := getParsedObjects(filenames)
 	if err != nil {
 		return fmt.Errorf("issue parsing content: %w", err)
 	}
@@ -134,7 +134,7 @@ func Nobl9(out io.Writer, filenames []string, project string) error {
 	}
 
 	// Get the SLO objects.
-	if err = getN9SLObjects(parsed, &rval, annotations, serviceNames, alertPolicyNames, project); err != nil {
+	if err = getN9SLObjects(parsed, &rval, serviceNames, alertPolicyNames, project); err != nil {
 		return fmt.Errorf("issue getting SLO objects: %w", err)
 	}
 
@@ -153,7 +153,6 @@ func Nobl9(out io.Writer, filenames []string, project string) error {
 func getN9SLObjects(
 	parsed []manifest.OpenSLOKind,
 	rval *[]interface{},
-	annotations,
 	serviceNames,
 	alertPolicies []string,
 	project string,
@@ -206,7 +205,8 @@ func getN9SLObjects(
 			return fmt.Errorf("issue getting thresholds: %w", err)
 		}
 
-		n9Indicator := getN9Indicator(indicator, annotations, project)
+		indicatorMetadata := getN9IndicatorMetadata(s.Spec)
+		n9Indicator := getN9Indicator(indicator, indicatorMetadata, project)
 
 		*rval = append(*rval, nobl9v1alpha.SLO{
 			ObjectHeader: getN9ObjectHeader("SLO", s.Metadata.Name, s.Metadata.DisplayName, project, s.Metadata.Labels),
@@ -234,10 +234,17 @@ func getN9MetricSourceName(msh v1.MetricSourceHolder) (string, bool) {
 	return "", false
 }
 
+func getN9IndicatorMetadata(sloSpec v1.SLOSpec) (metadata v1.Metadata) {
+	if sloSpec.Indicator != nil {
+		return sloSpec.Indicator.Metadata
+	}
+	return metadata
+}
+
 // returns nobl9 indicator base on discovery and assumptions.
 //
 //nolint:gocognit,cyclop
-func getN9Indicator(i v1.SLISpec, annotations []string, project string) nobl9v1alpha.Indicator {
+func getN9Indicator(sliSpec v1.SLISpec, metadata v1.Metadata, project string) nobl9v1alpha.Indicator {
 	// Since we don't have a way of specifying MetricSource.Kind in OpenSLO, use Nobl9's default
 	// of Agent, and warn the user
 	_ = printWarning(
@@ -252,11 +259,11 @@ func getN9Indicator(i v1.SLISpec, annotations []string, project string) nobl9v1a
 
 	// check to make sure that we have an indicator
 	//nolint:nestif
-	if !reflect.ValueOf(i).IsZero() {
+	if !reflect.ValueOf(sliSpec).IsZero() {
 		var name string
 		// check to see if we have a ThresholdMetric, and use that to set the MetricSource
-		if !reflect.ValueOf(i.ThresholdMetric).IsZero() {
-			if n, ok := getN9MetricSourceName(*i.ThresholdMetric); ok {
+		if !reflect.ValueOf(sliSpec.ThresholdMetric).IsZero() {
+			if n, ok := getN9MetricSourceName(*sliSpec.ThresholdMetric); ok {
 				name = n
 			} else {
 				_ = printWarning(
@@ -268,20 +275,20 @@ func getN9Indicator(i v1.SLISpec, annotations []string, project string) nobl9v1a
 		}
 
 		// check to see if we have a RawMetric and use that to set the MetricSource
-		if !reflect.ValueOf(i.RatioMetric).IsZero() {
+		if !reflect.ValueOf(sliSpec.RatioMetric).IsZero() {
 			// try all the possible MetricSourceHolders that a ratio metric might have
-			if !reflect.ValueOf(i.RatioMetric.Good).IsZero() {
-				if n, ok := getN9MetricSourceName(*i.RatioMetric.Good); ok {
+			if !reflect.ValueOf(sliSpec.RatioMetric.Good).IsZero() {
+				if n, ok := getN9MetricSourceName(*sliSpec.RatioMetric.Good); ok {
 					name = n
 				}
 			}
-			if !reflect.ValueOf(i.RatioMetric.Bad).IsZero() {
-				if n, ok := getN9MetricSourceName(*i.RatioMetric.Bad); ok {
+			if !reflect.ValueOf(sliSpec.RatioMetric.Bad).IsZero() {
+				if n, ok := getN9MetricSourceName(*sliSpec.RatioMetric.Bad); ok {
 					name = n
 				}
 			}
-			if !reflect.ValueOf(i.RatioMetric.Total).IsZero() {
-				if n, ok := getN9MetricSourceName(i.RatioMetric.Total); ok {
+			if !reflect.ValueOf(sliSpec.RatioMetric.Total).IsZero() {
+				if n, ok := getN9MetricSourceName(sliSpec.RatioMetric.Total); ok {
 					name = n
 				}
 			}
@@ -291,7 +298,7 @@ func getN9Indicator(i v1.SLISpec, annotations []string, project string) nobl9v1a
 				MetricSource: nobl9v1alpha.MetricSourceSpec{
 					Project: metricSourceProject,
 					Name:    name,
-					Kind:    getKindFromAnnotations(annotations),
+					Kind:    getKindFromAnnotations(metadata),
 				},
 			}
 		}
@@ -306,23 +313,18 @@ func getN9Indicator(i v1.SLISpec, annotations []string, project string) nobl9v1a
 		MetricSource: nobl9v1alpha.MetricSourceSpec{
 			Project: metricSourceProject,
 			Name:    "Changeme",
-			Kind:    getKindFromAnnotations(annotations),
+			Kind:    getKindFromAnnotations(metadata),
 		},
 	}
 }
 
-func getKindFromAnnotations(annotations []string) string {
-	for _, annotation := range annotations {
-		if strings.HasPrefix(annotation, n9KindAnnotation) {
-			kind := strings.TrimPrefix(annotation, n9KindAnnotation)
-			switch strings.ToLower(kind) {
-			case "direct":
-				return kindDirect
-			case "agent":
-				return kindAgent
-			default:
-				return kindAgent
-			}
+func getKindFromAnnotations(metadata v1.Metadata) string {
+	if value, ok := metadata.Annotations[n9KindAnnotation]; ok {
+		switch strings.ToLower(value) {
+		case "direct":
+			return kindDirect
+		case "agent":
+			return kindAgent
 		}
 	}
 	return kindAgent
@@ -761,8 +763,7 @@ func getN9CloudWatchDims(dimensions string) ([]nobl9v1alpha.CloudWatchMetricDime
 	return dims, nil
 }
 
-func getN9SLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) v1.SLISpec {
-	var s v1.SLISpec
+func getN9SLISpec(o v1.SLOSpec, parsed []manifest.OpenSLOKind) (s v1.SLISpec) {
 	// if o.IndicatorRef is not nil, then return the indicator from the parsed list
 	if o.IndicatorRef != nil {
 		indicators := getObjectByKind("SLI", parsed)

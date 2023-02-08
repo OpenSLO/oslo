@@ -4,9 +4,12 @@ metadata:
   name: monthy-openslo-slo
   displayName: Python
 spec:
-  #annotation:nobl9-kind:Direct
   service: foo-slos
-  indicatorRef: bar-sli
+  indicator:
+    metadata:
+      name: no-name
+      annotations:
+        nobl9.com/indicator-kind: Direct
   timeWindow:
     - duration: 28d
       isRolling: true

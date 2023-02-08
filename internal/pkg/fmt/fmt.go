@@ -35,7 +35,7 @@ func File(out io.Writer, source string) error {
 	}
 
 	// Parse the byte arrays to OpenSLOKind objects.
-	parsed, _, err := yamlutils.Parse(content, source)
+	parsed, err := yamlutils.Parse(content, source)
 	if err != nil {
 		return fmt.Errorf("issue parsing content: %w", err)
 	}

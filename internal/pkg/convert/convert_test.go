@@ -738,7 +738,7 @@ func Test_getParsedObjects(t *testing.T) {
 		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, _, err := getParsedObjects(tt.args)
+			got, err := getParsedObjects(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getParsedObjects() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1122,7 +1122,7 @@ func Test_getN9Indicator(t *testing.T) {
 		tt := tt // https://gist.github.com/kunwardeep/80c2e9f3d3256c894898bae82d9f75d0
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := getN9Indicator(tt.args.indicator, []string{}, tt.args.project)
+			got := getN9Indicator(tt.args.indicator, v1.Metadata{}, tt.args.project)
 
 			assert.Equal(t, tt.want, got)
 		})

@@ -24,7 +24,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v3"
@@ -51,17 +50,12 @@ func ReadConf(filename string) ([]byte, error) {
 // out how to handle the complexity better.
 func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 	parsedStructs []manifest.OpenSLOKind,
-	annotations []string,
 	err error,
 ) {
 	var m manifest.ObjectGeneric
 	// unmarshal here to get the APIVersion so we can process the file correctly
 	if err = yaml.Unmarshal(fileContent, &m); err != nil {
-		return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
-	}
-	annotations, err = parseAnnotations(fileContent)
-	if err != nil {
-		return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
+		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
 	var allErrors error
@@ -71,7 +65,7 @@ func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 		// unmarshal again to get the v1alpha struct
 		var o v1alpha.ObjectGeneric
 		if err := yaml.Unmarshal(fileContent, &o); err != nil {
-			return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
+			return nil, fmt.Errorf("in file %q: %w", filename, err)
 		}
 
 		// loop through and get all of the documents in the file
@@ -83,11 +77,11 @@ func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 				break
 			}
 			if err != nil {
-				return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
+				return nil, fmt.Errorf("in file %q: %w", filename, err)
 			}
 			c, err := yaml.Marshal(&i)
 			if err != nil {
-				return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
+				return nil, fmt.Errorf("in file %q: %w", filename, err)
 			}
 
 			content, e := v1alpha.Parse(c, o, filename)
@@ -100,7 +94,7 @@ func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 		// unmarshal again to get the v1 struct
 		var o v1.ObjectGeneric
 		if err := yaml.Unmarshal(fileContent, &o); err != nil {
-			return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
+			return nil, fmt.Errorf("in file %q: %w", filename, err)
 		}
 		// loop through and get all of the documents in the file
 		decoder := yaml.NewDecoder(strings.NewReader(string(fileContent)))
@@ -111,11 +105,11 @@ func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 				break
 			}
 			if err != nil {
-				return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
+				return nil, fmt.Errorf("in file %q: %w", filename, err)
 			}
 			c, err := yaml.Marshal(&i)
 			if err != nil {
-				return nil, annotations, fmt.Errorf("in file %q: %w", filename, err)
+				return nil, fmt.Errorf("in file %q: %w", filename, err)
 			}
 
 			kind := i.(map[string]interface{})["kind"].(string)
@@ -130,50 +124,5 @@ func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 		allErrors = multierror.Append(allErrors, fmt.Errorf("unsupported API Version in file %s", filename))
 	}
 
-	return parsedStructs, annotations, allErrors
-}
-
-const annotationPrefix = "#annotation:"
-
-// parseAnnotations reads all comments with prefix #annotation: from spec and return them for further use.
-func parseAnnotations(fileContent []byte) (annotations []string, err error) {
-	var node yaml.Node
-	if err := yaml.Unmarshal(fileContent, &node); err != nil {
-		return nil, err
-	}
-	var wg sync.WaitGroup
-	annotationsChan := make(chan string)
-	wg.Add(1)
-	go findComments(&node, &wg, annotationsChan)
-	go func() {
-		wg.Wait()
-		close(annotationsChan)
-	}()
-	for comment := range annotationsChan {
-		comment = strings.ReplaceAll(comment, " ", "")
-		if strings.HasPrefix(comment, annotationPrefix) {
-			annotations = append(annotations, strings.TrimPrefix(comment, annotationPrefix))
-		}
-	}
-	return annotations, nil
-}
-
-// findComments traverse yaml node by node and check if nodes have any comment, if so send that to check if it is
-// annotation.
-func findComments(node *yaml.Node, wg *sync.WaitGroup, annotationsChan chan<- string) {
-	defer wg.Done()
-	switch {
-	case node.HeadComment != "":
-		annotationsChan <- node.HeadComment
-	case node.LineComment != "":
-		annotationsChan <- node.HeadComment
-	case node.FootComment != "":
-		annotationsChan <- node.HeadComment
-	}
-	if len(node.Content) > 0 {
-		for _, n := range node.Content {
-			wg.Add(1)
-			go findComments(n, wg, annotationsChan)
-		}
-	}
+	return parsedStructs, allErrors
 }
