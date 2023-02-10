@@ -70,7 +70,7 @@ func getParsedObjects(filenames []string) (parsed []manifest.OpenSLOKind, err er
 	return parsed, nil
 }
 
-// function that that returns an object by Kind from a list of OpenSLOKinds.
+// getObjectsByKind function that that returns an object by Kind from a list of OpenSLOKinds.
 func getObjectByKind(kind string, objects []manifest.OpenSLOKind) []manifest.OpenSLOKind {
 	var found []manifest.OpenSLOKind
 	for _, o := range objects {
