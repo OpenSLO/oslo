@@ -245,12 +245,6 @@ func getN9IndicatorMetadata(sloSpec v1.SLOSpec) (metadata v1.Metadata) {
 //
 //nolint:gocognit,cyclop
 func getN9Indicator(sliSpec v1.SLISpec, metadata v1.Metadata, project string) nobl9v1alpha.Indicator {
-	// Since we don't have a way of specifying MetricSource.Kind in OpenSLO, use Nobl9's default
-	// of Agent, and warn the user
-	_ = printWarning(
-		"We set as default MetricSource Kind: Agent if you want to change it to Direct use can use annotation " +
-			n9KindAnnotation,
-	)
 
 	// check to make sure we have a project, and use default if not
 	metricSourceProject := "default"
@@ -328,6 +322,10 @@ func getKindFromAnnotations(metadata v1.Metadata) string {
 			return kindAgent
 		}
 	}
+	_ = printWarning(
+		"We set as default MetricSource Kind: Agent if you want to change it to Direct use can use annotation " +
+			n9KindAnnotation,
+	)
 	return kindAgent
 }
 
