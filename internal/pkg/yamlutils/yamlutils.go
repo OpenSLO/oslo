@@ -48,16 +48,17 @@ func ReadConf(filename string) ([]byte, error) {
 // Parse takes the provided byte array, parses it, and returns an array of parsed struts.
 // Ignoring the complexity linting errors for now, until we can figure
 // out how to handle the complexity better.
-func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) { //nolint: gocognit, cyclop
+func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
+	parsedStructs []manifest.OpenSLOKind,
+	err error,
+) {
 	var m manifest.ObjectGeneric
-
 	// unmarshal here to get the APIVersion so we can process the file correctly
-	if err := yaml.Unmarshal(fileContent, &m); err != nil {
+	if err = yaml.Unmarshal(fileContent, &m); err != nil {
 		return nil, fmt.Errorf("in file %q: %w", filename, err)
 	}
 
 	var allErrors error
-	var parsedStructs []manifest.OpenSLOKind
 	switch m.APIVersion {
 	// This is where we add new versions of the OpenSLO spec.
 	case v1alpha.APIVersion:
@@ -95,7 +96,6 @@ func Parse(fileContent []byte, filename string) ([]manifest.OpenSLOKind, error) 
 		if err := yaml.Unmarshal(fileContent, &o); err != nil {
 			return nil, fmt.Errorf("in file %q: %w", filename, err)
 		}
-
 		// loop through and get all of the documents in the file
 		decoder := yaml.NewDecoder(strings.NewReader(string(fileContent)))
 		for {

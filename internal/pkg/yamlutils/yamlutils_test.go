@@ -16,6 +16,7 @@ limitations under the License.
 package yamlutils
 
 import (
+	_ "embed"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,6 +24,9 @@ import (
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 )
+
+//go:embed test-input
+var testInput string
 
 func TestParse(t *testing.T) {
 	t.Parallel()
@@ -39,24 +43,8 @@ func TestParse(t *testing.T) {
 		{
 			name: "TestParse",
 			args: args{
-				fileContent: []byte(`---
-apiVersion: openslo/v1
-kind: Service
-metadata:
-  name: my-rad-service
-  displayName: My Rad Service
-spec:
-  description: This is a great description of an even better service.
----
-apiVersion: openslo/v1
-kind: Service
-metadata:
-  name: my-rad-service-deux
-  displayName: My Rad Service le Deux
-spec:
-  description: This is a great description of an even better service.
-`),
-				filename: "test.yaml",
+				fileContent: []byte(testInput),
+				filename:    "test.yaml",
 			},
 			want: []manifest.OpenSLOKind{
 				v1.Service{

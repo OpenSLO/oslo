@@ -1,0 +1,22 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: monthy-openslo-slo
+  displayName: Python
+spec:
+  service: foo-slos
+  indicator:
+    metadata:
+      name: no-name
+      annotations:
+        nobl9.com/indicator-kind: Direct
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: Life of Brian
+      op: gte
+      target: 0.98
+      value: 10
+  alertPolicies: []
