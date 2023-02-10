@@ -245,7 +245,6 @@ func getN9IndicatorMetadata(sloSpec v1.SLOSpec) (metadata v1.Metadata) {
 //
 //nolint:gocognit,cyclop
 func getN9Indicator(sliSpec v1.SLISpec, metadata v1.Metadata, project string) nobl9v1alpha.Indicator {
-
 	// check to make sure we have a project, and use default if not
 	metricSourceProject := "default"
 	if project != "" {
