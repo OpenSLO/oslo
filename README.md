@@ -17,8 +17,9 @@ the binary into your `GOPATH`
 
 ### Homebrew
 
-1. `brew tap openslo/openslo`
-1. `brew install oslo`
+```sh
+brew install openslo/openslo/oslo
+```
 
 ### From Docker
 
