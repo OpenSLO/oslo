@@ -18,6 +18,7 @@
 # Project specific
 node_modules
 bin/*
+oslo
 
 # OS specific
 ## macOS
