@@ -18,3 +18,9 @@ updates:
       interval: weekly
       day: tuesday
     open-pull-requests-limit: 99
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: tuesday
+    open-pull-requests-limit: 99

@@ -1,21 +1,12 @@
-FROM golang
+FROM golang:1.20 as build
 
-RUN useradd -m oslo
-
-RUN mkdir /build
-RUN mkdir /manifests
-
-RUN chown -Rvf oslo: /build
-
-USER oslo
-
-
-WORKDIR /build
-
+WORKDIR /go/src/oslo
 COPY . .
+RUN go mod download
+RUN CGO_ENABLED=0 go build -o /go/bin/oslo
 
-RUN go build
 
-RUN go install
+FROM gcr.io/distroless/static-debian11
 
-ENTRYPOINT ["oslo"]
+COPY --from=build /go/bin/oslo /
+ENTRYPOINT ["/oslo"]
