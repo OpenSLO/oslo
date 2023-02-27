@@ -29,6 +29,7 @@ func NewValidateCmd() *cobra.Command {
 		Use:   "validate",
 		Short: "Validates your yaml file against the OpenSLO spec.",
 		Long:  `Validates your yaml file against the OpenSLO spec.`,
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if e := validate.Files(args); e != nil {
 				return e
