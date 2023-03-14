@@ -18,12 +18,12 @@ limitations under the License.
 package yamlutils
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v3"
@@ -69,7 +69,7 @@ func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 		}
 
 		// loop through and get all of the documents in the file
-		decoder := yaml.NewDecoder(strings.NewReader(string(fileContent)))
+		decoder := yaml.NewDecoder(bytes.NewReader(fileContent))
 		for {
 			var i interface{}
 			err := decoder.Decode(&i)
@@ -97,7 +97,7 @@ func Parse(fileContent []byte, filename string) ( //nolint: gocognit, cyclop
 			return nil, fmt.Errorf("in file %q: %w", filename, err)
 		}
 		// loop through and get all of the documents in the file
-		decoder := yaml.NewDecoder(strings.NewReader(string(fileContent)))
+		decoder := yaml.NewDecoder(bytes.NewReader(fileContent))
 		for {
 			var i interface{}
 			err := decoder.Decode(&i)
