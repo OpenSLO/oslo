@@ -18,6 +18,7 @@ limitations under the License.
 package convert
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -165,7 +166,10 @@ func getN9SLObjects(
 
 	// For each SLO object, create a Nobl9 SLO object.
 	for _, slo := range objects {
-		s := slo.(v1.SLO)
+		s, ok := slo.(v1.SLO)
+		if !ok {
+			return errors.New("the convert command is only supported for apiVersion 'openslo/v1'")
+		}
 
 		// Check that the service name is in the list of service names, and warn the user if it isn't.
 		if s.Spec.Service != "" && !stringInSlice(s.Spec.Service, serviceNames) {
