@@ -1,0 +1,27 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: labeled-slo
+  displayName: Labeled SLO
+  labels:
+    inline: test
+    single:
+      - green
+    multiple:
+      - one
+      - two
+spec:
+  service: tv-show
+  indicator:
+    metadata:
+      name: no-name
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: Keeping Up Appearances
+      op: gte
+      target: 0.98
+      value: 10
+  alertPolicies: []

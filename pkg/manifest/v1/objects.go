@@ -79,8 +79,23 @@ func Parse(fileContent []byte, m ObjectGeneric, filename, kind string) (manifest
 // Object definitions
 // ----------------------------------------------------------------------------
 
-// Labels is a map of labels.
-type Labels map[string]string
+type Label []string
+
+func (a *Label) UnmarshalYAML(value *yaml.Node) error {
+	var multi []string
+	if err := value.Decode(&multi); err != nil {
+		var single string
+		if err := value.Decode(&single); err != nil {
+			return err
+		}
+		*a = []string{single}
+	} else {
+		*a = multi
+	}
+	return nil
+}
+
+type Labels map[string]Label
 
 // Annotations is a map of annotations.
 type Annotations map[string]string

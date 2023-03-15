@@ -948,14 +948,14 @@ func getN9ObjectHeader(kind, name, displayName, project string, labels v1.Labels
 	}
 }
 
-// function that takes a v1.Labels object and maps it to a nobl9v1alpha.Labels.
+// getN9Labels takes a v1.Labels object and maps it to a nobl9v1alpha.Labels.
 func getN9Labels(labels v1.Labels) map[string][]string {
 	if labels == nil {
 		return nil
 	}
 	rval := make(map[string][]string)
 	for k, v := range labels {
-		rval[k] = []string{v}
+		rval[k] = v
 	}
 	return rval
 }

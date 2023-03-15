@@ -54,7 +54,7 @@ The output is written to standard output.  If you want to write to a file, you c
 
   oslo convert -f file.yaml -o nobl9 > output.yaml
 `,
-		Args: cobra.MinimumNArgs(1),
+		Args: cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// If a directory is provided, read all files in the directory.
 			if directory != "" {

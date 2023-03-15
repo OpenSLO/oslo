@@ -288,6 +288,49 @@ spec:
 `,
 			wantErr: false,
 		},
+		{
+			name: "SLO with labels",
+			args: []string{
+				"-o", "nobl9",
+				"-f", "../../../test/v1/slo/slo-with-labels.yaml",
+			},
+			wantOut: `---
+apiVersion: n9/v1alpha
+kind: SLO
+metadata:
+    name: labeled-slo
+    displayName: Labeled SLO
+    project: default
+    labels:
+        inline:
+            - test
+        multiple:
+            - one
+            - two
+        single:
+            - green
+spec:
+    description: ""
+    indicator:
+        metricSource:
+            project: default
+            name: Changeme
+            kind: Agent
+    budgetingMethod: Occurrences
+    objectives:
+        - displayName: Keeping Up Appearances
+          value: 10
+          target: 0.98
+          op: gte
+    service: tv-show
+    timeWindows:
+        - unit: Day
+          count: 28
+          isRolling: true
+    alertPolicies: []
+`,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Parallel testing
