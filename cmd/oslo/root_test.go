@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+//nolint:lll
 package cmd
 
 import (
@@ -45,7 +46,9 @@ Usage:
   oslo validate [flags]
 
 Flags:
-  -h, --help   help for validate
+  -f, --file stringArray   The file(s) that contain the configurations.
+  -h, --help               help for validate
+  -R, --recursive          Process the directory used in -f, --filename recursively. Useful when you want to manage related manifests organized within the same directory.
 `,
 			wantErr: false,
 		},
@@ -58,7 +61,9 @@ Usage:
   oslo fmt [flags]
 
 Flags:
-  -h, --help   help for fmt
+  -f, --file stringArray   The file(s) that contain the configurations.
+  -h, --help               help for fmt
+  -R, --recursive          Process the directory used in -f, --filename recursively. Useful when you want to manage related manifests organized within the same directory.
 `,
 			wantErr: false,
 		},

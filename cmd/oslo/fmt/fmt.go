@@ -18,25 +18,29 @@ limitations under the License.
 package fmt
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
 
-	fmtCmd "github.com/OpenSLO/oslo/internal/pkg/fmt"
+	"github.com/OpenSLO/oslo/internal/pkg/fmt"
+	"github.com/OpenSLO/oslo/pkg/discoverfiles"
 )
 
 // NewFmtCmd returns a new command for formatting a file.
 func NewFmtCmd() *cobra.Command {
-	return &cobra.Command{
+	var passedFilePaths []string
+	var recursive bool
+
+	fmtCmd := &cobra.Command{
 		Use:   "fmt",
 		Short: "Formats the provided input into the standard format.",
-		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := fmtCmd.File(cmd.OutOrStdout(), args[0]); err != nil {
-				fmt.Fprintln(cmd.ErrOrStderr(), err)
-				os.Exit(1)
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			discoveredFilePaths, err := discoverfiles.DiscoverFilePaths(passedFilePaths, recursive)
+			if err != nil {
+				return err
 			}
+			return fmt.Files(cmd.OutOrStdout(), discoveredFilePaths)
 		},
 	}
+	discoverfiles.RegisterFileRelatedFlags(fmtCmd, &passedFilePaths, &recursive)
+	return fmtCmd
 }
