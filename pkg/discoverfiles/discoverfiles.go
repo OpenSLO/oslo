@@ -27,7 +27,7 @@ func RegisterFileRelatedFlags(cmd *cobra.Command, filePaths *[]string, recursive
 }
 
 // DiscoverFilePaths returns all file paths that come from file paths provided as the argument.
-// Return directly if they are standard files.  For directories list all files available in its
+// Return directly if they are standard files. For directories list all files available in its
 // root or recursively traverse all subdirectories and find files in them when the argument recursive
 // is true. For path "-" that indicates standard input return it directly in the same way as other paths.
 func DiscoverFilePaths(filePaths []string, recursive bool) ([]string, error) { //nolint:cyclop
