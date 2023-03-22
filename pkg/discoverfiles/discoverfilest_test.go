@@ -70,8 +70,12 @@ func TestDiscoverFilePaths(t *testing.T) {
 		},
 	}
 	for _, tC := range testCases {
-		res, err := discoverfiles.DiscoverFilePaths(tC.filePaths, tC.recursive)
-		assert.Equal(t, tC.want, res)
-		assert.ErrorIs(t, err, tC.expectedError)
+		tC := tC
+		t.Run(tC.name, func(t *testing.T) {
+			t.Parallel()
+			res, err := discoverfiles.DiscoverFilePaths(tC.filePaths, tC.recursive)
+			assert.Equal(t, tC.want, res)
+			assert.ErrorIs(t, err, tC.expectedError)
+		})
 	}
 }
