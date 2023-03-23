@@ -13,49 +13,63 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package fmt
+package fmt_test
 
 import (
 	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/OpenSLO/oslo/internal/pkg/fmt"
 )
 
-func Test_fmtFile(t *testing.T) {
+func TestFiles(t *testing.T) {
 	t.Parallel()
-	type args struct {
-		source string
-	}
 	tests := []struct {
 		name    string
-		args    args
+		files   []string
 		wantOut string
 		wantErr bool
 	}{
 		{
-			name: "Invalid file",
-			args: args{
-				source: "../../../test/v1alpha/invalid-file.yaml",
-			},
+			name:    "Invalid file",
+			files:   []string{"../../../test/v1alpha/invalid-file.yaml"},
 			wantErr: true,
 			wantOut: "",
 		},
 		{
-			name: "Invalid content",
-			args: args{
-				source: "../../../test/v1alpha/invalid-service.yaml",
-			},
+			name:    "Invalid content",
+			files:   []string{"../../../test/v1alpha/invalid-service.yaml"},
 			wantErr: true,
 			wantOut: "",
 		},
 		{
-			name: "Passes",
-			args: args{
-				source: "../../../test/v1alpha/valid-service.yaml",
-			},
+			name:    "Passes single file",
+			files:   []string{"../../../test/v1alpha/valid-service.yaml"},
 			wantErr: false,
 			wantOut: `apiVersion: openslo/v1alpha
+kind: Service
+metadata:
+  name: my-rad-service
+  displayName: My Rad Service
+spec:
+  description: This is a great description of an even better service.
+`,
+		},
+		{
+			name:    "Passes multiple files",
+			files:   []string{"../../../test/v1alpha/valid-service.yaml", "../../../test/v1alpha/valid-service.yaml"},
+			wantErr: false,
+			wantOut: `apiVersion: openslo/v1alpha
+kind: Service
+metadata:
+  name: my-rad-service
+  displayName: My Rad Service
+spec:
+  description: This is a great description of an even better service.
+---
+apiVersion: openslo/v1alpha
 kind: Service
 metadata:
   name: my-rad-service
@@ -70,7 +84,7 @@ spec:
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			out := &bytes.Buffer{}
-			if err := File(out, tt.args.source); (err != nil) != tt.wantErr {
+			if err := fmt.Files(out, tt.files); (err != nil) != tt.wantErr {
 				t.Errorf("fmtFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

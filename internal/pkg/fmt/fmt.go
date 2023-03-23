@@ -26,8 +26,22 @@ import (
 	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
 )
 
-// File formats a single file and writes it to the provided writer.
-func File(out io.Writer, source string) error {
+// Files formats multiple files and writes it to the provided writer, separated with "---".
+func Files(out io.Writer, sources []string) error {
+	count := len(sources)
+	for i := 0; i < count; i++ {
+		if err := file(out, sources[i]); err != nil {
+			return err
+		}
+		if i != count-1 {
+			fmt.Fprintln(out, "---")
+		}
+	}
+	return nil
+}
+
+// file formats a single file and writes it to the provided writer.
+func file(out io.Writer, source string) error {
 	// Get the file contents.
 	content, err := yamlutils.ReadConf(source)
 	if err != nil {
