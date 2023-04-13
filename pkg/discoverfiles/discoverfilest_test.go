@@ -4,7 +4,7 @@ import (
 	"io/fs"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/OpenSLO/oslo/pkg/discoverfiles"
 )
@@ -68,14 +68,28 @@ func TestDiscoverFilePaths(t *testing.T) {
 				"-",
 			},
 		},
+		{
+			name:      "path to directory with subdirectories, stdin and URLs with recursive",
+			filePaths: []string{"testfiles", "-", "http://example.com/file-1", "https://example.com/file-2"},
+			recursive: true,
+			want: []string{
+				"testfiles/a/a1.yml", "testfiles/a/a2.yml",
+				"testfiles/a/b/b1.yml", "testfiles/a/b/b2.yml",
+				"testfiles/aa/aa1.yml",
+				"testfiles/x.yml", "testfiles/y.yaml",
+				"-",
+				"http://example.com/file-1",
+				"https://example.com/file-2",
+			},
+		},
 	}
 	for _, tC := range testCases {
 		tC := tC
 		t.Run(tC.name, func(t *testing.T) {
 			t.Parallel()
 			res, err := discoverfiles.DiscoverFilePaths(tC.filePaths, tC.recursive)
-			assert.Equal(t, tC.want, res)
-			assert.ErrorIs(t, err, tC.expectedError)
+			require.ErrorIs(t, err, tC.expectedError)
+			require.Equal(t, tC.want, res)
 		})
 	}
 }

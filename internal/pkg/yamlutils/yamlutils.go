@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -31,18 +32,26 @@ import (
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
+	"github.com/OpenSLO/oslo/pkg/pathutil"
 )
 
-// ReadConf reads in filename for a yaml file and returns the byte array.
-func ReadConf(filename string) ([]byte, error) {
-	if filename == "-" {
+// ReadConf reads whole content from file path, HTTP address or stdin (path "-") to a byte slice.
+func ReadConf(path string) (content []byte, err error) {
+	switch {
+	case pathutil.IsStdin(path):
 		return io.ReadAll(os.Stdin)
+	case pathutil.IsURL(path):
+		resp, err := http.Get(path) //nolint:gosec,noctx
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			err = errors.Join(err, resp.Body.Close())
+		}()
+		return io.ReadAll(resp.Body)
+	default:
+		return os.ReadFile(filepath.Clean(path))
 	}
-	fileContent, err := os.ReadFile(filepath.Clean(filename))
-	if err != nil {
-		return nil, err
-	}
-	return fileContent, nil
 }
 
 // Parse takes the provided byte array, parses it, and returns an array of parsed struts.
