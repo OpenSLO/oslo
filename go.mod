@@ -7,7 +7,7 @@ require (
 	github.com/go-playground/validator/v10 v10.14.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/spf13/cobra v1.7.0
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.4
 	gopkg.in/yaml.v3 v3.0.1
 )
 
