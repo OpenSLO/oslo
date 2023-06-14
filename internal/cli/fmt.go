@@ -15,12 +15,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package fmt
+package cli
 
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/OpenSLO/oslo/internal/pkg/fmt"
+	"github.com/OpenSLO/oslo/internal/fmt"
 	"github.com/OpenSLO/oslo/pkg/discoverfiles"
 )
 

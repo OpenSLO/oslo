@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 
-	nobl9v1alpha "github.com/OpenSLO/oslo/internal/pkg/manifest/nobl9/v1alpha"
+	nobl9v1alpha "github.com/OpenSLO/oslo/internal/manifest/nobl9/v1alpha"
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 )
@@ -510,7 +510,7 @@ func Test_getParsedObjects(t *testing.T) {
 		},
 		{
 			name: "Single DataSource per file",
-			args: []string{"../../../test/v1/data-source/data-source.yaml"},
+			args: []string{"../../test/v1/data-source/data-source.yaml"},
 			want: []manifest.OpenSLOKind{
 				v1.DataSource{
 					ObjectHeader: v1.ObjectHeader{
@@ -537,7 +537,7 @@ func Test_getParsedObjects(t *testing.T) {
 		},
 		{
 			name: "Single Service file",
-			args: []string{"../../../test/v1/service/service.yaml"},
+			args: []string{"../../test/v1/service/service.yaml"},
 			want: []manifest.OpenSLOKind{
 				v1.Service{
 					ObjectHeader: v1.ObjectHeader{
@@ -560,7 +560,7 @@ func Test_getParsedObjects(t *testing.T) {
 		},
 		{
 			name: "Single SLI per file",
-			args: []string{"../../../test/v1/sli/sli-description-threshold-metricsourceref.yaml"},
+			args: []string{"../../test/v1/sli/sli-description-threshold-metricsourceref.yaml"},
 			want: []manifest.OpenSLOKind{
 				v1.SLI{
 					ObjectHeader: v1.ObjectHeader{
@@ -594,8 +594,8 @@ func Test_getParsedObjects(t *testing.T) {
 		{
 			name: "Multiple Files",
 			args: []string{
-				"../../../test/v1/service/service.yaml",
-				"../../../test/v1/sli/sli-description-threshold-metricsourceref.yaml",
+				"../../test/v1/service/service.yaml",
+				"../../test/v1/sli/sli-description-threshold-metricsourceref.yaml",
 			},
 			want: []manifest.OpenSLOKind{
 				v1.Service{
@@ -646,7 +646,7 @@ func Test_getParsedObjects(t *testing.T) {
 		},
 		{
 			name: "Multiple definitions per file",
-			args: []string{"../../../test/v1/multi.yaml"},
+			args: []string{"../../test/v1/multi.yaml"},
 			want: []manifest.OpenSLOKind{
 				v1.SLO{
 					ObjectHeader: v1.ObjectHeader{
@@ -764,7 +764,7 @@ func Test_Nobl9(t *testing.T) {
 			name: "Single Service Single file",
 			args: args{
 				filenames: []string{
-					"../../../test/v1/service/service-with-labels.yaml",
+					"../../test/v1/service/service-with-labels.yaml",
 				},
 				project: "default",
 			},
@@ -792,7 +792,7 @@ spec:
 			name: "Single SLO single file",
 			args: args{
 				filenames: []string{
-					"../../../test/v1/slo/slo-indicatorref-rolling-alerts.yaml",
+					"../../test/v1/slo/slo-indicatorref-rolling-alerts.yaml",
 				},
 				project: "default",
 			},
@@ -829,7 +829,7 @@ spec:
 			name: "Multiple Kinds Single File",
 			args: args{
 				filenames: []string{
-					"../../../test/v1/multi.yaml",
+					"../../test/v1/multi.yaml",
 				},
 				project: "default",
 			},
@@ -875,9 +875,9 @@ spec:
 			name: "Multiple Kinds Multiple Files",
 			args: args{
 				filenames: []string{
-					"../../../test/v1/slo/slo-indicatorRef-rolling-cloudwatch.yaml",
-					"../../../test/v1/sli/sli-threshold-cloudwatch.yaml",
-					"../../../test/v1/data-source/data-source-cloudwatch.yaml",
+					"../../test/v1/slo/slo-indicatorRef-rolling-cloudwatch.yaml",
+					"../../test/v1/sli/sli-threshold-cloudwatch.yaml",
+					"../../test/v1/data-source/data-source-cloudwatch.yaml",
 				},
 				project: "default",
 			},
@@ -923,7 +923,7 @@ spec:
 			name: "Test adding annotation to chose indicator kind",
 			args: args{
 				filenames: []string{
-					"../../../test/v1/slo/slo-with-annotations.yaml",
+					"../../test/v1/slo/slo-with-annotations.yaml",
 				},
 				project: "default",
 			},

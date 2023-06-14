@@ -1,6 +1,8 @@
 package pathutil
 
-import "strings"
+import (
+	"strings"
+)
 
 func IsStdin(p string) bool {
 	return p == "-"

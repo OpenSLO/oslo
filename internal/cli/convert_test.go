@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package convert
+package cli
 
 import (
 	"bytes"
@@ -34,7 +34,7 @@ func TestNewConvertCmd(t *testing.T) {
 			name: "Single file - Service",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/service/service.yaml",
+				"-f", "../../test/v1/service/service.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha
@@ -52,7 +52,7 @@ spec:
 			name: "Single file - Service - labels",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/service/service-with-labels.yaml",
+				"-f", "../../test/v1/service/service-with-labels.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha
@@ -80,7 +80,7 @@ spec:
 			args: []string{
 				"-o", "nobl9",
 				"-p", "my-project",
-				"-f", "../../../test/v1/service/service.yaml",
+				"-f", "../../test/v1/service/service.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha
@@ -98,7 +98,7 @@ spec:
 			name: "Single file - Alert Policy",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/alert-policy/alert-policy.yaml",
+				"-f", "../../test/v1/alert-policy/alert-policy.yaml",
 			},
 			wantOut: ``,
 			wantErr: true,
@@ -107,8 +107,8 @@ spec:
 			name: "Alert Policy - Separate Condition",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/alert-policy/alert-policy.yaml",
-				"-f", "../../../test/v1/alert-condition/alert-condition.yaml",
+				"-f", "../../test/v1/alert-policy/alert-policy.yaml",
+				"-f", "../../test/v1/alert-condition/alert-condition.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha
@@ -134,7 +134,7 @@ spec:
 			name: "Alert Policy - Inline Condition",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/alert-policy/alert-policy-inline-cond.yaml",
+				"-f", "../../test/v1/alert-policy/alert-policy-inline-cond.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha
@@ -160,8 +160,8 @@ spec:
 			name: "Alert Policy - Multiple Condition",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/alert-policy/alert-policy-many-cond.yaml",
-				"-f", "../../../test/v1/alert-condition/alert-condition.yaml",
+				"-f", "../../test/v1/alert-policy/alert-policy-many-cond.yaml",
+				"-f", "../../test/v1/alert-condition/alert-condition.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha
@@ -219,8 +219,8 @@ spec:
 			name: "Alert Policy - No Matching Condition",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/alert-policy/alert-policy.yaml",
-				"-f", "../../../test/v1/alert-condition/alert-condition-invalid-name.yaml",
+				"-f", "../../test/v1/alert-policy/alert-policy.yaml",
+				"-f", "../../test/v1/alert-condition/alert-condition-invalid-name.yaml",
 			},
 			wantOut: ``,
 			wantErr: true,
@@ -229,8 +229,8 @@ spec:
 			name: "Duplicate file",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/service/service.yaml",
-				"-f", "../../../test/v1/service/service.yaml",
+				"-f", "../../test/v1/service/service.yaml",
+				"-f", "../../test/v1/service/service.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha
@@ -248,7 +248,7 @@ spec:
 			name: "Single SLO",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/slo/slo-no-indicatorref-rolling-alerts.yaml",
+				"-f", "../../test/v1/slo/slo-no-indicatorref-rolling-alerts.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha
@@ -292,7 +292,7 @@ spec:
 			name: "SLO with labels",
 			args: []string{
 				"-o", "nobl9",
-				"-f", "../../../test/v1/slo/slo-with-labels.yaml",
+				"-f", "../../test/v1/slo/slo-with-labels.yaml",
 			},
 			wantOut: `---
 apiVersion: n9/v1alpha

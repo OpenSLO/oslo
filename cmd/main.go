@@ -15,10 +15,10 @@ limitations under the License.
 */
 package main
 
-import cmd "github.com/OpenSLO/oslo/cmd/oslo"
+import "github.com/OpenSLO/oslo/internal/cli"
 
 var version string
 
 func main() {
-	cmd.Execute(version)
+	cli.Execute(version)
 }

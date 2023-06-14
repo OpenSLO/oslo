@@ -16,7 +16,7 @@ limitations under the License.
 package nobl9v1alpha
 
 import (
-	nobl9manifest "github.com/OpenSLO/oslo/internal/pkg/manifest/nobl9"
+	nobl9manifest "github.com/OpenSLO/oslo/internal/manifest/nobl9"
 )
 
 // apiVersion: n9/v1alpha

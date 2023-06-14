@@ -13,15 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package validate
+package cli
 
 import (
 	"fmt"
 
 	"github.com/spf13/cobra"
 
-	"github.com/OpenSLO/oslo/internal/pkg/validate"
 	"github.com/OpenSLO/oslo/pkg/discoverfiles"
+	"github.com/OpenSLO/oslo/pkg/validate"
 )
 
 // NewValidateCmd returns a new cobra.Command for the validate command.
