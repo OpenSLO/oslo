@@ -79,7 +79,6 @@ linters:
     - asciicheck
     - bodyclose
     - cyclop
-    - depguard
     - dogsled
     - dupl
     - durationcheck
