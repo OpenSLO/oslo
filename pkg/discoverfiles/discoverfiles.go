@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/OpenSLO/oslo/pkg/pathutil"
+	"github.com/OpenSLO/oslo/internal/pathutil"
 )
 
 // RegisterFileRelatedFlags registers flags --file | -f and --recursive | -R for command

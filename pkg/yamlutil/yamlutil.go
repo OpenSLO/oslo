@@ -29,10 +29,10 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v3"
 
+	"github.com/OpenSLO/oslo/internal/pathutil"
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
-	"github.com/OpenSLO/oslo/pkg/pathutil"
 )
 
 // ReadConf reads whole content from file path, HTTP address or stdin (path "-") to a byte slice.
