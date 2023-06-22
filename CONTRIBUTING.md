@@ -16,7 +16,7 @@ so any changes need to be compliant with that spec
 
 ## Slack
 
-Checkout _FOLLOW US_ section at https://openslo.com/ to join our slack channel
+Checkout _FOLLOW US_ section at <https://openslo.com/> to join our slack channel
 
 ## Making a pull request
 
