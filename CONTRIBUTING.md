@@ -16,7 +16,7 @@ so any changes need to be compliant with that spec
 
 ## Slack
 
-Email [mateusz.hawrus@nobl9.com](mateusz.hawrus@nobl9.com) to get an invite to our slack channel
+Checkout _FOLLOW US_ section at https://openslo.com/ to join our slack channel
 
 ## Making a pull request
 
