@@ -34,14 +34,14 @@ func Test_validateFiles(t *testing.T) {
 		{
 			name: "invalid apiVersion",
 			args: args{
-				files: []string{"../../../test/invalid-apiversion.yaml"},
+				files: []string{"../../test/invalid-apiversion.yaml"},
 			},
 			wantErr: true,
 		},
 		{
 			name: "v1alpha gets v1 Kind",
 			args: args{
-				files: []string{"../../../test/v1/invalid-apiversion.yaml"},
+				files: []string{"../../test/v1/invalid-apiversion.yaml"},
 			},
 			wantErr: true,
 		},
@@ -49,9 +49,9 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1alpha",
 			args: args{
 				files: []string{
-					"../../../test/v1alpha/valid-service.yaml",
-					"../../../test/v1alpha/valid-slos-ratio.yaml",
-					"../../../test/v1alpha/valid-slos-threshold.yaml",
+					"../../test/v1alpha/valid-service.yaml",
+					"../../test/v1alpha/valid-slos-ratio.yaml",
+					"../../test/v1alpha/valid-slos-threshold.yaml",
 				},
 			},
 			wantErr: false,
@@ -59,7 +59,7 @@ func Test_validateFiles(t *testing.T) {
 		{
 			name: "v1alpha single file invalid",
 			args: args{
-				files: []string{"../../../test/v1alpha/invalid-service.yaml"},
+				files: []string{"../../test/v1alpha/invalid-service.yaml"},
 			},
 			wantErr: true,
 		},
@@ -67,8 +67,8 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1 AlertCondition",
 			args: args{
 				files: []string{
-					"../../../test/v1/alert-condition/alert-condition.yaml",
-					"../../../test/v1/alert-condition/alert-condition-no-description.yaml",
+					"../../test/v1/alert-condition/alert-condition.yaml",
+					"../../test/v1/alert-condition/alert-condition-no-description.yaml",
 				},
 			},
 			wantErr: false,
@@ -77,8 +77,8 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1 AlertCondition invalid",
 			args: args{
 				files: []string{
-					"../../../test/v1/alert-condition/alert-condition-no-condition.yaml",
-					"../../../test/v1/alert-condition/alert-condition-no-sev.yaml",
+					"../../test/v1/alert-condition/alert-condition-no-condition.yaml",
+					"../../test/v1/alert-condition/alert-condition-no-sev.yaml",
 				},
 			},
 			wantErr: true,
@@ -87,8 +87,8 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1 AlertNotificationTarget",
 			args: args{
 				files: []string{
-					"../../../test/v1/alert-notification-target/alert-notification-target.yaml",
-					"../../../test/v1/alert-notification-target/alert-notification-target-no-description.yaml",
+					"../../test/v1/alert-notification-target/alert-notification-target.yaml",
+					"../../test/v1/alert-notification-target/alert-notification-target-no-description.yaml",
 				},
 			},
 			wantErr: false,
@@ -96,7 +96,7 @@ func Test_validateFiles(t *testing.T) {
 		{
 			name: "v1 AlertNotificationTarget invalid",
 			args: args{
-				files: []string{"../../../test/v1/alert-notification-target/alert-notification-target-no-target.yaml"},
+				files: []string{"../../test/v1/alert-notification-target/alert-notification-target-no-target.yaml"},
 			},
 			wantErr: true,
 		},
@@ -104,9 +104,9 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1 AlertPolicy",
 			args: args{
 				files: []string{
-					"../../../test/v1/alert-policy/alert-policy.yaml",
-					"../../../test/v1/alert-policy/alert-policy-inline-cond.yaml",
-					"../../../test/v1/alert-policy/alert-policy-many-notificationref.yaml",
+					"../../test/v1/alert-policy/alert-policy.yaml",
+					"../../test/v1/alert-policy/alert-policy-inline-cond.yaml",
+					"../../test/v1/alert-policy/alert-policy-many-notificationref.yaml",
 				},
 			},
 			wantErr: false,
@@ -115,11 +115,11 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1 AlertPolicy invalid",
 			args: args{
 				files: []string{
-					"../../../test/v1/alert-policy/alert-policy-malformed-cond.yaml",
-					"../../../test/v1/alert-policy/alert-policy-malformed-targetref.yaml",
-					"../../../test/v1/alert-policy/alert-policy-many-cond.yaml",
-					"../../../test/v1/alert-policy/alert-policy-no-cond.yaml",
-					"../../../test/v1/alert-policy/alert-policy-no-notification.yaml",
+					"../../test/v1/alert-policy/alert-policy-malformed-cond.yaml",
+					"../../test/v1/alert-policy/alert-policy-malformed-targetref.yaml",
+					"../../test/v1/alert-policy/alert-policy-many-cond.yaml",
+					"../../test/v1/alert-policy/alert-policy-no-cond.yaml",
+					"../../test/v1/alert-policy/alert-policy-no-notification.yaml",
 				},
 			},
 			wantErr: true,
@@ -127,7 +127,7 @@ func Test_validateFiles(t *testing.T) {
 		{
 			name: "v1 single DataSource valid",
 			args: args{
-				files: []string{"../../../test/v1/data-source/data-source.yaml"},
+				files: []string{"../../test/v1/data-source/data-source.yaml"},
 			},
 			wantErr: false,
 		},
@@ -135,8 +135,8 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1 Service",
 			args: args{
 				files: []string{
-					"../../../test/v1/service/service.yaml",
-					"../../../test/v1/service/service-no-displayname.yaml",
+					"../../test/v1/service/service.yaml",
+					"../../test/v1/service/service-no-displayname.yaml",
 				},
 			},
 			wantErr: false,
@@ -144,7 +144,7 @@ func Test_validateFiles(t *testing.T) {
 		{
 			name: "v1 Service long description",
 			args: args{
-				files: []string{"../../../test/v1/service/service-long-description.yaml"},
+				files: []string{"../../test/v1/service/service-long-description.yaml"},
 			},
 			wantErr: true,
 		},
@@ -152,18 +152,18 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1 SLI",
 			args: args{
 				files: []string{
-					"../../../test/v1/sli/sli-description-ratio-bad-inline-metricsource.yaml",
-					"../../../test/v1/sli/sli-description-ratio-bad-metricsourceref.yaml",
-					"../../../test/v1/sli/sli-description-ratio-good-inline-metricsource.yaml",
-					"../../../test/v1/sli/sli-description-ratio-good-metricsourceref.yaml",
-					"../../../test/v1/sli/sli-description-threshold-inline-metricsource.yaml",
-					"../../../test/v1/sli/sli-description-threshold-metricsourceref.yaml",
-					"../../../test/v1/sli/sli-no-description-ratio-bad-inline-metricsource.yaml",
-					"../../../test/v1/sli/sli-no-description-ratio-bad-metricsourceref.yaml",
-					"../../../test/v1/sli/sli-no-description-ratio-good-inline-metricsource.yaml",
-					"../../../test/v1/sli/sli-no-description-ratio-good-metricsourceref.yaml",
-					"../../../test/v1/sli/sli-no-description-threshold-inline-metricsource.yaml",
-					"../../../test/v1/sli/sli-no-description-threshold-metricsourceref.yaml",
+					"../../test/v1/sli/sli-description-ratio-bad-inline-metricsource.yaml",
+					"../../test/v1/sli/sli-description-ratio-bad-metricsourceref.yaml",
+					"../../test/v1/sli/sli-description-ratio-good-inline-metricsource.yaml",
+					"../../test/v1/sli/sli-description-ratio-good-metricsourceref.yaml",
+					"../../test/v1/sli/sli-description-threshold-inline-metricsource.yaml",
+					"../../test/v1/sli/sli-description-threshold-metricsourceref.yaml",
+					"../../test/v1/sli/sli-no-description-ratio-bad-inline-metricsource.yaml",
+					"../../test/v1/sli/sli-no-description-ratio-bad-metricsourceref.yaml",
+					"../../test/v1/sli/sli-no-description-ratio-good-inline-metricsource.yaml",
+					"../../test/v1/sli/sli-no-description-ratio-good-metricsourceref.yaml",
+					"../../test/v1/sli/sli-no-description-threshold-inline-metricsource.yaml",
+					"../../test/v1/sli/sli-no-description-threshold-metricsourceref.yaml",
 				},
 			},
 			wantErr: false,
@@ -172,14 +172,14 @@ func Test_validateFiles(t *testing.T) {
 			name: "v1 SLO",
 			args: args{
 				files: []string{
-					"../../../test/v1/slo/slo-indicatorref-calendar-alerts.yaml",
-					"../../../test/v1/slo/slo-indicatorref-calendar-no-alerts.yaml",
-					"../../../test/v1/slo/slo-indicatorref-rolling-alerts.yaml",
-					"../../../test/v1/slo/slo-indicatorref-rolling-no-alerts.yaml",
-					"../../../test/v1/slo/slo-no-indicatorref-calendar-alerts.yaml",
-					"../../../test/v1/slo/slo-no-indicatorref-calendar-no-alerts.yaml",
-					"../../../test/v1/slo/slo-no-indicatorref-rolling-alerts.yaml",
-					"../../../test/v1/slo/slo-no-indicatorref-rolling-no-alerts.yaml",
+					"../../test/v1/slo/slo-indicatorref-calendar-alerts.yaml",
+					"../../test/v1/slo/slo-indicatorref-calendar-no-alerts.yaml",
+					"../../test/v1/slo/slo-indicatorref-rolling-alerts.yaml",
+					"../../test/v1/slo/slo-indicatorref-rolling-no-alerts.yaml",
+					"../../test/v1/slo/slo-no-indicatorref-calendar-alerts.yaml",
+					"../../test/v1/slo/slo-no-indicatorref-calendar-no-alerts.yaml",
+					"../../test/v1/slo/slo-no-indicatorref-rolling-alerts.yaml",
+					"../../test/v1/slo/slo-no-indicatorref-rolling-no-alerts.yaml",
 				},
 			},
 			wantErr: false,

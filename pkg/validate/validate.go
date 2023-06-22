@@ -22,8 +22,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
 	"github.com/OpenSLO/oslo/pkg/manifest"
+	"github.com/OpenSLO/oslo/pkg/yamlutil"
 )
 
 // validateStruct takes the given struct and validates it.
@@ -52,13 +52,13 @@ func validateStruct(c []manifest.OpenSLOKind) error {
 func Files(files []string) error {
 	var allErrors []string
 	for _, file := range files {
-		c, e := yamlutils.ReadConf(file)
+		c, e := yamlutil.ReadConf(file)
 		if e != nil {
 			allErrors = append(allErrors, e.Error())
 			break
 		}
 
-		content, err := yamlutils.Parse(c, file)
+		content, err := yamlutil.Parse(c, file)
 		if err != nil {
 			allErrors = append(allErrors, err.Error())
 			break

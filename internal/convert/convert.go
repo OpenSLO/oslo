@@ -29,11 +29,11 @@ import (
 	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 
-	nobl9manifest "github.com/OpenSLO/oslo/internal/pkg/manifest/nobl9"
-	nobl9v1alpha "github.com/OpenSLO/oslo/internal/pkg/manifest/nobl9/v1alpha"
-	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
+	nobl9manifest "github.com/OpenSLO/oslo/internal/manifest/nobl9"
+	nobl9v1alpha "github.com/OpenSLO/oslo/internal/manifest/nobl9/v1alpha"
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
+	"github.com/OpenSLO/oslo/pkg/yamlutil"
 )
 
 // RemoveDuplicates to remove duplicate string from a slice.
@@ -54,14 +54,14 @@ func RemoveDuplicates(s []string) []string {
 func getParsedObjects(filenames []string) (parsed []manifest.OpenSLOKind, err error) {
 	for _, filename := range filenames {
 		// Get the file contents.
-		content, err := yamlutils.ReadConf(filename)
+		content, err := yamlutil.ReadConf(filename)
 		if err != nil {
 			return nil, fmt.Errorf("issue reading content: %w", err)
 		}
 
 		// Parse the byte arrays to OpenSLOKind objects.
 		var p []manifest.OpenSLOKind
-		p, err = yamlutils.Parse(content, filename)
+		p, err = yamlutil.Parse(content, filename)
 		if err != nil {
 			return nil, fmt.Errorf("issue parsing content: %w", err)
 		}

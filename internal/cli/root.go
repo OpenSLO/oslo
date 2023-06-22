@@ -13,14 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package cmd
+package cli
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/OpenSLO/oslo/cmd/oslo/convert"
-	fmtCmd "github.com/OpenSLO/oslo/cmd/oslo/fmt"
-	"github.com/OpenSLO/oslo/cmd/oslo/validate"
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -38,9 +34,9 @@ func newRootCmd(version string) *cobra.Command {
 		Version:       version,
 	}
 
-	rootCmd.AddCommand(validate.NewValidateCmd())
-	rootCmd.AddCommand(fmtCmd.NewFmtCmd())
-	rootCmd.AddCommand(convert.NewConvertCmd())
+	rootCmd.AddCommand(NewValidateCmd())
+	rootCmd.AddCommand(NewFmtCmd())
+	rootCmd.AddCommand(NewConvertCmd())
 
 	return rootCmd
 }

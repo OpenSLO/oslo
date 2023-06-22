@@ -1,9 +1,7 @@
 run:
   timeout: 5m
   modules-download-mode: readonly
-  # not our current version, but we need to wait until this supports 1.18
-  # https://github.com/golangci/golangci-lint/issues/2649
-  go: "1.17"
+  go: "1.20"
 
 issues:
   # Enable all checks (which was as default disabled e.g. comments).
@@ -81,8 +79,6 @@ linters:
     - asciicheck
     - bodyclose
     - cyclop
-    - deadcode
-    - depguard
     - dogsled
     - dupl
     - durationcheck
@@ -108,7 +104,6 @@ linters:
     - gosec
     - gosimple
     - govet
-    - ifshort
     - importas
     - ineffassign
     - lll
@@ -126,7 +121,6 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
     - thelper
     - tparallel
@@ -136,4 +130,3 @@ linters:
     - unused
     - wastedassign
     - whitespace
-    - varcheck

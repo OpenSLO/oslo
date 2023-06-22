@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package yamlutils
+package yamlutil
 
 import (
 	"bytes"
@@ -29,10 +29,10 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/yaml.v3"
 
+	"github.com/OpenSLO/oslo/internal/pathutil"
 	"github.com/OpenSLO/oslo/pkg/manifest"
 	v1 "github.com/OpenSLO/oslo/pkg/manifest/v1"
 	"github.com/OpenSLO/oslo/pkg/manifest/v1alpha"
-	"github.com/OpenSLO/oslo/pkg/pathutil"
 )
 
 // ReadConf reads whole content from file path, HTTP address or stdin (path "-") to a byte slice.

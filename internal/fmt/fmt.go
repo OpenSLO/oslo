@@ -23,7 +23,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/OpenSLO/oslo/internal/pkg/yamlutils"
+	"github.com/OpenSLO/oslo/pkg/yamlutil"
 )
 
 // Files formats multiple files and writes it to the provided writer, separated with "---".
@@ -43,13 +43,13 @@ func Files(out io.Writer, sources []string) error {
 // file formats a single file and writes it to the provided writer.
 func file(out io.Writer, source string) error {
 	// Get the file contents.
-	content, err := yamlutils.ReadConf(source)
+	content, err := yamlutil.ReadConf(source)
 	if err != nil {
 		return fmt.Errorf("issue reading content: %w", err)
 	}
 
 	// Parse the byte arrays to OpenSLOKind objects.
-	parsed, err := yamlutils.Parse(content, source)
+	parsed, err := yamlutil.Parse(content, source)
 	if err != nil {
 		return fmt.Errorf("issue parsing content: %w", err)
 	}

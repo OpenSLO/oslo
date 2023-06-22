@@ -21,7 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/OpenSLO/oslo/internal/pkg/fmt"
+	"github.com/OpenSLO/oslo/internal/fmt"
 )
 
 func TestFiles(t *testing.T) {
@@ -34,19 +34,19 @@ func TestFiles(t *testing.T) {
 	}{
 		{
 			name:    "Invalid file",
-			files:   []string{"../../../test/v1alpha/invalid-file.yaml"},
+			files:   []string{"test/v1alpha/invalid-file.yaml"},
 			wantErr: true,
 			wantOut: "",
 		},
 		{
 			name:    "Invalid content",
-			files:   []string{"../../../test/v1alpha/invalid-service.yaml"},
+			files:   []string{"../../test/v1alpha/invalid-service.yaml"},
 			wantErr: true,
 			wantOut: "",
 		},
 		{
 			name:    "Passes single file",
-			files:   []string{"../../../test/v1alpha/valid-service.yaml"},
+			files:   []string{"../../test/v1alpha/valid-service.yaml"},
 			wantErr: false,
 			wantOut: `apiVersion: openslo/v1alpha
 kind: Service
@@ -59,7 +59,7 @@ spec:
 		},
 		{
 			name:    "Passes multiple files",
-			files:   []string{"../../../test/v1alpha/valid-service.yaml", "../../../test/v1alpha/valid-service.yaml"},
+			files:   []string{"../../test/v1alpha/valid-service.yaml", "../../test/v1alpha/valid-service.yaml"},
 			wantErr: false,
 			wantOut: `apiVersion: openslo/v1alpha
 kind: Service
