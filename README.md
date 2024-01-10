@@ -9,6 +9,12 @@ information also check the website: [openslo.com](https://openslo.com/).
 
 ## Installation
 
+### Go install 
+
+```sh
+go install github.com/OpenSLO/oslo/cmd/oslo@latest
+```
+
 ### From source
 
 1. Checkout this repository

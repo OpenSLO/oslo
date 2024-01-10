@@ -12,16 +12,16 @@ We encourage and welcome any and all feedback from the community.
 ## Things to know
 
 The goal of this project is to be compatable with the [OpenSLO Spec](https://github.com/OpenSLO/OpenSLO)
-so any changes need to be compliant with that spec
+so any changes need to be compliant with that spec.
 
 ## Slack
 
-Checkout _FOLLOW US_ section at <https://openslo.com/> to join our slack channel
+Checkout _FOLLOW US_ section at <https://openslo.com/> to join our slack channel.
 
 ## Making a pull request
 
 Please make a fork of the repo, and submit a PR from there.  More information can
-be found [here](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request)
+be found [here](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
 
 ## Merge Request title
 
