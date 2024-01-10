@@ -9,7 +9,7 @@ information also check the website: [openslo.com](https://openslo.com/).
 
 ## Installation
 
-### Go install 
+### Go install
 
 ```sh
 go install github.com/OpenSLO/oslo/cmd/oslo@latest
