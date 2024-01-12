@@ -3,7 +3,7 @@ FROM golang:1.20 as build
 WORKDIR /go/src/oslo
 COPY . .
 RUN go mod download
-RUN CGO_ENABLED=0 go build -o /go/bin/oslo cmd/main.go
+RUN CGO_ENABLED=0 go build -o /go/bin/oslo cmd/oslo/main.go
 
 
 FROM gcr.io/distroless/static-debian11
