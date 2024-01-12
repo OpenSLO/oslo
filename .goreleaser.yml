@@ -1,8 +1,8 @@
 builds:
   - env:
       - CGO_ENABLED=0
-    main: cmd/main.go
-    binary: bin/oslo
+    main: ./cmd/oslo
+    binary: ./bin/oslo
     goos:
       - linux
       - darwin
@@ -11,11 +11,13 @@ builds:
       - -X main.version={{.Version}}
 
 archives:
-  - name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      amd64: x86_64
+  - name_template: >-
+      {{- .ProjectName }}_
+      {{- .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+      {{- if .Mips }}_{{ .Mips }}{{ end -}}
 
 brews:
   - name: oslo
