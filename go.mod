@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/fatih/color v1.16.0
-	github.com/go-playground/validator/v10 v10.18.0
+	github.com/go-playground/validator/v10 v10.19.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
