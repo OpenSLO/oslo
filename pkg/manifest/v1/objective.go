@@ -32,19 +32,22 @@ type TimeWindow struct {
 
 // Objective represents single threshold for SLO, for internal usage.
 type Objective struct {
-	DisplayName     string  `yaml:"displayName,omitempty"`
-	Op              string  `yaml:"op,omitempty" example:"lte"`
-	Value           float64 `yaml:"value,omitempty" validate:"numeric,omitempty"`
-	Target          float64 `yaml:"target" validate:"required,numeric,gte=0,lt=1" example:"0.9"`
-	TimeSliceTarget float64 `yaml:"timeSliceTarget,omitempty" validate:"gte=0,lte=1,omitempty" example:"0.9"`
-	TimeSliceWindow string  `yaml:"timeSliceWindow,omitempty" example:"5m"`
+	DisplayName     string     `yaml:"displayName,omitempty"`
+	Op              string     `yaml:"op,omitempty" example:"lte"`
+	Value           float64    `yaml:"value,omitempty" validate:"numeric,omitempty"`
+	Target          float64    `yaml:"target" validate:"required,numeric,gte=0,lt=1" example:"0.9"`
+	TimeSliceTarget float64    `yaml:"timeSliceTarget,omitempty" validate:"gte=0,lte=1,omitempty" example:"0.9"`
+	TimeSliceWindow string     `yaml:"timeSliceWindow,omitempty" example:"5m"`
+	Indicator       *SLIInline `yaml:"indicator,omitempty"`
+	IndicatorRef    *string    `yaml:"indicatorRef,omitempty"`
+	CompositeWeight float64    `yaml:"compositeWeight,omitempty" validate:"gte=0,omitempty"`
 }
 
 // SLOSpec struct which mapped one to one with kind: slo yaml definition, internal use.
 type SLOSpec struct {
 	Description     string       `yaml:"description,omitempty" validate:"max=1050,omitempty"`
 	Service         string       `yaml:"service" validate:"required" example:"webapp-service"`
-	Indicator       *SLIInline   `yaml:"indicator,omitempty" validate:"required_without=IndicatorRef"`
+	Indicator       *SLIInline   `yaml:"indicator,omitempty"`
 	IndicatorRef    *string      `yaml:"indicatorRef,omitempty"`
 	BudgetingMethod string       `yaml:"budgetingMethod" validate:"required,oneof=Occurrences Timeslices" example:"Occurrences"` //nolint:lll
 	TimeWindow      []TimeWindow `yaml:"timeWindow" validate:"required,len=1,dive"`
