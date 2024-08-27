@@ -1005,7 +1005,9 @@ func printYaml(out io.Writer, object interface{}) error {
 		return fmt.Errorf("issue marshaling content: %w", err)
 	}
 
-	fmt.Fprint(out, "---\n")
+	if _, err = fmt.Fprint(out, "---\n"); err != nil {
+		return err
+	}
 	_, err = out.Write(yml)
 	if err != nil {
 		return fmt.Errorf("issue writing content: %w", err)

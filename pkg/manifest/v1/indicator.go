@@ -70,15 +70,15 @@ type MetricSource struct {
 	MetricSourceSpec map[string]string `yaml:"spec" validate:"required_without=MetricSourceRef"`
 }
 
-// UnmarshalYAML is used to override the default unmarshal behavior
-// Since MetricSources don't have a determined structure, we need to do a few things here:
-//  1. Pull out the MetricSourceRef and Type separately, and add them to the MetricSource
-//  2. Attempt to unmarshal the MetricSourceSpec, which can be either a string or an array.
-//     2a.  If its a string, add it as a single string
-//     2b.  If its an array, flatten it to a single string
+// UnmarshalYAML is used to override the default unmarshal behavior.
+// MetricSources can have varying structures, so this method performs the following tasks:
+//  1. Extracts the MetricSourceRef and Type separately, and assigns them to the MetricSource.
+//  2. Attempts to unmarshal the MetricSourceSpec, which can be either a string, a list, or a more complex structure:
+//     2a. If it's a scalar string, it is added directly as a single string.
+//     2b. If it's a list of scalar values, they are concatenated into a single semicolon separated string.
+//     2c. If it's a more complex sequence, the values are processed and flattened appropriately.
 //
 // This also assumes a certain flat structure that we can revisit if the need arises.
-//
 
 func (m *MetricSource) UnmarshalYAML(value *yaml.Node) error {
 	// temp struct to unmarshal the string values
@@ -108,7 +108,9 @@ func (m *MetricSource) UnmarshalYAML(value *yaml.Node) error {
 			// top level string that we will join with a semicolon
 			seqStrings := []string{}
 			for _, node := range v.Content {
-				if node.Kind == yaml.MappingNode {
+				if node.Kind == yaml.ScalarNode {
+					seqStrings = append(seqStrings, node.Value)
+				} else if node.Kind == yaml.MappingNode {
 					// each of these are k/v pairs that we will join with a comma
 					kvPairs := []string{}
 					for i := 0; i < len(node.Content); i += 2 {
