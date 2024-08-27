@@ -180,6 +180,8 @@ func Test_validateFiles(t *testing.T) {
 					"../../test/v1/slo/slo-no-indicatorref-calendar-no-alerts.yaml",
 					"../../test/v1/slo/slo-no-indicatorref-rolling-alerts.yaml",
 					"../../test/v1/slo/slo-no-indicatorref-rolling-no-alerts.yaml",
+					"../../test/v1/slo/slo-composite-indicatorRef-rolling-no-alerts.yaml",
+					"../../test/v1/slo/slo-composite-no-indicatorRef-rolling-no-alerts.yaml",
 				},
 			},
 			wantErr: false,

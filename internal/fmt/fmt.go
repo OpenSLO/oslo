@@ -34,7 +34,9 @@ func Files(out io.Writer, sources []string) error {
 			return err
 		}
 		if i != count-1 {
-			fmt.Fprintln(out, "---")
+			if _, err := fmt.Fprintln(out, "---"); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
