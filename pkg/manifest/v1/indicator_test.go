@@ -81,6 +81,24 @@ spec:
 				},
 			},
 		},
+		{
+			name: "Prometheus - Two labels",
+			yaml: `metricSourceRef: thanos
+type: Prometheus
+spec:
+  query: http_requests_total{}
+  dimensions:
+    - following
+    - another`,
+			want: MetricSource{
+				MetricSourceRef: "thanos",
+				Type:            "Prometheus",
+				MetricSourceSpec: map[string]string{
+					"query":      "http_requests_total{}",
+					"dimensions": "following;another",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
