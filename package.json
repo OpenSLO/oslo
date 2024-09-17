@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "@cspell/dict-lorem-ipsum": "^4.0.0",
-    "cspell": "^8.14.2",
+    "cspell": "^8.14.3",
     "markdownlint-cli": "^0.41.0"
   }
 }
