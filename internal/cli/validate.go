@@ -20,8 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/OpenSLO/oslo/pkg/discoverfiles"
-	"github.com/OpenSLO/oslo/pkg/validate"
+	"github.com/OpenSLO/oslo/internal/files"
 )
 
 // NewValidateCmd returns a new cobra.Command for the validate command.
@@ -35,17 +34,23 @@ func NewValidateCmd() *cobra.Command {
 		Long:  `Validates your yaml file against the OpenSLO spec.`,
 		Args:  cobra.MinimumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			discoveredFilePaths, err := discoverfiles.DiscoverFilePaths(passedFilePaths, recursive)
+			discoveredFilePaths, err := files.Discover(passedFilePaths, recursive)
 			if err != nil {
 				return err
 			}
-			if err := validate.Files(discoveredFilePaths); err != nil {
+			objects, err := files.ReadObjects(discoveredFilePaths)
+			if err != nil {
 				return err
+			}
+			for _, obj := range objects {
+				if err = obj.Validate(); err != nil {
+					return err
+				}
 			}
 			fmt.Println("Valid!")
 			return nil
 		},
 	}
-	discoverfiles.RegisterFileRelatedFlags(validateCmd, &passedFilePaths, &recursive)
+	registerFileRelatedFlags(validateCmd, &passedFilePaths, &recursive)
 	return validateCmd
 }

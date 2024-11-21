@@ -1,4 +1,4 @@
-package discoverfiles_test
+package files_test
 
 import (
 	"io/fs"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/OpenSLO/oslo/pkg/discoverfiles"
+	"github.com/OpenSLO/oslo/internal/files"
 )
 
 // TestDiscoverFilePaths tests it on real filesystem,
@@ -87,7 +87,7 @@ func TestDiscoverFilePaths(t *testing.T) {
 		tC := tC
 		t.Run(tC.name, func(t *testing.T) {
 			t.Parallel()
-			res, err := discoverfiles.DiscoverFilePaths(tC.filePaths, tC.recursive)
+			res, err := files.Discover(tC.filePaths, tC.recursive)
 			require.ErrorIs(t, err, tC.expectedError)
 			require.Equal(t, tC.want, res)
 		})

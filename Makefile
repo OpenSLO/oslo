@@ -15,7 +15,7 @@
 VERSION := $(shell git describe --tags)
 .PHONY: build
 build:
-	go build -ldflags="-X 'main.version=${VERSION}'" -o bin/oslo
+	go build -ldflags="-X 'main.version=${VERSION}'" -o bin/oslo ./cmd/oslo/
 
 .PHONY: install
 install: run/tests build

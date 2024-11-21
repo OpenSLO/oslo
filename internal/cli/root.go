@@ -36,7 +36,6 @@ func newRootCmd(version string) *cobra.Command {
 
 	rootCmd.AddCommand(NewValidateCmd())
 	rootCmd.AddCommand(NewFmtCmd())
-	rootCmd.AddCommand(NewConvertCmd())
 
 	return rootCmd
 }
