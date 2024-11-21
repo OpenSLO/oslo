@@ -43,7 +43,7 @@ func NewValidateCmd() *cobra.Command {
 				return err
 			}
 			for _, obj := range objects {
-        if err := obj.Validate(); err != nil {
+				if err := obj.Validate(); err != nil {
 					return err
 				}
 			}
