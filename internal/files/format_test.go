@@ -19,9 +19,9 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/OpenSLO/OpenSLO/pkg/openslosdk"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/OpenSLO/OpenSLO/pkg/openslosdk"
 	"github.com/OpenSLO/oslo/internal/files"
 )
 

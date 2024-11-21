@@ -20,9 +20,9 @@ package cli
 import (
 	"fmt"
 
+	"github.com/OpenSLO/OpenSLO/pkg/openslosdk"
 	"github.com/spf13/cobra"
 
-	"github.com/OpenSLO/OpenSLO/pkg/openslosdk"
 	"github.com/OpenSLO/oslo/internal/files"
 )
 
@@ -57,7 +57,7 @@ func NewFmtCmd() *cobra.Command {
 	}
 	registerFileRelatedFlags(fmtCmd, &passedFilePaths, &recursive)
 	fmtCmd.Flags().StringVarP(
-		&output, "ouput", "o", "yaml",
+		&output, "output", "o", "yaml",
 		"The output format, one of [json, yaml].",
 	)
 	return fmtCmd
