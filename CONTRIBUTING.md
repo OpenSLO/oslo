@@ -11,8 +11,10 @@ We encourage and welcome any and all feedback from the community.
 
 ## Things to know
 
-The goal of this project is to be compatable with the [OpenSLO Spec](https://github.com/OpenSLO/OpenSLO)
-so any changes need to be compliant with that spec.
+The goal of this project is to provide a simple tool for interacting with the [OpenSLO specification](https://github.com/OpenSLO/OpenSLO).
+Schema definitions and validation rules are all coming from
+[OpenSLO Go SDK](https://github.com/OpenSLO/go-sdk) and `oslo` is only
+providing a thin, CLI wrapper over the SDK.
 
 ## Slack
 
