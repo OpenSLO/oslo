@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/OpenSLO/OpenSLO/pkg/openslosdk"
+	"github.com/OpenSLO/go-sdk/pkg/openslosdk"
 )
 
 // Format formats multiple files and writes it to the provided writer, separated with "---".

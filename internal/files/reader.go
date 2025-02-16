@@ -26,8 +26,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/OpenSLO/OpenSLO/pkg/openslo"
-	"github.com/OpenSLO/OpenSLO/pkg/openslosdk"
+	"github.com/OpenSLO/go-sdk/pkg/openslo"
+	"github.com/OpenSLO/go-sdk/pkg/openslosdk"
 )
 
 // ReadObjects reads [openslo.Object] from the provided sources.
