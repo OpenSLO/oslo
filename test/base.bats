@@ -22,5 +22,5 @@ setup() {
 @test "has version option" {
   run oslo --version
   assert_success
-  assert_output --regexp "^oslo version v\d+\.\d+\.\d+"
+  assert_output "oslo version v1.0.0"
 }

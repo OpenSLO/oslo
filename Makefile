@@ -24,7 +24,7 @@ endef
 # ${2} - version
 define _build_docker
 	docker build \
-		--build-arg LDFLAGS="-X main.version=$(VERSION)" \
+		--build-arg LDFLAGS="-s -w -X main.version=$(2)" \
 		-t "$(1)" .
 endef
 
