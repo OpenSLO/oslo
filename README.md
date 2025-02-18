@@ -32,10 +32,6 @@ brew install openslo/openslo/oslo
 
 ### From Docker
 
-```sh
-docker run -v "$(pwd):/manifests" ghcr.io/openslo/oslo:latest <command> /manifests/<file>.yaml
-```
-
 For example, if you have an OpenSLO spec file in the current directory called `my-service.yaml`,
 and you wanted to validate it, the full command would be:
 
@@ -54,7 +50,7 @@ docker run -v "$(pwd):/manifests" ghcr.io/openslo/oslo:latest validate -f /manif
 
 ### Validate
 
-`oslo validate` will validate the provided OpenSLO YAML document.
+`oslo validate` will validate the provided OpenSLO YAML/JSON document(s).
 
 Example:
 
@@ -64,10 +60,10 @@ oslo validate -f file1.yaml -f file2.yaml
 
 ### Format
 
-`oslo fmt` will validate the provided OpenSLO YAML document.
+`oslo fmt` will format the provided OpenSLO YAML/JSON document(s).
 
 Example:
 
 ```sh
-oslo validate -f file1.yaml -f file2.yaml
+oslo fmt -f file1.yaml -f file2.yaml
 ```
