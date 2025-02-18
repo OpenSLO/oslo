@@ -1,0 +1,10 @@
+MD010:
+  code_blocks: false
+  spaces_per_tab: 1
+MD013:
+  line_length: 80
+  heading_line_length: 80
+  code_blocks: false
+MD024:
+  siblings_only: true
+siblings_only: true

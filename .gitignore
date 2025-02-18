@@ -20,6 +20,8 @@ node_modules
 bin/*
 ./oslo
 dist
+.devbox
+.envrc
 
 # OS specific
 ## macOS
