@@ -22,6 +22,7 @@ bin/*
 dist
 .devbox
 .envrc
+yarn.lock
 
 # OS specific
 ## macOS
