@@ -1,0 +1,11 @@
+FROM bats/bats:1.11.1
+
+RUN apk --no-cache --update add gettext
+
+WORKDIR /oslo
+
+COPY ./test ./test
+COPY --from=oslo-unit-test-bin /usr/bin/oslo /usr/bin/oslo
+
+# Required for bats pretty printing.
+ENV TERM=linux

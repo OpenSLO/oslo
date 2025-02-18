@@ -62,7 +62,9 @@ func readRawSchema(path string) ([]byte, error) {
 	case isStdin(path):
 		return io.ReadAll(os.Stdin)
 	case isURL(path):
-		resp, err := http.Get(path) //nolint:gosec,noctx
+		// nolint: gosec,noctx
+		// #nosec G107
+		resp, err := http.Get(path)
 		if err != nil {
 			return nil, err
 		}

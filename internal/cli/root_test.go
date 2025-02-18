@@ -63,7 +63,7 @@ Usage:
 Flags:
   -f, --file stringArray   The file(s) that contain the configurations.
   -h, --help               help for fmt
-  -o, --output string       The output format, one of [json, yaml]. (default "yaml")
+  -o, --output string      The output format, one of [json, yaml]. (default "yaml")
   -R, --recursive          Process the directory used in -f, --filename recursively. Useful when you want to manage related manifests organized within the same directory.
 `,
 			wantErr: false,

@@ -36,25 +36,35 @@ brew install openslo/openslo/oslo
 docker run -v "$(pwd):/manifests" ghcr.io/openslo/oslo:latest <command> /manifests/<file>.yaml
 ```
 
-For example, if you have an OpenSLO spec file in the current directory called `myservice.yaml`,
+For example, if you have an OpenSLO spec file in the current directory called `my-service.yaml`,
 and you wanted to validate it, the full command would be:
 
 ```sh
-docker run -v "$(pwd):/manifests" ghcr.io/openslo/oslo:latest validate -f /manifests/myservice.yaml
+docker run -v "$(pwd):/manifests" ghcr.io/openslo/oslo:latest validate -f /manifests/my-service.yaml
 # Valid!
 ```
 
 ### From source
 
-1. Checkout this repository.
-2. From the root of the project, run `make install`.  This will build and install
-the binary into your `GOPATH`.
+1. Clone this repository.
+2. From the root of the project, run `make install`.
+   This will build and install the binary into your `GOPATH`.
 
 ## Usage
 
 ### Validate
 
 `oslo validate` will validate the provided OpenSLO YAML document.
+
+Example:
+
+```sh
+oslo validate -f file1.yaml -f file2.yaml
+```
+
+### Format
+
+`oslo fmt` will validate the provided OpenSLO YAML document.
 
 Example:
 

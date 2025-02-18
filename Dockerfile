@@ -1,12 +1,21 @@
-FROM golang:1.20 as build
+FROM golang:1.24-alpine3.20 AS builder
 
-WORKDIR /go/src/oslo
-COPY . .
-RUN go mod download
-RUN CGO_ENABLED=0 go build -o /go/bin/oslo cmd/oslo/main.go
+WORKDIR /app
+
+COPY ./go.mod ./go.sum ./
+COPY ./cmd/oslo ./cmd/oslo
+COPY ./internal ./internal
+
+ARG LDFLAGS
+
+RUN CGO_ENABLED=0 go build \
+  -ldflags "${LDFLAGS}" \
+  -o /artifacts/oslo \
+  "${PWD}/cmd/oslo"
 
 
-FROM gcr.io/distroless/static-debian11
+FROM gcr.io/distroless/static-debian12
 
-COPY --from=build /go/bin/oslo /
-ENTRYPOINT ["/oslo"]
+COPY --from=builder /artifacts/oslo /usr/bin/oslo
+
+ENTRYPOINT ["oslo"]

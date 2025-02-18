@@ -1,6 +1,6 @@
 module github.com/OpenSLO/oslo
 
-go 1.23
+go 1.23.5
 
 require (
 	github.com/OpenSLO/go-sdk v0.1.0
