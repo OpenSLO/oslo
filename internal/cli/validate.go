@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/OpenSLO/go-sdk/pkg/openslosdk"
+
 	"github.com/OpenSLO/oslo/internal/files"
 )
 

@@ -13,13 +13,10 @@ import (
 //go:embed test-input
 var testInput string
 
-// This test is not run in parallel with others, because
-// one of the subtest modifies global variable os.Stdin.
-func TestReadConf(t *testing.T) { //nolint:tparallel
+func TestReadConf(t *testing.T) {
 	expectedContent := []byte(testInput)
 
 	t.Run("from filepath successfully", func(t *testing.T) {
-		t.Parallel()
 		const filePath = "./test-input"
 		content, err := readRawSchema(filePath)
 		require.NoErrorf(t, err, "can't read content from filepath %q", filePath)
@@ -27,7 +24,6 @@ func TestReadConf(t *testing.T) { //nolint:tparallel
 	})
 
 	t.Run("from URL successfully", func(t *testing.T) {
-		t.Parallel()
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := w.Write([]byte(testInput))
 			require.NoError(t, err, "http test server can't serve properly")
@@ -40,7 +36,6 @@ func TestReadConf(t *testing.T) { //nolint:tparallel
 	})
 
 	t.Run("from stdin successfully", func(t *testing.T) {
-		t.Parallel()
 		output, input, err := os.Pipe()
 		require.NoError(t, err, "failed to create a pipe for stdin mock")
 		_, err = input.Write(expectedContent)
