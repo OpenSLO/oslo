@@ -1,5 +1,5 @@
-github.com/OpenSLO/go-sdk v0.3.1 h1:cIBN5HUmTq3GS2nGSTJMoiPRAS8869l4rusoDLxcYzw=
-github.com/OpenSLO/go-sdk v0.3.1/go.mod h1:5GL8U4oFrtSffI5R5P7EPX5lo3Aj4l1AysX/HWYui/M=
+github.com/OpenSLO/go-sdk v0.5.0 h1:axbfvx7TJpKhEjTNvh1ohUw5fkXeKkP4iGVvevaVIqc=
+github.com/OpenSLO/go-sdk v0.5.0/go.mod h1:5GL8U4oFrtSffI5R5P7EPX5lo3Aj4l1AysX/HWYui/M=
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
