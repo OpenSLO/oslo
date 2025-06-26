@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"maps"
+	"os"
 	"slices"
 	"strings"
 
@@ -33,21 +35,27 @@ func NewValidateCmd() *cobra.Command {
 				return err
 			}
 			sources := slices.Sorted(maps.Keys(objectsPerSource))
+
+			hasErrors := false
 			for _, src := range sources {
 				objects := objectsPerSource[src]
 				switch len(objects) {
 				case 1:
-					if err := objects[0].Validate(); err != nil {
-						return fmt.Errorf("%s: \n- %w", src, err)
+					if err = objects[0].Validate(); err != nil {
+						hasErrors = true
+						printError(fmt.Errorf("Errors in %s: \n%s", src, indentString(err.Error(), 2)))
 					}
 				default:
-					if err := openslosdk.Validate(objects...); err != nil {
-						return fmt.Errorf("%s: \n- %s", src, indentString(err.Error(), 2))
+					if err = openslosdk.Validate(objects...); err != nil {
+						hasErrors = true
+						printError(fmt.Errorf("Errors in %s: \n%s", src, indentString(err.Error(), 2)))
 					}
 				}
 			}
-			fmt.Println("Valid!")
-			return nil
+			if !hasErrors {
+				fmt.Println("Valid!")
+			}
+			return errors.New("Configuration is not valid!")
 		},
 	}
 	registerFileRelatedFlags(validateCmd, &passedFilePaths, &recursive)
@@ -61,4 +69,8 @@ func indentString(s string, i int) string {
 		split[i] = indent + split[i]
 	}
 	return strings.Join(split, "\n")
+}
+
+func printError(err error) {
+	fmt.Fprintln(os.Stderr, err)
 }
