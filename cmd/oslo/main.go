@@ -4,8 +4,9 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/OpenSLO/oslo/internal/cli"
 	"github.com/spf13/cobra"
+
+	"github.com/OpenSLO/oslo/internal/cli"
 )
 
 // version is set during build time.
