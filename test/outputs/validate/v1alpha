@@ -1,0 +1,10 @@
+Errors in /oslo/test/inputs/validate/v1alpha.yaml:
+  Validation for v1alpha.Service 'my-rad service' at index 0 has failed for the following properties:
+    - 'metadata.name' with value 'my-rad service':
+      - string must match regular expression: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$' (e.g. 'my-name', '123-abc'); an RFC-1123 compliant label name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character
+  Validation for v1alpha.SLO 'ratio' at index 2 has failed for the following properties:
+    - 'spec.objectives[0].timeSliceTarget':
+      - property is required but was empty
+    - 'spec.objectives[0].value':
+      - property is required but was empty
+Error: Configuration is not valid!

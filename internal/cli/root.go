@@ -4,16 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute(version string) {
-	if version == "" {
-		version = "unknown"
-	}
-	cobra.CheckErr(newRootCmd(version).Execute())
-}
-
-func newRootCmd(version string) *cobra.Command {
+func NewRootCmd(version string) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:           "oslo",
 		Short:         "Oslo is a CLI tool for the OpenSLO specification",
@@ -22,8 +13,20 @@ func newRootCmd(version string) *cobra.Command {
 		Version:       version,
 	}
 
-	rootCmd.AddCommand(NewValidateCmd())
-	rootCmd.AddCommand(NewFmtCmd())
+	coreGroup := &cobra.Group{
+		ID:    "core",
+		Title: "Core commands:",
+	}
+	rootCmd.AddGroup(coreGroup)
+
+	subCommands := []*cobra.Command{
+		NewValidateCmd(),
+		NewFmtCmd(),
+	}
+	for _, subCmd := range subCommands {
+		subCmd.GroupID = coreGroup.ID
+		rootCmd.AddCommand(subCmd)
+	}
 
 	return rootCmd
 }

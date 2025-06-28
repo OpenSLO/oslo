@@ -43,17 +43,18 @@ func NewValidateCmd() *cobra.Command {
 				case 1:
 					if err = objects[0].Validate(); err != nil {
 						hasErrors = true
-						printError(fmt.Errorf("Errors in %s: \n%s", src, indentString(err.Error(), 2)))
+						printStderr(fmt.Errorf("Errors in %s:\n%s", src, indentString(err.Error(), 2)))
 					}
 				default:
 					if err = openslosdk.Validate(objects...); err != nil {
 						hasErrors = true
-						printError(fmt.Errorf("Errors in %s: \n%s", src, indentString(err.Error(), 2)))
+						printStderr(fmt.Errorf("Errors in %s:\n%s", src, indentString(err.Error(), 2)))
 					}
 				}
 			}
 			if !hasErrors {
-				fmt.Println("Valid!")
+				printStderr("Valid!")
+				return nil
 			}
 			return errors.New("Configuration is not valid!")
 		},
@@ -71,6 +72,6 @@ func indentString(s string, i int) string {
 	return strings.Join(split, "\n")
 }
 
-func printError(err error) {
+func printStderr(err any) {
 	fmt.Fprintln(os.Stderr, err)
 }

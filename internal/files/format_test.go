@@ -40,6 +40,11 @@ func TestFormatFiles(t *testing.T) {
     name: my-rad service
   spec:
     description: This is a great description of an even better service.
+- apiVersion: openslo/v1alpha
+  kind: Service
+  metadata:
+    name: this
+  spec: {}
 `,
 		},
 		{

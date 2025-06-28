@@ -8,7 +8,7 @@ setup() {
 }
 
 @test "oslo formats a single service" {
-  run oslo fmt -f "${TEST_SUITE_INPUTS}/v1/service/service.yaml"
+  run oslo fmt -f "${TEST_SUITE_INPUTS}/fmt/service.yaml"
   assert_success
   assert_output "$(cat "${TEST_SUITE_OUTPUTS}/fmt/service.yaml")"
 }

@@ -8,7 +8,7 @@ import (
 )
 
 //nolint:lll
-func Test_newRootCmd(t *testing.T) {
+func TestNewRootCmd(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name    string
@@ -55,11 +55,10 @@ Flags:
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Parallel testing
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			actual := new(bytes.Buffer)
-			root := newRootCmd("testVersion")
+			root := NewRootCmd("testVersion")
 			root.SetOut(actual)
 			root.SetErr(actual)
 			root.SetArgs(tt.args)

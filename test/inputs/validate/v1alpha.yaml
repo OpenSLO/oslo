@@ -1,0 +1,65 @@
+- apiVersion: openslo/v1alpha
+  kind: Service
+  metadata:
+    name: my-rad service
+    displayName: My Rad Service
+  spec:
+    description: This is a great description of an even better service.
+- apiVersion: openslo/v1alpha
+  kind: Service
+  metadata:
+    name: this
+---
+apiVersion: openslo/v1alpha
+kind: SLO
+metadata:
+  displayName: Ratio
+  name: ratio
+spec:
+  budgetingMethod: Timeslices
+  description: A great description of a ratio based SLO
+  objectives:
+  - ratioMetrics:
+      good:
+        source: prometheus
+        queryType: promql
+        query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globalaccount"}
+      incremental: true
+      total:
+        source: prometheus
+        queryType: promql
+        query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globalaccount"}
+    displayName: painful
+    target: 0.98
+  service: my-test-service
+  timeWindows:
+  - count: 28
+    isRolling: true
+    unit: Day
+---
+apiVersion: openslo/v1alpha
+kind: SLO
+metadata:
+  displayName: My amazing SLO
+  name: my-amazing-slo
+spec:
+  budgetingMethod: Occurrences
+  description: Latency Alert
+  indicator:
+    thresholdMetric:
+      source: prometheus
+      queryType: promql
+      query: latency_west_c7{code="ALL",instance="localhost:3000",job="prometheus",service="globalaccount"}
+  objectives:
+    - displayName: Weiner Shirt-zel Front Page
+      op: gt
+      target: 0.99
+      value: 2000
+  service: my-awesome-service
+  timeWindows:
+    - calendar:
+        startTime: 2021-05-01 00:00:00
+        timeZone: UTC
+      count: 1
+      isRolling: false
+      unit: Month
