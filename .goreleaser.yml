@@ -2,7 +2,7 @@ version: 2
 project_name: oslo
 
 builds:
-  - main: ./cmd/jslo
+  - main: ./cmd/oslo
     env:
       - CGO_ENABLED=0
     mod_timestamp: "{{ .CommitTimestamp }}"
