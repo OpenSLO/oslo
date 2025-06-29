@@ -1,35 +1,66 @@
+version: 2
+project_name: oslo
+
 builds:
-  - env:
+  - main: ./cmd/jslo
+    env:
       - CGO_ENABLED=0
-    main: ./cmd/oslo
-    binary: ./bin/oslo
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - "-s -w -X main.version={{.Version}}"
     goos:
+      - windows
       - linux
       - darwin
-      - windows
-    ldflags:
-      - -X main.version={{.Version}}
+    goarch:
+      - amd64
+      - arm64
+    binary: "{{ .ProjectName }}"
 
 archives:
-  - name_template: >-
-      {{- .ProjectName }}_
-      {{- .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-      {{- if .Mips }}_{{ .Mips }}{{ end -}}
+  - formats:
+      - binary
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: "{{ .ProjectName }}-{{ .Version }}.sha256"
+  algorithm: sha256
+
+release:
+  make_latest: false
+  draft: true
+  replace_existing_draft: false
+  prerelease: auto
+  github:
+    owner: OpenSLO
+    name: oslo
 
 brews:
-  - name: oslo
+  - name: "{{ .ProjectName }}"
     tap:
       owner: OpenSLO
       name: homebrew-OpenSLO
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    folder: Formula
+    directory: Formula
     homepage: https://github.com/OpenSLO/oslo
-    install: bin.install "bin/oslo"
+    install: |
+      bin.install Dir['{{ .ProjectName }}-{{ .Version }}-*'].first()  => "{{ .ProjectName }}"
+    test: |
+      assert_predicate bin/"{{ .ProjectName }}", :exist?
+      system "{{ .ProjectName }}", "--help"
     commit_author:
       name: goreleaserbot
       email: goreleaser@carlosbecker.com
-    description: "Command line tool for working with OpenSLO"
+    description: Command line client for OpenSLO schema files
+    caveats: |
+      Thank you for installing the command line client for OpenSLO!
+
+      To see help and a list of available commands type:
+        $ {{ .ProjectName }} help
+
+      For more information on how to use the command-line client
+      and the Nobl9 managed cloud service, visit:
+        https://github.com/OpenSLO/oslo
     license: "Apache-2.0"
