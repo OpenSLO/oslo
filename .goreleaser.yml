@@ -39,7 +39,7 @@ release:
 
 brews:
   - name: "{{ .ProjectName }}"
-    tap:
+    repository:
       owner: OpenSLO
       name: homebrew-OpenSLO
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
