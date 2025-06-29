@@ -1,24 +1,33 @@
-/*
-Copyright © 2021 OpenSLO Team
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package main
 
-import "github.com/OpenSLO/oslo/internal/cli"
+import (
+	"runtime/debug"
+	"strings"
 
+	"github.com/spf13/cobra"
+
+	"github.com/OpenSLO/oslo/internal/cli"
+)
+
+// version is set during build time.
 var version string
 
 func main() {
-	cli.Execute(version)
+	root := cli.NewRootCmd(getBuildVersion(version))
+	cobra.CheckErr(root.Execute())
+}
+
+func getBuildVersion(version string) string {
+	if version == "" {
+		version = getRuntimeVersion()
+	}
+	return strings.TrimSpace(version)
+}
+
+func getRuntimeVersion() string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok || info.Main.Version == "(devel)" {
+		return "0.0.0"
+	}
+	return strings.TrimPrefix(info.Main.Version, "v")
 }

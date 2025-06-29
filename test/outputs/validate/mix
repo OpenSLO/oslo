@@ -1,0 +1,13 @@
+Errors in /oslo/test/inputs/validate/mix/1.yaml:
+  Validation for v1alpha.Service 'example service' has failed for the following properties:
+    - 'metadata.name' with value 'example service':
+      - string must match regular expression: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$' (e.g. 'my-name', '123-abc'); an RFC-1123 compliant label name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character
+Errors in /oslo/test/inputs/validate/mix/2.yaml:
+  Validation for v1.Service 'example service' has failed for the following properties:
+    - 'metadata.name' with value 'example service':
+      - string must match regular expression: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$' (e.g. 'my-name', '123-abc'); an RFC-1123 compliant label name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character
+Errors in /oslo/test/inputs/validate/mix/3.yaml:
+  Validation for v2alpha.Service 'example service' has failed for the following properties:
+    - 'metadata.name' with value 'example service':
+      - string must match regular expression: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$' (e.g. 'my-name', '123-abc'); an RFC-1123 compliant label name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character
+Error: Configuration is not valid!

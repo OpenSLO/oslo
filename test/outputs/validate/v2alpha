@@ -1,0 +1,10 @@
+Errors in /oslo/test/inputs/validate/v2alpha.yaml:
+  Validation for v2alpha.SLO 'web-availability' at index 0 has failed for the following properties:
+    - 'spec.timeWindow[0].calendar.timeZone' with value 'America/New_York':
+      - string must be a valid IANA Time Zone Database code: unknown time zone America/New_York (e.g. 'UTC', 'America/New_York', 'Europe/Warsaw')
+    - 'spec.objectives[0].op' with value 'gt':
+      - property is forbidden
+  Validation for v2alpha.Service 'example service' at index 2 has failed for the following properties:
+    - 'metadata.name' with value 'example service':
+      - string must match regular expression: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$' (e.g. 'my-name', '123-abc'); an RFC-1123 compliant label name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character
+Error: Configuration is not valid!

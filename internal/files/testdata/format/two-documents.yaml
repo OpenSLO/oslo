@@ -1,0 +1,13 @@
+- apiVersion: openslo/v1
+  kind: Service
+  metadata:
+    name: my-service-1
+- apiVersion: openslo/v1
+  kind: Service
+  metadata:
+    name: my-service-2
+---
+apiVersion: openslo/v1
+kind: Service
+metadata:
+  name: my-service-3

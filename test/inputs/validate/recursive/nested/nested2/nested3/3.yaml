@@ -1,0 +1,6 @@
+- apiVersion: openslo.com/v2alpha
+  kind: Service
+  metadata:
+    name: example service
+  spec:
+    description: Example service description

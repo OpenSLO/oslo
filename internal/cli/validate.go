@@ -1,24 +1,16 @@
-/*
-Copyright © 2022 OpenSLO Team
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cli
 
 import (
+	"errors"
 	"fmt"
+	"maps"
+	"os"
+	"slices"
+	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/OpenSLO/go-sdk/pkg/openslosdk"
 
 	"github.com/OpenSLO/oslo/internal/files"
 )
@@ -38,19 +30,48 @@ func NewValidateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			objects, err := files.ReadObjects(discoveredFilePaths)
+			objectsPerSource, err := files.ReadObjects(discoveredFilePaths)
 			if err != nil {
 				return err
 			}
-			for _, obj := range objects {
-				if err := obj.Validate(); err != nil {
-					return err
+			sources := slices.Sorted(maps.Keys(objectsPerSource))
+
+			hasErrors := false
+			for _, src := range sources {
+				objects := objectsPerSource[src]
+				switch len(objects) {
+				case 1:
+					if err = objects[0].Validate(); err != nil {
+						hasErrors = true
+						printStderr(fmt.Errorf("Errors in %s:\n%s", src, indentString(err.Error(), 2)))
+					}
+				default:
+					if err = openslosdk.Validate(objects...); err != nil {
+						hasErrors = true
+						printStderr(fmt.Errorf("Errors in %s:\n%s", src, indentString(err.Error(), 2)))
+					}
 				}
 			}
-			fmt.Println("Valid!")
-			return nil
+			if !hasErrors {
+				printStderr("Valid!")
+				return nil
+			}
+			return errors.New("Configuration is not valid!")
 		},
 	}
 	registerFileRelatedFlags(validateCmd, &passedFilePaths, &recursive)
 	return validateCmd
+}
+
+func indentString(s string, i int) string {
+	indent := strings.Repeat(" ", i)
+	split := strings.Split(s, "\n")
+	for i := range split {
+		split[i] = indent + split[i]
+	}
+	return strings.Join(split, "\n")
+}
+
+func printStderr(err any) {
+	fmt.Fprintln(os.Stderr, err)
 }
