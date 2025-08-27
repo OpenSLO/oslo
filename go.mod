@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/OpenSLO/go-sdk v0.6.2
 	github.com/spf13/cobra v1.9.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 )
 
 require (
