@@ -18,7 +18,9 @@
     "**/node_modules/**",
     "**/*.lock",
     "package.json",
-    "test/inputs/**"
+    "test/inputs/**",
+    "go.mod",
+    "go.sum"
   ],
   "ignoreRegExpList": [
     "/\\|\\s+[T|G]{2,}\\s+\\|/g",
