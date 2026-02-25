@@ -17,7 +17,7 @@ jobs:
           go-version-file: go.mod
           check-latest: true
       - name: Release Binaries
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           version: latest
           args: release --clean
